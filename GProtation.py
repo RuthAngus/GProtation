@@ -65,8 +65,14 @@ def lnprob(theta, x, y, yerr):
 
 # lnlike
 def lnlike(theta, x, y, yerr):
-    chi2 = -.5*((y - model(theta, x, y, yerr)[0]/(yerr**2)))
-    return np.logaddexp.reduce(chi2, axis=0)
+    k = theta[0] * ExpSquaredKernel(theta[1]) \
+            * ExpSine2Kernel(theta[2], theta[3])
+    gp = george.GP(k)
+    try:
+        gp.compute(x, np.sqrt(theta[4]+yerr**2))
+    except (ValueError, np.linalg.LinAlgError):
+        return 10e25
+    return gp.lnlikelihood(y, quiet=True)
 
 # take x, y, yerr and initial guess and do MCMC
 def MCMC(theta_init, x, y, yerr, ID):
@@ -126,5 +132,5 @@ if __name__ == "__main__":
 #         if choose == "y": theta = theta
 #         else: theta = [1., 1., 1., p_init]
 
-        theta = [1., 1., 1., 8.]
+        theta = [1., 1., 1., 8., 1.]
         MCMC(np.array(theta), x, y, yerr, kid)
