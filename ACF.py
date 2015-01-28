@@ -6,60 +6,7 @@ import matplotlib.pyplot as plt
 import emcee
 import scipy.interpolate as spi
 import pyfits
-
-def interpolate(x, y, yerr):
-    # mean err
-    merr = np.mean(yerr)
-
-    # find gaps
-    diff = x[1:] - x[:-1]
-    mdiff = min(diff)  # sp.stats.mstats.mode(diff)
-    l = diff > 2*mdiff
-    m = l==False
-    t_int = np.mean(diff[m])
-
-    # these are the gaps
-    n = np.where(diff > 1.1*mdiff)[0]
-    m = np.where(diff < 1.1*mdiff)[0]
-
-    # big arrays
-    xb = x[:n[0]]
-    yb = y[:n[0]]
-
-    plt.clf()
-    plt.subplot(2, 1, 1)
-    plt.plot(x, y, "k.")
-
-    for i in range(len(n)-1):
-
-            # fill the gap
-            xgap = x[n[i]:n[i+1]+1]
-            ygap = y[n[i]:n[i+1]+1]
-#             if len(xgap) < 2:
-#                 print xgap, n[i], n[i+1], x[n[i+1]]-x[n[i]]
-#                 xgap = x[n[i]:n[i+1]+1]
-#                 ygap = y[n[i]:n[i+1]+1]
-
-            f = spi.interp1d(xgap, ygap)
-            xnew = np.arange(xgap[0], xgap[-1], t_int)
-            print len(xnew)
-            yerrnew = np.ones_like(xnew)*merr
-            ynew = f(xnew) + np.random.randn(len(xnew))*merr  # add noise
-
-            if len(xgap) < 2:
-                xb = np.append(xb, xnew[:-1])
-                yb = np.append(yb, ynew[:-1])
-            else:
-                xb = np.append(xb, xnew)
-                yb = np.append(yb, ynew)
-
-    plt.subplot(2, 1, 2)
-    plt.plot(xb, yb, "k.")
-    plt.savefig("test2")
-
-    diff = xb[1:] - xb[:-1]
-    print len(n), len(diff[diff<0.01]), len(diff[diff>0.03])
-    print len(x), len(np.unique(x))
+import glob
 
 def kplr_interp(x, y, yerr):
     t = np.arange(len(y))
@@ -70,25 +17,70 @@ def kplr_interp(x, y, yerr):
     return x, y, yerr
 
 # calculuate autocorrelation (assume evenly spaced)
-def acf(x, y):
-        LC = np.vstack((x, y))
-        return emcee.autocorr.function(LC, axis=0)
+def acf(y):
+    return emcee.autocorr.function(y)
 
-if __name__ == "__main__":
+# find all the peaks
+def peaky(x, y):
+    xp, yp = [], []
+    for i in range(len(y)-2):
+        if y[i+2] < y[i+1] and y[i] < y[i+1]:
+            xp.append(x[i+1])
+            yp.append(y[i+1])
+    return np.array(xp), np.array(yp)
 
-        DIR = "/Users/angusr/.kplr/data/lightcurves/010355856"
-        hdulist = pyfits.open("%s/kplr010355856-2013131215648_llc.fits" % DIR)
+def peak_select(xp, yp):
+    l = xp > xp[0]+1  # exclude region after 1st peak
+    xn = xp[l]
+    yn = yp[l]
+    if yn[1] > yn[0]:  # choose 2nd peak if it's higher
+        return xn[1:], yn[1:], xn[1]
+    return xn, yn, xn[0]
+
+def find_period(kid, x, y, yerr):
+
+        # interpolate
+        x, y, yerr = kplr_interp(x, y, yerr)
+
+        # find peaks
+        dt = np.median(np.diff(x))
+        f = acf(y)
+        xp, yp = peaky(dt*np.arange(len(f)), f)
+
+        # find period peak
+        xp, yp, p = peak_select(xp, yp)
+
+        # plot
+        plt.clf()
+        plt.plot(dt*np.arange(len(f)), f)
+        plt.axvline(p, color="r")
+        plt.savefig("%s_acf" % kid.zfill(9))
+
+        return p
+
+def load_fits(fname):
+        hdulist = pyfits.open(fname)
         tbdata = hdulist[1].data
         x = tbdata["TIME"]
         y = tbdata["PDCSAP_FLUX"]
         yerr = tbdata["PDCSAP_FLUX_ERR"]
         q = tbdata["SAP_QUALITY"]
+        return x, y, yerr
 
-        plt.clf()
-        plt.subplot(2, 1, 1)
-        plt.errorbar(x, y, yerr=yerr, fmt="k.")
+if __name__ == "__main__":
 
-        x, y, yerr = kplr_interp(x, y, yerr)
-        plt.subplot(2, 1, 2)
-        plt.errorbar(x, y, yerr=yerr, fmt="k.")
-        plt.savefig("test")
+        kid = "10355856"
+        DIR = "/Users/angusr/.kplr/data/lightcurves/%s" % kid.zfill(9)
+        fname = "%s/kplr%s-2013131215648_llc.fits" % (DIR, kid.zfill(9))
+        x, y, yerr = load_fits(fname)
+        p = find_period(kid, x, y, yerr)
+        print p
+
+        DIR = "/Users/angusr/angusr/data2/Q15_public"
+        fnames = glob.glob("%s/kplr0081*" % DIR)
+
+        for fname in fnames:
+            x, y, yerr = load_fits(fname)
+            kid = fname[42:51]
+            p = find_period(kid, x, y, yerr)
+            print kid, p
