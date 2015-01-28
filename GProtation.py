@@ -5,6 +5,8 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel
 import glob
 from ACF import load_fits
+import emcee
+import triangle
 
 from params import plot_params
 reb = plot_params()
@@ -52,7 +54,8 @@ def model(theta, x, y, yerr):
 
 # lnprior
 def lnprior(theta):
-    if 0 < theta[3] < 100:
+    if 1e-10 < theta[0] < 1e10 and 1e-10 < theta[1] < 1e10 and \
+            1e-10 < theta[2] < 1e10 and 0 < theta[3] < 100:
         return 0.0
     return -np.inf
 
@@ -62,15 +65,15 @@ def lnprob(theta, x, y, yerr):
 
 # lnlike
 def lnlike(theta, x, y, yerr):
-    chi2 = -.5*((y - model(theta, x, y, yerr)/(yerr**2))
-    return np.exp(chi2)
+    chi2 = -.5*((y - model(theta, x, y, yerr)[0]/(yerr**2)))
+    return np.logaddexp.reduce(chi2, axis=0)
 
 # take x, y, yerr and initial guess and do MCMC
 def MCMC(theta_init, x, y, yerr, ID):
 
     ndim, nwalkers = len(theta_init), 32
-    p0 = [par_true+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
-    args = (x, y, yerr, ID)
+    p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
+    args = (x, y, yerr)
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
 
     print("burning in...")
@@ -116,9 +119,12 @@ if __name__ == "__main__":
         yerr /= med
 
         # try optimising
-        p_init = raw_input("Enter initial guess for rotation period ")
-        theta = basic(x, y, yerr, p_init, kid)
-        print(theta)
-        choose = raw_input("Use these parameters? y/n ")
-        if choose == "y": theta = theta
-        else: theta = [1, 1, 1, p_init]
+#         p_init = float(raw_input("Enter initial guess for rotation period "))
+#         theta = basic(x, y, yerr, p_init, kid)
+#         print(theta)
+#         choose = raw_input("Use these parameters? y/n ")
+#         if choose == "y": theta = theta
+#         else: theta = [1., 1., 1., p_init]
+
+        theta = [1., 1., 1., 8.]
+        MCMC(np.array(theta), x, y, yerr, kid)
