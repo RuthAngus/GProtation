@@ -14,16 +14,17 @@ def wrapper(x, y, yerr, ID, DIR):
         y /= med
         yerr /= med
 
-        # try optimising
-        print(ID)
-        p_init = float(raw_input("Enter initial guess for rotation period "))
-        theta = basic(x, y, yerr, p_init, ID, DIR)
-        print(theta)
-        choose = raw_input("Use these parameters? y/n ")
-        if choose == "y": theta = theta
-        else: theta = [1., 1., 1., p_init, 1.]
+#         # try optimising
+#         print(ID)
+#         p_init = float(raw_input("Enter initial guess for rotation period "))
+#         theta = intitialisation(x, y, yerr, p_init, ID, DIR)
+#         print(theta)
+#         choose = raw_input("Use these parameters? y/n ")
+#         if choose == "y": theta = theta
+#         else: theta = [1., 1., 1., p_init, 1.]
 
 #         theta = [1., 1., 1., 8., 1.]
+        theta = np.log([1e-6, 20.**2, 20, 8., 1e-7])
         sampler = MCMC(np.array(theta), x, y, yerr, ID, DIR)
         make_plot(sampler, ID, DIR)
 
