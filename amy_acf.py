@@ -283,7 +283,9 @@ def corr_run(time, flux, id_list, tr_out = False, tr_type = None):
     t.add_column('harmonic_det', harmonic_det)
     t.add_column('amp_all', amp_all)
     t.add_column('amp_per', amp_per)
-    savefilen = '%s/acf/results.txt' % (dir)
+    savefilen = '%s/acf/%sresults.txt' % (dir, id_list)
+    np.savetxt("%/acf/%s_results.txt" % (dir, id_list),
+               np.transpose(period, dlag_per_err))
 #     atpy.asciitables.write_ascii(t, savefilen, delimiter = ' ', overwrite = True)
 
     return
