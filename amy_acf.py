@@ -208,6 +208,8 @@ def corr_run(time, flux, id_list, tr_out = False, tr_type = None):
 #         pylab.ylabel('Amplitudes')
         #pylab.savefig('%s/CoRoT/plots_acf/%sa%sKIC%s_full.png'\
         #% (dir, kid_x, Amps[z], names[y]))
+        pylab.title("%s" % period[x])
+        pylab.text(0.415, -1.4, '%s' % period[x])
         pylab.savefig('%s/acf/%s_full.png'\
                       % (DIR, id_list))
 
@@ -283,9 +285,9 @@ def corr_run(time, flux, id_list, tr_out = False, tr_type = None):
     t.add_column('harmonic_det', harmonic_det)
     t.add_column('amp_all', amp_all)
     t.add_column('amp_per', amp_per)
-    savefilen = '%s/acf/%sresults.txt' % (dir, id_list)
-    np.savetxt("%/acf/%s_results.txt" % (dir, id_list),
-               np.transpose(period, dlag_per_err))
+#     savefilen = '%s/acf/results.txt' % (dir)
+    np.savetxt("/Users/angusr/Python/GProtation/acf/%s_results.txt" % id_list,
+               np.transpose((period, dlag_per_err)))
 #     atpy.asciitables.write_ascii(t, savefilen, delimiter = ' ', overwrite = True)
 
     return

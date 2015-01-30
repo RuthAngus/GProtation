@@ -8,6 +8,7 @@ from ACF import load_fits
 import emcee
 import triangle
 import h5py
+import subprocess
 
 from params import plot_params
 reb = plot_params()
@@ -116,17 +117,7 @@ def MCMC(theta_init, x, y, yerr, ID, DIR):
 
     return sampler
 
-if __name__ == "__main__":
-
-    D = "/Users/angusr/angusr/data2/Q15_public"  # data directory
-    DIR = "/Users/angusr/Python/GProtation/mcmc"  # results directory
-    fnames = glob.glob("%s/kplr0081*" % D)
-
-    for fname in fnames:
-        x, y, yerr = load_fits(fname)
-        l = np.isfinite(x) * np.isfinite(y) * np.isfinite(yerr)
-        x, y, yerr = x[l], y[l], yerr[l]
-        kid = fname[42:51]
+def wrapper(x, y, yerr, ID, DIR):
 
         # subsample
         s = 10
@@ -138,14 +129,38 @@ if __name__ == "__main__":
         yerr /= med
 
         # try optimising
-
+        print(ID)
         p_init = float(raw_input("Enter initial guess for rotation period "))
-        theta = basic(x, y, yerr, p_init, kid, DIR)
+        theta = basic(x, y, yerr, p_init, ID, DIR)
         print(theta)
         choose = raw_input("Use these parameters? y/n ")
         if choose == "y": theta = theta
         else: theta = [1., 1., 1., p_init, 1.]
 
 #         theta = [1., 1., 1., 8., 1.]
-        sampler = MCMC(np.array(theta), x, y, yerr, kid, DIR)
-        make_plot(sampler, kid, DIR)
+        sampler = MCMC(np.array(theta), x, y, yerr, ID, DIR)
+        make_plot(sampler, ID, DIR)
+
+def kepler():
+    D = "/Users/angusr/angusr/data2/Q15_public"  # data directory
+    DIR = "/Users/angusr/Python/GProtation/mcmc"  # results directory
+    fnames = glob.glob("%s/kplr0081*" % D)
+
+    for fname in fnames:
+        x, y, yerr = load_fits(fname)
+        l = np.isfinite(x) * np.isfinite(y) * np.isfinite(yerr)
+        x, y, yerr = x[l], y[l], yerr[l]
+        kid = fname[42:51]
+        wrap(x, y, yerr, fname, DIR)
+
+if __name__ == "__main__":
+
+    D = "/Users/angusr/data/K2/c0corcutlcs"  # data directory
+    DIR = "/Users/angusr/Python/GProtation/mcmc"  # results directory
+    fnames = glob.glob("%s/ep*.csv" % D)
+
+    for fname in fnames:
+        x, y, empty = np.genfromtxt(fname, skip_header=1, delimiter=",").T
+        yerr = np.ones_like(y)*1e-5
+        ID = fname[36:45]
+        wrapper(x, y, yerr, ID, DIR)
