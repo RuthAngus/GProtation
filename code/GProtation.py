@@ -48,7 +48,6 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     mcmc_result = np.array([i[0] for i in mcmc_result])
     print(mcmc_result)
-    print(np.shape(mcmc_result))
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
     fig_labels = ["A", "l2", "l1", "s", "P"]

@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import george
-from george.kernels import ExpSine2Kernel, ExpSquaredKernel
+from george.kernels import CosineKernel, ExpSquaredKernel
 import glob
 import emcee
 import triangle
@@ -19,7 +19,7 @@ def lnprior(theta, plims):
     the rotation period. These are not logarithmic!
     """
     if -20 < theta[0] < 16 and -20 < theta[1] < 20 and -20 < theta[2] < 20 \
-    and -20 < theta[3] < 20 and np.log(plims[0]) < theta[4] < np.log(plims[1]):
+    and np.log(plims[0]) < theta[3] < np.log(plims[1]):
         return 0.
     return -np.inf
 
@@ -31,10 +31,10 @@ def lnprob(theta, x, y, yerr, plims):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
+            * Cosine_Kernel(theta[3])
     gp = george.GP(k)
     try:
-        gp.compute(x, np.sqrt(theta[3]+yerr**2))
+        gp.compute(x, np.sqrt(theta[2]+yerr**2))
     except (ValueError, np.linalg.LinAlgError):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
@@ -50,7 +50,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     print(mcmc_result)
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["A", "l2", "l1", "s", "P"]
+    fig_labels = ["A", "l", "s", "P"]
 
     if traces:
         print("Plotting traces")
