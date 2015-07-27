@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from GProtation import MCMC
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, CosineKernel
 
@@ -48,9 +47,11 @@ if __name__ == "__main__":
     if sine_kernel:
         pars = [1., 1., 1., 1., 7.]
         theta_init = [1., 1., 1., 1., 7.]
+        from GProtation import MCMC
     else:
         pars = [1., 1., 1., 7.]
         theta_init = [1., 1., 1., 7.]
+        from GProtation_cosine import MCMC
 
     x, y, yerr = generate(pars, sine_kernel=False)
     fit(theta_init, x, y, yerr, plims)
