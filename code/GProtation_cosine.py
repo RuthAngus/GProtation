@@ -8,10 +8,9 @@ import emcee
 import triangle
 import h5py
 import subprocess
-from params import plot_params
-reb = plot_params()
-from colours import plot_colours
-cols = plot_colours()
+from plotstuff import params, colours
+reb = params()
+cols = colours()
 
 def lnprior(theta, plims):
     """
@@ -31,7 +30,7 @@ def lnprob(theta, x, y, yerr, plims):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * Cosine_Kernel(theta[3])
+            * CosineKernel(theta[3])
     gp = george.GP(k)
     try:
         gp.compute(x, np.sqrt(theta[2]+yerr**2))
@@ -47,7 +46,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     mcmc_result = np.array([i[0] for i in mcmc_result])
-    print(mcmc_result)
+    print(mcmc_result), np.exp(mcmc_result), "exp_results"
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
     fig_labels = ["A", "l", "s", "P"]
@@ -58,7 +57,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
             plt.clf()
             plt.plot(sampler.chain[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
-            plt.savefig("%s/%s.png" % (DIR, fig_labels[i]))
+            plt.savefig("%s/%s_%s.png" % (DIR, ID, fig_labels[i]))
 
     print("Making triangle plot")
     fig = triangle.corner(flat, labels=fig_labels)
@@ -68,7 +67,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     print("plotting prediction")
     theta = np.exp(np.array(mcmc_result))
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[3])
+            * CosineKernel(theta[3])
     gp = george.GP(k)
     gp.compute(x, yerr)
     xs = np.linspace(x[0], x[-1], 1000)

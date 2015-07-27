@@ -17,7 +17,7 @@ def generate(pars, sine_kernel=True):
                 * ExpSine2Kernel(pars[2], pars[4])
     else:
         k = pars[0] * ExpSquaredKernel(pars[1]) \
-                * CosineKernel(pars[4])
+                * CosineKernel(pars[3])
     gp = george.GP(k)
     gp.compute(x, yerr)  # no added noise
     ys = gp.sample(x, 1) + np.random.randn(len(x))*yerr
@@ -26,7 +26,7 @@ def generate(pars, sine_kernel=True):
     plt.plot(x, ys, "k.")
     mu, cov = gp.predict(ys, x)
     plt.plot(x, mu)
-    plt.show()
+    plt.savefig("test_data")
     return x, ys, yerr
 
 def fit(theta_init, x, ys, yerr, plims):
@@ -36,8 +36,8 @@ def fit(theta_init, x, ys, yerr, plims):
     """
     theta_init = np.log(theta_init)
     DIR = "../figs"
-    sampler = MCMC(theta_init, x, ys, yerr, plims, 500, 500, "test", DIR)
-    make_plot(sampler, x, ys, yerr, int(kid), DIR, traces=True)
+    sampler = MCMC(theta_init, x, ys, yerr, plims, 200, 500, "test", DIR)
+    make_plot(sampler, x, ys, yerr, 1, DIR, traces=True)
 
 if __name__ == "__main__":
     # generate a fake lc and see if you can recover it
@@ -47,11 +47,11 @@ if __name__ == "__main__":
     if sine_kernel:
         pars = [1., 1., 1., 1., 7.]
         theta_init = [1., 1., 1., 1., 7.]
-        from GProtation import MCMC
+        from GProtation import MCMC, make_plot
     else:
         pars = [1., 1., 1., 7.]
         theta_init = [1., 1., 1., 7.]
-        from GProtation_cosine import MCMC
+        from GProtation_cosine import MCMC, make_plot
 
     x, y, yerr = generate(pars, sine_kernel=False)
     fit(theta_init, x, y, yerr, plims)
