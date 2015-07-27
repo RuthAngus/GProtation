@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, CosineKernel
 
-def generate(pars, sine_kernel=True):
+def generate_GP_sim(pars, sine_kernel=True):
     '''
     A function to generate a set of test data.
     '''
