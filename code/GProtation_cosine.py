@@ -43,11 +43,13 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
 
     nwalkers, nsteps, ndim = np.shape(sampler.chain)
     flat = sampler.flatchain
-    mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+    result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
-    mcmc_result = np.array([i[0] for i in mcmc_result])
+    print(result)
+    print(np.exp(np.array(result[-1]))), "period (days)"
+    mcmc_result = np.array([i[0] for i in result])
     print(np.exp(mcmc_result))
-    np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
+    np.savetxt("%s/%s_result.txt" % (DIR, ID), result)
 
     fig_labels = ["A", "l", "s", "P"]
 
@@ -72,11 +74,20 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     gp.compute(x, yerr)
     xs = np.linspace(x[0], x[-1], 1000)
     mu, cov = gp.predict(y, xs)
-    plt.clf()
-    plt.errorbar(x, y, yerr=yerr, **reb)
-    plt.plot(xs, mu, color=cols.blue)
+
+#     plt.clf()
+#     plt.errorbar(x, y, yerr=yerr, **reb)
+#     plt.plot(xs, mu, color=cols.blue)
+#     plt.show()
+
     plt.savefig("%s/%s_prediction" % (DIR, ID))
     print("%s/%s_prediction.png" % (DIR, ID))
+
+#     plt.clf()
+#     plt.plot(x, y, "k.")
+#     plt.show()
+#     assert 0
+    return result
 
 # take x, y, yerr and initial guess and do MCMC
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True):

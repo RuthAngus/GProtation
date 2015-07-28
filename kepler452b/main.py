@@ -45,15 +45,18 @@ def bin_data(x, y, yerr, npts):
         x, y, yerr = x[1:], y[1:], yerr[1:]
     return xb/npts, yb/npts, yerrb**.5/npts
 
-if __name__ == "__main__":
-    id = "8311864"
-    x, y, yerr = np.genfromtxt("%s_lc.txt" % id).T
-    x -= x[0]
+def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
+        cutoff=100, sine_kernel=False, acf=False):
+    """
+    takes x, y, yerr and initial guesses and priors for period and does
+    the full GP MCMC.
+    Tuning parameters include cutoff (number of days), npts (number of points
+    per bin).
+    """
 
-#     corr_run(x, y, yerr, id, "/Users/angusr/Python/GProtation/kepler452b")
-    plims = [2., 40.]
-    sine_kernel = False
-#     sine_kernel = True
+    # measure ACF period
+    if acf:
+        corr_run(x, y, yerr, id, "/Users/angusr/Python/GProtation/kepler452b")
 
     if sine_kernel:
         print "sine kernel"
@@ -65,8 +68,8 @@ if __name__ == "__main__":
         print "theta_init = ", np.log(theta_init)
         from GProtation_cosine import MCMC, make_plot
 
-    x, y, yerr = bin_data(x, y, yerr, 48)
-    m = x < 100
+    x, y, yerr = bin_data(x, y, yerr, npts)  # bin data
+    m = x < cutoff  # truncate
 
     plt.clf()
     plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
@@ -77,5 +80,24 @@ if __name__ == "__main__":
     if sine_kernel:
         DIR = "sine"
 
-    sampler = MCMC(theta_init, x[m], y[m], yerr[m], plims, 200, 1000, id, DIR)
-    make_plot(sampler, x[m], y[m], yerr[m], id, DIR, traces=True)
+    sampler = MCMC(theta_init, x[m], y[m], yerr[m], plims, burnin, run, id,
+                   DIR)
+    mcmc_result = make_plot(sampler, x[m], y[m], yerr[m], id, DIR, traces=True)
+
+if __name__ == "__main__":
+    id = "8311864"
+    x, y, yerr = np.genfromtxt("%s_lc.txt" % id).T
+    x -= x[0]
+
+    cutoff = 100
+    plims = [2., 60.]
+    p_init = 15.
+
+    # initialise with acf
+    corr_run(x, y, yerr, id, "acf")
+    p_init = np.genfromtxt("acf/%s_result.txt" % id)
+    print p_init
+
+    plims = [p_init[0]*.5, p_init[0]*2]
+    fit(x, y, yerr, id, p_init[0], plims, burnin=500, run=1500, npts=48,
+            cutoff=cutoff, sine_kernel=False, acf=False)
