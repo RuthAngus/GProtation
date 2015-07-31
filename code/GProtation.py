@@ -12,15 +12,27 @@ from params import plot_params
 reb = plot_params()
 from colours import plot_colours
 cols = plot_colours()
+import scipy.optimize as spo
 
 def lnprior(theta, plims):
     """
     plims is a tuple, list or array containing the lower and upper limits for
+    the rotation period. These are logarithmic!
+    """
+    if -20 < theta[0] < 20 and -20 < theta[1] < 20 and -20 < theta[2] < 20 \
+    and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1]:
+        return 0.
+    return -np.inf
+
+def Glnprior(theta, plims):
+    """
+    plims is a tuple, list or array containing the lower and upper limits for
     the rotation period. These are not logarithmic!
     """
-    if -20 < theta[0] < 16 and -20 < theta[1] < 20 and -20 < theta[2] < 20 \
+    if -20 < theta[0] < 16 and -10 < theta[1] < 1 and -20 < theta[2] < 20 \
     and -20 < theta[3] < 20 and np.log(plims[0]) < theta[4] < np.log(plims[1]):
-        return 0.
+        return -.5 * ((theta[4] - np.log(plims[2]))/(.5*np.log(plims[2])))**2 \
+                - .5 * ((theta[1] - .1*np.log(plims[2]))/(.1*plims[2]))**2
     return -np.inf
 
 # lnprob
@@ -39,6 +51,18 @@ def lnlike(theta, x, y, yerr):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
 
+# lnlike
+def neglnlike(theta, x, y, yerr):
+    theta = np.exp(theta)
+    k = theta[0] * ExpSquaredKernel(theta[1]) \
+            * ExpSine2Kernel(theta[2], theta[4])
+    gp = george.GP(k)
+    try:
+        gp.compute(x, np.sqrt(theta[3]+yerr**2))
+    except (ValueError, np.linalg.LinAlgError):
+        return 10e25
+    return -gp.lnlikelihood(y, quiet=True)
+
 # make various plots
 def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
 
@@ -47,6 +71,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     mcmc_result = np.array([i[0] for i in mcmc_result])
+    print("\n", np.exp(np.array(mcmc_result[-1])), "period (days)", "\n")
     print(mcmc_result)
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
@@ -58,7 +83,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
             plt.clf()
             plt.plot(sampler.chain[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
-            plt.savefig("%s/%s.png" % (DIR, fig_labels[i]))
+            plt.savefig("%s/%s_%s.png" % (DIR, ID, fig_labels[i]))
 
     print("Making triangle plot")
     fig = triangle.corner(flat, labels=fig_labels)
@@ -68,19 +93,47 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     print("plotting prediction")
     theta = np.exp(np.array(mcmc_result))
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[3])
+            * ExpSine2Kernel(theta[2], theta[4])
     gp = george.GP(k)
     gp.compute(x, yerr)
     xs = np.linspace(x[0], x[-1], 1000)
     mu, cov = gp.predict(y, xs)
     plt.clf()
     plt.errorbar(x, y, yerr=yerr, **reb)
+    plt.xlabel("$\mathrm{Time~(days)}$")
+    plt.ylabel("$\mathrm{Normalised~Flux}$")
     plt.plot(xs, mu, color=cols.blue)
     plt.savefig("%s/%s_prediction" % (DIR, ID))
     print("%s/%s_prediction.png" % (DIR, ID))
 
 # take x, y, yerr and initial guess and do MCMC
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True):
+
+    print("plotting inits")
+    print(np.exp(theta_init))
+    t = np.exp(theta_init)
+    k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
+    gp = george.GP(k)
+    gp.compute(x, yerr)
+    xs = np.linspace(x[0], x[-1], 1000)
+    mu, cov = gp.predict(y, xs)
+
+    plt.clf()
+    plt.errorbar(x, y, yerr=yerr, **reb)
+    plt.plot(xs, mu, color=cols.blue)
+
+    args = (x, y, yerr)
+    results = spo.minimize(neglnlike, theta_init, args=args)
+    print(results.x)
+
+    r = np.exp(results.x)
+    k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
+    gp = george.GP(k)
+    gp.compute(x, yerr)
+    mu, cov = gp.predict(y, xs)
+    plt.plot(xs, mu, color=cols.pink, alpha=.5)
+    plt.savefig("%s/%s_init" % (DIR, ID))
+    print("%s/%s_init.png" % (DIR, ID))
 
     ndim, nwalkers = len(theta_init), 32
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
