@@ -10,15 +10,8 @@ def recover_injections():
     for i, id in enumerate(ids):
         x, y = np.genfromtxt("simulations/%s.txt" % int(id)).T
         yerr = np.ones_like(y) * 1e-5
-        x -= x[0]
-        cutoff = 100
 
         print "true period = ", true_ps[i]
-
-        m = x < cutoff
-#         plt.clf()
-#         plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0, ecolor=".7")
-#         plt.show()
 
         # initialise with acf
         try:
@@ -29,9 +22,27 @@ def recover_injections():
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         print "acf period, err = ", p_init
 
-        plims = [p_init[0]*.5, p_init[0]*2.]
-        fit(x, y, yerr, int(id), p_init[0], plims, burnin=500, run=1500, npts=48,
-                cutoff=cutoff, sine_kernel=False, acf=False)
+        plims = [p_init[0]*.7, p_init[0]*1.5]
+        npts = int(p_init[0] / 10. * 48)  # 10 points per period
+        cutoff = 10 * p_init[0]
+        fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims),
+                burnin=1000, run=1500, npts=npts, cutoff=cutoff,
+                sine_kernel=True, acf=False)
+
+# def compare_truth(N=100):
+#     truth = np.genfromtxt("simulations/true_periods.txt").T
+#     acf_periods, GP_periods = [], []
+#     for i in range(N):
+#         print str(i).zfill(4)
+#
+#         acf = np.genfromtxt("simulations/%s.txt" float(i)).T
+#         print acf
+#
+#         GP = np.genfromtxt("simulations/%s_result.txt" str(i).zfill(4)).T
+#         print GP
+#
+#         assert 0
+#         acf_periods.append(acf)
 
 if __name__ == "__main__":
     recover_injections()
