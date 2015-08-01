@@ -68,11 +68,11 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
         print "theta_init = ", np.log(theta_init)
         from GProtation_cosine import MCMC, make_plot
 
-    x, y, yerr = bin_data(x, y, yerr, npts)  # bin data
-    m = x < cutoff  # truncate
+    xb, yb, yerrb = bin_data(x, y, yerr, npts)  # bin data
+    m = xb < cutoff  # truncate
 
     plt.clf()
-    plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
+    plt.errorbar(xb[m], yb[m], yerr=yerrb[m], fmt="k.", capsize=0)
     plt.savefig("lc")
 
     theta_init = np.log(theta_init)
@@ -80,8 +80,9 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
     if sine_kernel:
         DIR = "sine"
 
-    sampler = MCMC(theta_init, x[m], y[m], yerr[m], plims, burnin, run, id,
+    sampler = MCMC(theta_init, xb[m], yb[m], yerrb[m], plims, burnin, run, id,
                    DIR)
+    m = x < cutoff
     mcmc_result = make_plot(sampler, x[m], y[m], yerr[m], id, DIR, traces=True)
 
 if __name__ == "__main__":
@@ -90,14 +91,12 @@ if __name__ == "__main__":
     x -= x[0]
 
     cutoff = 100
-    plims = [2., 60.]
-    p_init = 15.
 
     # initialise with acf
     corr_run(x, y, yerr, id, "acf")
     p_init = np.genfromtxt("acf/%s_result.txt" % id)
     print p_init
 
-    plims = [p_init[0]*.5, p_init[0]*2]
+    plims = [p_init[0]*.7, p_init[0]*1.5]
     fit(x, y, yerr, id, p_init[0], plims, burnin=500, run=1500, npts=48,
             cutoff=cutoff, sine_kernel=False, acf=False)

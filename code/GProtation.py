@@ -64,10 +64,14 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
+def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
+              prediction=True):
 
-    nwalkers, nsteps, ndim = np.shape(sampler.chain)
-    flat = sampler.flatchain
+#     nwalkers, nsteps, ndim = np.shape(sampler.chain)
+#     flat = sampler.flatchain
+
+    nwalkers, nsteps, ndims = np.shape(sampler)
+    flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     mcmc_result = np.array([i[0] for i in mcmc_result])
@@ -79,61 +83,71 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
 
     if traces:
         print("Plotting traces")
-        for i in range(ndim):
+        for i in range(ndims):
             plt.clf()
-            plt.plot(sampler.chain[:, :, i].T, 'k-', alpha=0.3)
+#             plt.plot(sampler.chain[:, :, i].T, 'k-', alpha=0.3)
+            plt.plot(sampler[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
             plt.savefig("%s/%s_%s.png" % (DIR, ID, fig_labels[i]))
 
-    print("Making triangle plot")
-    fig = triangle.corner(flat, labels=fig_labels)
-    fig.savefig("%s/%s_triangle" % (DIR, ID))
-    print("%s/%s_triangle.png" % (DIR, ID))
+    if tri:
+        print("Making triangle plot")
+        fig = triangle.corner(flat, labels=fig_labels)
+        fig.savefig("%s/%s_triangle" % (DIR, ID))
+        print("%s/%s_triangle.png" % (DIR, ID))
 
-    print("plotting prediction")
-    theta = np.exp(np.array(mcmc_result))
-    k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
-    gp = george.GP(k)
-    gp.compute(x, yerr)
-    xs = np.linspace(x[0], x[-1], 1000)
-    mu, cov = gp.predict(y, xs)
-    plt.clf()
-    plt.errorbar(x, y, yerr=yerr, **reb)
-    plt.xlabel("$\mathrm{Time~(days)}$")
-    plt.ylabel("$\mathrm{Normalised~Flux}$")
-    plt.plot(xs, mu, color=cols.blue)
-    plt.savefig("%s/%s_prediction" % (DIR, ID))
-    print("%s/%s_prediction.png" % (DIR, ID))
+    if prediction:
+        print("plotting prediction")
+        theta = np.exp(np.array(mcmc_result))
+        k = theta[0] * ExpSquaredKernel(theta[1]) \
+                * ExpSine2Kernel(theta[2], theta[4])
+        gp = george.GP(k)
+        gp.compute(x, yerr)
+        xs = np.linspace(x[0], x[-1], 1000)
+        mu, cov = gp.predict(y, xs)
+        plt.clf()
+        plt.errorbar(x, y, yerr=yerr, **reb)
+        plt.xlabel("$\mathrm{Time~(days)}$")
+        plt.ylabel("$\mathrm{Normalised~Flux}$")
+        plt.plot(xs, mu, color=cols.blue)
+        plt.title("%s" % np.exp(mcmc_result[-1]))
+        plt.savefig("%s/%s_prediction" % (DIR, ID))
+        print("%s/%s_prediction.png" % (DIR, ID))
 
 # take x, y, yerr and initial guess and do MCMC
-def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True):
+def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True,
+         plot_inits=False):
 
-    print("plotting inits")
-    print(np.exp(theta_init))
-    t = np.exp(theta_init)
-    k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
-    gp = george.GP(k)
-    gp.compute(x, yerr)
-    xs = np.linspace(x[0], x[-1], 1000)
-    mu, cov = gp.predict(y, xs)
+    print("\n", "log(theta_init) = ", theta_init)
+    print("theta_init = ", np.exp(theta_init), "\n")
 
-    plt.clf()
-    plt.errorbar(x, y, yerr=yerr, **reb)
-    plt.plot(xs, mu, color=cols.blue)
+    if plot_inits:  # plot initial guess and the result of minimize
+        print("plotting inits")
+        print(np.exp(theta_init))
+        t = np.exp(theta_init)
+        k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
+        gp = george.GP(k)
+        gp.compute(x, yerr)
+        xs = np.linspace(x[0], x[-1], 1000)
+        mu, cov = gp.predict(y, xs)
 
-    args = (x, y, yerr)
-    results = spo.minimize(neglnlike, theta_init, args=args)
-    print(results.x)
+        plt.clf()
+        plt.errorbar(x, y, yerr=yerr, **reb)
+        plt.plot(xs, mu, color=cols.blue)
 
-    r = np.exp(results.x)
-    k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
-    gp = george.GP(k)
-    gp.compute(x, yerr)
-    mu, cov = gp.predict(y, xs)
-    plt.plot(xs, mu, color=cols.pink, alpha=.5)
-    plt.savefig("%s/%s_init" % (DIR, ID))
-    print("%s/%s_init.png" % (DIR, ID))
+        args = (x, y, yerr)
+        results = spo.minimize(neglnlike, theta_init, args=args)
+        print("optimisation results = ", results.x)
+
+        r = np.exp(results.x)
+        k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
+        gp = george.GP(k)
+        gp.compute(x, yerr)
+
+        mu, cov = gp.predict(y, xs)
+        plt.plot(xs, mu, color=cols.pink, alpha=.5)
+        plt.savefig("%s/%s_init" % (DIR, ID))
+        print("%s/%s_init.png" % (DIR, ID))
 
     ndim, nwalkers = len(theta_init), 32
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]

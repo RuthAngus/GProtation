@@ -5,6 +5,7 @@ client = kplr.API()
 import pyfits
 import glob
 from Kepler_ACF import corr_run
+import h5py
 
 def get_data(id):
     fnames = glob.glob("/Users/angusr/.kplr/data/lightcurves/00%s/*" % id)
@@ -26,7 +27,8 @@ def get_data(id):
         flux = t["PDCSAP_FLUX"]
         flux_err = t["PDCSAP_FLUX_ERR"]
         q = t["SAP_QUALITY"]
-        m = np.isfinite(time) * np.isfinite(flux) * np.isfinite(flux_err) * (q==0)
+        m = np.isfinite(time) * np.isfinite(flux) * np.isfinite(flux_err) * \
+                (q==0)
         x = np.concatenate((x, time[m]))
         med = np.median(flux[m])
         y = np.concatenate((y, flux[m]/med - 1))
@@ -46,7 +48,7 @@ def bin_data(x, y, yerr, npts):
     return xb/npts, yb/npts, yerrb**.5/npts
 
 def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
-        cutoff=100, sine_kernel=False, acf=False):
+        cutoff=100, sine_kernel=False, acf=False, runMCMC=True, plot=False):
     """
     takes x, y, yerr and initial guesses and priors for period and does
     the full GP MCMC.
@@ -78,7 +80,15 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
         DIR = "sine"
 
     print theta_init
-    sampler = MCMC(theta_init, xb[m], yb[m], yerrb[m], plims, burnin, run, id,
-                   DIR)
-    m = x < cutoff
-    mcmc_result = make_plot(sampler, x[m], y[m], yerr[m], id, DIR, traces=True)
+    if runMCMC:
+        sampler = MCMC(theta_init, xb[m], yb[m], yerrb[m], plims, burnin, run,
+                       id, DIR)
+
+    # make various plots
+    if plot:
+        with h5py.File("%s/%s_samples.h5" % (DIR, str(int(id)).zfill(4)),
+                       "r") as f:
+            samples = f["samples"][...]
+        m = x < cutoff
+        mcmc_result = make_plot(samples, x[m], y[m], yerr[m], id, DIR,
+                                traces=False, triangle=False, prediction=True)

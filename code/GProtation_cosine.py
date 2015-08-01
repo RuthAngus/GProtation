@@ -12,6 +12,14 @@ from plotstuff import params, colours
 reb = params()
 cols = colours()
 
+plotpar = {'axes.labelsize': 25,
+           'font.size': 25,
+           'legend.fontsize': 25,
+           'xtick.labelsize': 25,
+           'ytick.labelsize': 25,
+           'text.usetex': True}
+plt.rcParams.update(plotpar)
+
 def lnprior(theta, plims):
     """
     plims is a tuple, list or array containing the lower and upper limits for
@@ -46,7 +54,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     print(result)
-    print(np.exp(np.array(result[-1]))), "period (days)"
+    print("\n", np.exp(np.array(result[-1])), "period (days)", "\n")
     mcmc_result = np.array([i[0] for i in result])
     print(np.exp(mcmc_result))
     np.savetxt("%s/%s_result.txt" % (DIR, ID), result)
@@ -74,19 +82,19 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False):
     gp.compute(x, yerr)
     xs = np.linspace(x[0], x[-1], 1000)
     mu, cov = gp.predict(y, xs)
+    sig = np.sqrt(np.diag(cov))
 
-#     plt.clf()
-#     plt.errorbar(x, y, yerr=yerr, **reb)
-#     plt.plot(xs, mu, color=cols.blue)
-#     plt.show()
+    print(sig)
 
+    plt.clf()
+    plt.errorbar(x, y, yerr=yerr, alpha=.5, **reb)
+    plt.plot(xs, mu, color=cols.lightblue, linewidth=3)
+    plt.subplots_adjust(bottom=.2, left=.2, top=.9, right=.9)
+    plt.xlabel("$\mathrm{Time~(days)}$")
+    plt.ylabel("$\mathrm{Normalised~flux}$")
     plt.savefig("%s/%s_prediction" % (DIR, ID))
     print("%s/%s_prediction.png" % (DIR, ID))
 
-#     plt.clf()
-#     plt.plot(x, y, "k.")
-#     plt.show()
-#     assert 0
     return result
 
 # take x, y, yerr and initial guess and do MCMC
