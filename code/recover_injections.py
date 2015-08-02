@@ -61,25 +61,26 @@ def periodograms(N=100, plot=False, savepgram=True):
                np.transpose((ids, periods)))
     return periods
 
-def recover_injections(start, stop, runMCMC=True, plot=False):
+def recover_injections(start, stop, N=1000, runMCMC=True, plot=False):
     """
     run MCMC on each star, initialising with the ACF period
     Next you could try running for longer, using more of the lightcurve,
     subsampling less, etc
     """
-    ids, true_ps, true_as = np.genfromtxt("simulations/true_periods.txt").T
+#     ids, true_ps, true_as = np.genfromtxt("simulations/true_periods.txt").T
+    ids = range(N)
 
     if start == 0: id_list = ids[:stop]
-    elif stop == 1000: id_list = ids[start:]
+    elif stop == N: id_list = ids[start:]
     else: id_list = ids[start:stop]
     for id in id_list:
         print "\n", "star id = ", id
 
         # load simulated data
-        x, y = np.genfromtxt("simulations/%s.txt" % int(id)).T
+        x, y = np.genfromtxt("simulations/%s.txt" % str(int(id)).zfill(4)).T
         yerr = np.ones_like(y) * 1e-5
 
-        print "true period = ", true_ps[int(id)]
+#         print "true period = ", true_ps[int(id)]
 
         # initialise with acf
         try:
@@ -94,7 +95,7 @@ def recover_injections(start, stop, runMCMC=True, plot=False):
         npts = int(p_init[0] / 10. * 48)  # 10 points per period
         cutoff = 10 * p_init[0]
         fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims),
-                burnin=1000, run=1500, npts=npts, cutoff=cutoff,
+                burnin=2000, run=5000, npts=npts, cutoff=cutoff,
                 sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
 
 def collate(N):
@@ -178,8 +179,8 @@ if __name__ == "__main__":
 #     periodograms(N=1000, plot=True, savepgram=True)
 
     # run full MCMC recovery
-    start = sys.argv[1]
-    stop = sys.argv[2]
+    start = int(sys.argv[1])
+    stop = int(sys.argv[2])
     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
