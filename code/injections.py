@@ -24,7 +24,7 @@ def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
 
     std = 1e-5
     yerr = np.ones_like(time)*std
-    flux = np.zeros_like(x) + np.random.randn(len(time))*std
+    flux = np.zeros_like(time) + np.random.randn(len(time))*std
 
     for i, p in enumerate(periods):
         print i, "of ", len(periods), "\n"
