@@ -8,10 +8,9 @@ import emcee
 import triangle
 import h5py
 import subprocess
-from params import plot_params
-reb = plot_params()
-from colours import plot_colours
-cols = plot_colours()
+from plotstuff import params, colours
+reb = params()
+cols = colours()
 import scipy.optimize as spo
 
 def lnprior(theta, plims):
