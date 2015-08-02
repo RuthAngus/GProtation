@@ -8,6 +8,7 @@ reb = params()
 cols = colours()
 from gatspy.periodic import LombScargle
 import sys
+from simple_acf import simple_acf
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -22,19 +23,25 @@ def my_acf(N=100):
     periods = []
     for id in ids:
         print "\n", id, "of", N
-        x, y = np.genfromtxt("simulations/%s.txt" % float(id)).T
-        period, _, _, _ = simple_acf()
+        x, y = np.genfromtxt("simulations/%s.txt" % id).T
+        period, _, _, _ = simple_acf(x, y)
         periods.append(period)
         print period
+        np.savetxt("simulations/%s_myacf_results.txt" % str(int(id)).zfill(4))
     np.savetxt("simulations/myacf_results.txt",
                np.transpose((ids, np.array(periods))))
 
-def periodograms(N=100, plot=False, savepgram=True):
+def periodograms(N=100, plot=False, savepgram=False):
 
     ids = np.arange(N)
     periods = []
     for id in ids:
         print "\n", id, "of", N
+
+        # load simulated data
+        x, y = np.genfromtxt("simulations/%s.txt" % id).T
+        yerr = np.ones_like(y) * 1e-5
+
         # initialise with acf
         try:
             p_init = np.genfromtxt("simulations/%s_result.txt" % float(id))
@@ -43,10 +50,6 @@ def periodograms(N=100, plot=False, savepgram=True):
                      "/Users/angusr/Python/GProtation/code/simulations")
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         print "acf period, err = ", p_init
-
-        # load simulated data
-        x, y = np.genfromtxt("simulations/%s.txt" % int(id)).T
-        yerr = np.ones_like(y) * 1e-5
 
         ps = np.linspace(p_init[0]*.1, p_init[0]*4, 1000)
         model = LombScargle().fit(x, y, yerr)
@@ -69,6 +72,7 @@ def periodograms(N=100, plot=False, savepgram=True):
             np.savetxt("simulations/%s_pgram.txt" % str(int(id)).zfill(4),
                        np.transpose((ps, pgram)))
 
+        np.savetxt("simulations/%s_pgram_results.txt" % str(int(id)).zfill(4))
     np.savetxt("simulations/periodogram_results.txt",
                np.transpose((ids, periods)))
     return periods
@@ -153,11 +157,13 @@ def compare_truth(N=100, coll=True):
         acf_results, gp_results = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
-#         _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
-#         _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
     s = true_a[:N]*1000
@@ -170,7 +176,10 @@ def compare_truth(N=100, coll=True):
                  fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
 #     plt.scatter(true_p[:N], acf_p, color=cols.pink, s=s, alpha=.7)
 #     plt.scatter(true_p[:N], gp_p, color=cols.blue, s=s, alpha=.7)
-#     plt.scatter(true_p[:N], p_p, color=cols.orange, s=s, alpha=.7)
+    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=s, alpha=.7,
+                label="$\mathrm{Pgram}$")
+    plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
+                label="$\mathrm{simple}$")
     plt.plot(xs, xs, ".7", ls="--")
     plt.plot(xs, 2*xs, ".7", ls="--")
     plt.plot(xs, .5*xs, ".7", ls="--")
@@ -188,15 +197,15 @@ if __name__ == "__main__":
 #              amax=1e-1, nsim=100)
 
     # measure periods using the periodogram method
-#     periodograms(N=1000, plot=True, savepgram=True)
+#     periodograms(N=100, plot=False, savepgram=False)
 
     # measure periods using simple_acf
 #     my_acf(N=100)
 
     # run full MCMC recovery
-    start = int(sys.argv[1])
-    stop = int(sys.argv[2])
-    recover_injections(start, stop, runMCMC=True, plot=False)
+#     start = int(sys.argv[1])
+#     stop = int(sys.argv[2])
+#     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-#     compare_truth(N=99, coll=False)
+    compare_truth(N=99, coll=False)
