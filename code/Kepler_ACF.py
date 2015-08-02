@@ -33,9 +33,9 @@ jump_arr = scipy.array([131.51139, 169.51883, 169.75000, 182.00000, 200.31000,
                        874.50000, 906.84469, 937.00000, 970.00000, 1001.20718,
                        1032.50000, 1063.50000 ,1071.00000, 1093.60000])
 
-def corr_run(time, flux, flux_err):
+def corr_run(time, flux, flux_err, id, savedir):
 
-    id_list = ["0"]
+    id_list = [id]
     # Create empty arrays
     acf_peak_per = scipy.ones(len(id_list)) * -9999.0
     sine_per = scipy.ones(len(id_list)) * -9999.0
@@ -181,8 +181,8 @@ def corr_run(time, flux, flux_err):
         pylab.text(0.415, -1.4, 'Period (days)', transform = ax.transAxes)
         pylab.ylabel('Amplitudes')
 
-#         print "saving figure", "%s/%s_full.png"%(savedir, id_list)
-#         pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
+        print "saving figure", "%s/%s_full.png"%(savedir, id_list)
+        pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
 
         maxpts = 40.0
         if scipy.floor(lc_tab.time.max() / acf_peak_per[x]) < maxpts:
@@ -204,9 +204,9 @@ def corr_run(time, flux, flux_err):
         else: error = dlag_per_err[x]
 
         print 'PERIOD = ', period[x], '+/-', error,
-#         print 'saving as', '%s/%s_result.txt'%(savedir, id_list[0])
-#         np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
-#                    np.transpose((period[x], error)))
+        print 'saving as', '%s/%s_result.txt'%(savedir, id_list[0])
+        np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
+                   np.transpose((period[x], error)))
     else:
         blank = np.array([0,0])
 #         np.savetxt('%s/%s_result.txt' %(savedir, id_list[0]), blank)
