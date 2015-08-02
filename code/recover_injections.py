@@ -7,6 +7,7 @@ from plotstuff import params, colours
 reb = params()
 cols = colours()
 from gatspy.periodic import LombScargle
+import sys
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -60,7 +61,7 @@ def periodograms(N=100, plot=False, savepgram=True):
                np.transpose((ids, periods)))
     return periods
 
-def recover_injections(runMCMC=True, plot=False):
+def recover_injections(start, stop, runMCMC=True, plot=False):
     """
     run MCMC on each star, initialising with the ACF period
     Next you could try running for longer, using more of the lightcurve,
@@ -68,7 +69,10 @@ def recover_injections(runMCMC=True, plot=False):
     """
     ids, true_ps, true_as = np.genfromtxt("simulations/true_periods.txt").T
 
-    for id in ids[27:]:
+    if start == 0: id_list = ids[:stop]
+    elif stop == 1000: id_list = ids[start:]
+    else: id_list = ids[start:stop]
+    for id in id_list:
         print "\n", "star id = ", id
 
         # load simulated data
@@ -81,8 +85,7 @@ def recover_injections(runMCMC=True, plot=False):
         try:
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         except:
-            corr_run(x, y, yerr, id,
-                     "/Users/angusr/Python/GProtation/code/simulations")
+            corr_run(x, y, yerr, id, "simulations")
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         print "acf period, err = ", p_init
 
@@ -172,10 +175,12 @@ if __name__ == "__main__":
 #              amax=1e-1, nsim=100)
 
     # measure periods using the periodogram method
-#     periodograms(N=100, plot=True, savepgram=True)
+#     periodograms(N=1000, plot=True, savepgram=True)
 
     # run full MCMC recovery
-#     recover_injections(runMCMC=True, plot=False)
+    start = sys.argv[1]
+    stop = sys.argv[2]
+    recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(N=99, coll=False)
+#     compare_truth(N=99, coll=False)
