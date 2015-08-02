@@ -21,9 +21,10 @@ def periodograms(N=100, plot=False, savepgram=True):
     ids = np.arange(N)
     periods = []
     for id in ids:
+        print "\n", id, "of", N
         # initialise with acf
         try:
-            p_init = np.genfromtxt("simulations/%s_result.txt" % id)
+            p_init = np.genfromtxt("simulations/%s_result.txt" % float(id))
         except:
             corr_run(x, y, yerr, id,
                      "/Users/angusr/Python/GProtation/code/simulations")
@@ -34,30 +35,27 @@ def periodograms(N=100, plot=False, savepgram=True):
         x, y = np.genfromtxt("simulations/%s.txt" % int(id)).T
         yerr = np.ones_like(y) * 1e-5
 
-        ps = np.linspace(p_init*.1, p_init*4, 1000)
+        ps = np.linspace(p_init[0]*.1, p_init[0]*4, 1000)
         model = LombScargle().fit(x, y, yerr)
         pgram = model.periodogram(ps)
 
         # find peaks
         peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                          pgram[i] and pgram[i+1] < pgram[i]])
-        period = ps[peaks==max(peaks)]
+        period = ps[pgram==max(pgram[peaks])][0]
         periods.append(period)
-        print period
+        print "pgram period = ", period
 
         if plot:
             plt.clf()
             plt.plot(ps, pgram)
-            for peak in peaks:
-                plt.axvline(ps[peak], color="r", alpha=.5)
-            plt.axvline(period, color="k")
+            plt.axvline(period, color="r")
             plt.savefig("simulations/%s_pgram" % str(int(id)).zfill(4))
 
         if savepgram:
-            np.savetxt("simulations/%s_pgram.txt" % str(int(id)).zfill)4),
+            np.savetxt("simulations/%s_pgram.txt" % str(int(id)).zfill(4),
                        np.transpose((ps, pgram)))
 
-        assert 0
     np.savetxt("simulations/periodogram_results.txt",
                np.transpose((ids, periods)))
     return periods
@@ -129,7 +127,7 @@ def collate(N):
     np.savetxt("simulations/gp_results.txt", gp_results.T)
     return acf_results, gp_results
 
-def compare_truth(N=100, coll=False):
+def compare_truth(N=100, coll=True):
     """
     make a plot comparing the truths to the measurements
     """
@@ -139,9 +137,11 @@ def compare_truth(N=100, coll=False):
         acf_results, gp_results = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
+#         _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
+#         _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
     s = true_a[:N]*1000
@@ -152,8 +152,9 @@ def compare_truth(N=100, coll=False):
                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
     plt.errorbar(true_p[:N], gp_p, yerr=(gerrp, gerrm), color=cols.blue,
                  fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
-    plt.scatter(true_p[:N], acf_p, color=cols.pink, s=s, alpha=.7)
-    plt.scatter(true_p[:N], gp_p, color=cols.blue, s=s, alpha=.7)
+#     plt.scatter(true_p[:N], acf_p, color=cols.pink, s=s, alpha=.7)
+#     plt.scatter(true_p[:N], gp_p, color=cols.blue, s=s, alpha=.7)
+#     plt.scatter(true_p[:N], p_p, color=cols.orange, s=s, alpha=.7)
     plt.plot(xs, xs, ".7", ls="--")
     plt.plot(xs, 2*xs, ".7", ls="--")
     plt.plot(xs, .5*xs, ".7", ls="--")
@@ -162,15 +163,19 @@ def compare_truth(N=100, coll=False):
     plt.legend(loc="best")
     plt.xlabel("$\mathrm{True~period~(days)}$")
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
-    plt.show()
+    plt.savefig("compare")
 
 if __name__ == "__main__":
 
+    # simulate light curves FIXME: use a quiet star
+#     simulate("../kepler452b/8311864", pmin=.5, pmax=100., amin=1e-3,
+#              amax=1e-1, nsim=100)
+
     # measure periods using the periodogram method
-    periodograms(N=2, plot=True, savepgram=True):
+#     periodograms(N=100, plot=True, savepgram=True)
 
     # run full MCMC recovery
 #     recover_injections(runMCMC=True, plot=False)
 
     # make comparison plot
-#     compare_truth(N=24, coll=False)
+    compare_truth(N=99, coll=False)

@@ -33,9 +33,9 @@ jump_arr = scipy.array([131.51139, 169.51883, 169.75000, 182.00000, 200.31000,
                        874.50000, 906.84469, 937.00000, 970.00000, 1001.20718,
                        1032.50000, 1063.50000 ,1071.00000, 1093.60000])
 
-def corr_run(time, flux, flux_err, ID, savedir):
+def corr_run(time, flux, flux_err):
 
-    id_list = [ID]
+    id_list = ["0"]
     # Create empty arrays
     acf_peak_per = scipy.ones(len(id_list)) * -9999.0
     sine_per = scipy.ones(len(id_list)) * -9999.0
@@ -149,7 +149,7 @@ def corr_run(time, flux, flux_err, ID, savedir):
         n_s = 'k'
 
         period[x] = acf_peak_per[x]
-        print 'PEAK RATIO = ', peak_ratio
+#         print 'PEAK RATIO = ', peak_ratio
 
         # plot period lines on full plot
         pylab.figure(1)
@@ -181,16 +181,16 @@ def corr_run(time, flux, flux_err, ID, savedir):
         pylab.text(0.415, -1.4, 'Period (days)', transform = ax.transAxes)
         pylab.ylabel('Amplitudes')
 
-        print "saving figure", "%s/%s_full.png"%(savedir, id_list)
-        pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
+#         print "saving figure", "%s/%s_full.png"%(savedir, id_list)
+#         pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
 
         maxpts = 40.0
         if scipy.floor(lc_tab.time.max() / acf_peak_per[x]) < maxpts:
             maxpts = float(scipy.floor(lc_tab.time.max() / acf_peak_per[x]))
         inc = lc_tab.time - lc_tab.time.min() <= (maxpts*acf_peak_per[x])
 
-        print '**************************', 'KID = ', x, 'PEAK HEIGHT = ', \
-            max(acf_per_height[:2]), 'LOCAL PEAK HEIGHT = ', lh1[x]
+#         print '**************************', 'KID = ', x, 'PEAK HEIGHT = ', \
+#             max(acf_per_height[:2]), 'LOCAL PEAK HEIGHT = ', lh1[x]
 
         t_stats = atpy.Table()
         t_stats.add_column('acf_per_pos', acf_per_pos)
@@ -204,12 +204,12 @@ def corr_run(time, flux, flux_err, ID, savedir):
         else: error = dlag_per_err[x]
 
         print 'PERIOD = ', period[x], '+/-', error,
-        print 'saving as', '%s/%s_result.txt'%(savedir, id_list[0])
-        np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
-                   np.transpose((period[x], error)))
+#         print 'saving as', '%s/%s_result.txt'%(savedir, id_list[0])
+#         np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
+#                    np.transpose((period[x], error)))
     else:
         blank = np.array([0,0])
-        np.savetxt('%s/%s_result.txt' %(savedir, id_list[0]), blank)
+#         np.savetxt('%s/%s_result.txt' %(savedir, id_list[0]), blank)
 
     t = atpy.Table()
     t.add_column('period', period) #period
