@@ -191,12 +191,12 @@ if __name__ == "__main__":
 #     periodograms(N=1000, plot=True, savepgram=True)
 
     # measure periods using simple_acf
-    my_acf(N=100)
+#     my_acf(N=100)
 
     # run full MCMC recovery
-#     start = sys.argv[1]
-#     stop = sys.argv[2]
-#     recover_injections(start, stop, runMCMC=True, plot=False)
+    start = int(sys.argv[1])
+    stop = int(sys.argv[2])
+    recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
 #     compare_truth(N=99, coll=False)
