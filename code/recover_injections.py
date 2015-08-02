@@ -17,6 +17,9 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
+def my_acf(N=100):
+
+
 def periodograms(N=100, plot=False, savepgram=True):
 
     ids = np.arange(N)
@@ -178,9 +181,9 @@ if __name__ == "__main__":
 #     periodograms(N=1000, plot=True, savepgram=True)
 
     # run full MCMC recovery
-    start = sys.argv[1]
-    stop = sys.argv[2]
-    recover_injections(start, stop, runMCMC=True, plot=False)
+#     start = sys.argv[1]
+#     stop = sys.argv[2]
+#     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-#     compare_truth(N=99, coll=False)
+    compare_truth(N=99, coll=False)
