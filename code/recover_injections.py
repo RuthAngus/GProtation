@@ -18,7 +18,16 @@ plotpar = {'axes.labelsize': 22,
 plt.rcParams.update(plotpar)
 
 def my_acf(N=100):
-
+    ids = np.arange(N)
+    periods = []
+    for id in ids:
+        print "\n", id, "of", N
+        x, y = np.genfromtxt("simulations/%s.txt" % float(id)).T
+        period, _, _, _ = simple_acf()
+        periods.append(period)
+        print period
+    np.savetxt("simulations/myacf_results.txt",
+               np.transpose((ids, np.array(periods))))
 
 def periodograms(N=100, plot=False, savepgram=True):
 
@@ -181,10 +190,13 @@ if __name__ == "__main__":
     # measure periods using the periodogram method
 #     periodograms(N=1000, plot=True, savepgram=True)
 
+    # measure periods using simple_acf
+    my_acf(N=100)
+
     # run full MCMC recovery
-    start = sys.argv[1]
-    stop = sys.argv[2]
-    recover_injections(start, stop, runMCMC=True, plot=False)
+#     start = sys.argv[1]
+#     stop = sys.argv[2]
+#     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(N=99, coll=False)
+#     compare_truth(N=99, coll=False)
