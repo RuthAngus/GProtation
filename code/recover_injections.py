@@ -46,7 +46,8 @@ def periodograms(N=100, plot=False, savepgram=False):
         try:
             p_init = np.genfromtxt("simulations/%s_result.txt" % float(id))
         except:
-            corr_run(x, y, yerr, id, "simulations", saveplot=False)
+            corr_run(x, y, yerr, str(int(id)).zfill(4), "simulations",
+                     saveplot=False)
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         print "acf period, err = ", p_init
 
@@ -71,7 +72,8 @@ def periodograms(N=100, plot=False, savepgram=False):
             np.savetxt("simulations/%s_pgram.txt" % str(int(id)).zfill(4),
                        np.transpose((ps, pgram)))
 
-        np.savetxt("simulations/%s_pgram_results.txt" % str(int(id)).zfill(4))
+        np.savetxt("simulations/%s_pgram_results.txt" % str(int(id)).zfill(4),
+                   np.array(id, period))
     np.savetxt("simulations/periodogram_results.txt",
                np.transpose((ids, periods)))
     return periods
@@ -118,6 +120,7 @@ def collate(N):
     assemble all the period measurements here
     """
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
+    p_periods, pids = [], []  # periodogram results. pids is just a place hold
     for i in range(N):
 
         # load ACF results
@@ -139,13 +142,21 @@ def collate(N):
         gerrm.append(mcmc_result[-1][1])
         gerrp.append(mcmc_result[-1][2])
 
+        # load pgram results
+        pid, pdata = np.genfromtxt("simulations/%s_pgram_result.txt"
+                                % str(int(i)).zfill(4))
+        p_periods.append(pdata)
+        pids.append(pid)
+
     # format and save results
     acf_results = np.vstack((np.array(acf_periods), np.array(aerrs)))
     gp_results = np.vstack((np.array(GP_periods), np.array(gerrm),
                            np.array(gerrp)))
+    p_results = np.vstack((np.array(pids), np.array(p_periods)))
     np.savetxt("simulations/acf_results.txt", acf_results.T)
     np.savetxt("simulations/gp_results.txt", gp_results.T)
-    return acf_results, gp_results
+    np.savetxt("simulations/pgram_results.txt", p_results.T)
+    return acf_results, gp_results, p_results
 
 def compare_truth(N=100, coll=True):
     """
@@ -154,19 +165,24 @@ def compare_truth(N=100, coll=True):
     ids, true_p, true_a = np.genfromtxt("simulations/true_periods.txt").T
 
     if coll:
-        acf_results, gp_results = collate(N)
+        acf_results, gp_results, p_results = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
-        _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
-        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
+        _, p_p = p_results
+#         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
         _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
-        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
+#         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
     s = true_a[:N]*1000
+
+    print len(true_p[:N]), "truths found"
+    print len(acf_p), "acfs found"
+    print len(gp_p), "gps found"
+    print len(p_p), "periodograms found"
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
@@ -197,7 +213,7 @@ if __name__ == "__main__":
 #              amax=1e-1, nsim=100)
 
     # measure periods using the periodogram method
-#     periodograms(N=9, plot=False, savepgram=False)
+#     periodograms(N=1000, plot=False, savepgram=False)
 
     # measure periods using simple_acf
 #     my_acf(N=100)
