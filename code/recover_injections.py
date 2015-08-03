@@ -23,7 +23,7 @@ def my_acf(N=100):
     periods = []
     for id in ids:
         print "\n", id, "of", N
-        x, y = np.genfromtxt("simulations/%s.txt" % id).T
+        x, y = np.genfromtxt("simulations/%s.txt" % str(int(id)).zfill(4)).T
         period, _, _, _ = simple_acf(x, y)
         periods.append(period)
         print period
@@ -39,15 +39,14 @@ def periodograms(N=100, plot=False, savepgram=False):
         print "\n", id, "of", N
 
         # load simulated data
-        x, y = np.genfromtxt("simulations/%s.txt" % id).T
+        x, y = np.genfromtxt("simulations/%s.txt" % str(int(id)).zfill(4)).T
         yerr = np.ones_like(y) * 1e-5
 
         # initialise with acf
         try:
             p_init = np.genfromtxt("simulations/%s_result.txt" % float(id))
         except:
-            corr_run(x, y, yerr, id,
-                     "/Users/angusr/Python/GProtation/code/simulations")
+            corr_run(x, y, yerr, id, "simulations", saveplot=False)
             p_init = np.genfromtxt("simulations/%s_result.txt" % id)
         print "acf period, err = ", p_init
 
@@ -122,7 +121,8 @@ def collate(N):
     for i in range(N):
 
         # load ACF results
-        acfdata = np.genfromtxt("simulations/%s_result.txt" % float(i)).T
+        acfdata = np.genfromtxt("simulations/%s_result.txt"
+                                % str(int(i)).zfill(4)).T
         acf_periods.append(acfdata[0])
         aerrs.append(acfdata[1])
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
 #              amax=1e-1, nsim=100)
 
     # measure periods using the periodogram method
-#     periodograms(N=100, plot=False, savepgram=False)
+#     periodograms(N=9, plot=False, savepgram=False)
 
     # measure periods using simple_acf
 #     my_acf(N=100)
@@ -208,4 +208,4 @@ if __name__ == "__main__":
 #     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(N=99, coll=False)
+    compare_truth(N=9, coll=True)

@@ -14,8 +14,8 @@ def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
     """
     periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
     amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
-    np.savetxt("true_periods.txt", np.transpose((np.arange(nsim), periods,
-               amps)))
+    np.savetxt("simulations/true_periods.txt", np.transpose((np.arange(nsim),
+               periods, amps)))
     thetas = np.zeros((nsim, 5))
     thetas[:, 0] = np.exp(np.random.uniform(-6, -4))
     thetas[:, 1] = np.exp(np.random.uniform(4, 7))
