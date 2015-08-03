@@ -157,12 +157,12 @@ def compare_truth(N=100, coll=True):
         acf_results, gp_results = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
-        _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
-        _, p_p = np.genfromtxt("simulations/pgram_results.txt").T
+        _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
@@ -176,10 +176,10 @@ def compare_truth(N=100, coll=True):
                  fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
 #     plt.scatter(true_p[:N], acf_p, color=cols.pink, s=s, alpha=.7)
 #     plt.scatter(true_p[:N], gp_p, color=cols.blue, s=s, alpha=.7)
-    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=s, alpha=.7,
+    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
                 label="$\mathrm{Pgram}$")
-    plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
-                label="$\mathrm{simple}$")
+#     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
+#                 label="$\mathrm{simple}$")
     plt.plot(xs, xs, ".7", ls="--")
     plt.plot(xs, 2*xs, ".7", ls="--")
     plt.plot(xs, .5*xs, ".7", ls="--")
