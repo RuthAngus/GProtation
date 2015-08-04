@@ -115,7 +115,7 @@ def recover_injections(start, stop, N=1000, runMCMC=True, plot=False):
                 burnin=2000, run=5000, npts=npts, cutoff=cutoff,
                 sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
 
-def collate(N):
+def collate(N, save=False):
     """
     assemble all the period measurements here
     """
@@ -129,7 +129,6 @@ def collate(N):
         try:
             acfdata = np.genfromtxt("simulations/%s_result.txt"
                                     % int(id)).T
-            print id, true_p[i], acfdata[0]
             acf_periods.append(acfdata[0])
             aerrs.append(acfdata[1])
         except:
@@ -138,7 +137,7 @@ def collate(N):
 
         try:
             # load GP results
-            with h5py.File("sine/%s_samples.h5" % str(id).zfill(4), "r") as f:
+            with h5py.File("sine/%s_samples.h5" % str(int(id)).zfill(4), "r") as f:
                 samples = f["samples"][...]
             nwalkers, nsteps, ndim = np.shape(samples)
             flat = np.reshape(samples, (nwalkers*nsteps, ndim))
@@ -167,35 +166,32 @@ def collate(N):
                               % str(int(id)).zfill(4))[0]
         my_p.append(myacf)
 
-    print acf_periods
     # format and save results
     acf_results = np.vstack((np.array(acf_periods), np.array(aerrs)))
     gp_results = np.vstack((np.array(GP_periods), np.array(gerrm),
                            np.array(gerrp)))
-#     np.savetxt("simulations/acf_results.txt", acf_results.T)
-#     np.savetxt("simulations/gp_results.txt", gp_results.T)
-#     np.savetxt("simulations/pgram_results.txt", p_periods)
-#     np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
-    print np.shape(acf_results), np.shape(gp_results), len(p_periods), len(my_p)
-    return acf_results, gp_results, p_periods, my_p
-#     return acf_results, gp_results
+    if save:
+        np.savetxt("simulations/acf_results.txt", acf_results.T)
+        np.savetxt("simulations/gp_results.txt", gp_results.T)
+        np.savetxt("simulations/pgram_results.txt", p_periods)
+        np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
+    return acf_results, gp_results, np.array(p_periods), np.array(my_p)
 
-def compare_truth(N, coll=True):
+def compare_truth(N, coll=True, save=False):
     """
     make a plot comparing the truths to the measurements
     """
     ids, true_p, true_a = np.genfromtxt("simulations/true_periods.txt").T
 
     if coll:
-        acf_results, gp_results, p_p, my_p = collate(N)
-#         acf_results, gp_results = collate(N)
+        acf_results, gp_results, p_p, my_p = collate(N, save=save)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
         _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
-        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
+        my_p = np.genfromtxt("simulations/myacf_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
     s = true_a[:N]*1000
@@ -205,6 +201,13 @@ def compare_truth(N, coll=True):
     print len(gp_p[:N]), "gps found"
     print len(p_p[:N]), "periodograms found"
     print len(my_p[:N]), "myacfs found"
+
+    m = acf_p[:N] > 0
+    true_p[:N] = true_p[:N][m]
+    acf_p[:N] = acf_p[:N][m]
+    gp_p[:N] = gp_p[:N][m]
+    p_p[:N] = p_p[:N][m]
+    my_p[:N] = my_p[:N][m]
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
@@ -240,4 +243,4 @@ if __name__ == "__main__":
 #     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(20, coll=True)
+    compare_truth(5, coll=True, save=False)

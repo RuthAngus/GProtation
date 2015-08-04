@@ -50,7 +50,7 @@ def simple_acf(x, y):
     # smooth with Gaussian kernel convolution
     Gaussian = lambda x, sig: 1./(2*np.pi*sig**.5) * \
                  np.exp(-0.5*(x**2)/(sig**2))
-    conv_func = Gaussian(np.arange(-28,28,1.), 9.)
+    conv_func = Gaussian(np.arange(-28,28,1.), 1.)
     acf_smooth = np.convolve(acf, conv_func, mode='same')
 
     # create 'lags' array
