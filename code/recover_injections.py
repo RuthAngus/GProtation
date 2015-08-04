@@ -18,20 +18,21 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def my_acf(N=100):
+def my_acf(N):
     ids = np.arange(N)
     periods = []
     for id in ids:
         print "\n", id, "of", N
         x, y = np.genfromtxt("simulations/%s.txt" % str(int(id)).zfill(4)).T
-        period, _, _, _ = simple_acf(x, y)
+        period, acf, lags, flag = simple_acf(x, y)
         periods.append(period)
         print period
-        np.savetxt("simulations/%s_myacf_results.txt" % str(int(id)).zfill(4))
+        np.savetxt("simulations/%s_myacf_result.txt" % str(int(id)).zfill(4),
+                   np.ones(5)*period)
     np.savetxt("simulations/myacf_results.txt",
                np.transpose((ids, np.array(periods))))
 
-def periodograms(N=100, plot=False, savepgram=False):
+def periodograms(N, plot=False, savepgram=True):
 
     ids = np.arange(N)
     periods = []
@@ -44,11 +45,12 @@ def periodograms(N=100, plot=False, savepgram=False):
 
         # initialise with acf
         try:
-            p_init = np.genfromtxt("simulations/%s_result.txt" % float(id))
+            p_init = np.genfromtxt("simulations/%s_result.txt"
+                                   % int((id)))
         except:
-            corr_run(x, y, yerr, str(int(id)).zfill(4), "simulations",
+            corr_run(x, y, yerr, int(id), "simulations",
                      saveplot=False)
-            p_init = np.genfromtxt("simulations/%s_result.txt" % id)
+            p_init = np.genfromtxt("simulations/%s_result.txt" % int(id))
         print "acf period, err = ", p_init
 
         ps = np.linspace(p_init[0]*.1, p_init[0]*4, 1000)
@@ -72,8 +74,6 @@ def periodograms(N=100, plot=False, savepgram=False):
             np.savetxt("simulations/%s_pgram.txt" % str(int(id)).zfill(4),
                        np.transpose((ps, pgram)))
 
-        np.savetxt("simulations/%s_pgram_results.txt" % str(int(id)).zfill(4),
-                   np.array(id, period))
     np.savetxt("simulations/periodogram_results.txt",
                np.transpose((ids, periods)))
     return periods
@@ -121,60 +121,75 @@ def collate(N):
     """
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
     p_periods, pids = [], []  # periodogram results. pids is just a place hold
-    for i in range(N):
+    my_p = []
+    for id in range(N):
 
         # load ACF results
-        acfdata = np.genfromtxt("simulations/%s_result.txt"
-                                % str(int(i)).zfill(4)).T
-        acf_periods.append(acfdata[0])
-        aerrs.append(acfdata[1])
+        try:
+            acfdata = np.genfromtxt("simulations/%s_result.txt"
+                                    % int(id)).T
+            acf_periods.append(acfdata[0])
+            aerrs.append(acfdata[1])
+        except:
+            acf_periods.append(0)
+            aerrs.append(0)
 
         # load GP results
-        with h5py.File("sine/%s_samples.h5" % str(i).zfill(4), "r") as f:
-            samples = f["samples"][...]
-        nwalkers, nsteps, ndim = np.shape(samples)
-        flat = np.reshape(samples, (nwalkers*nsteps, ndim))
-        mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                          zip(*np.percentile(np.exp(flat), [16, 50, 84],
-                              axis=0)))
-        gpdata = np.exp(mcmc_result[-1])
-        GP_periods.append(mcmc_result[-1][0])
-        gerrm.append(mcmc_result[-1][1])
-        gerrp.append(mcmc_result[-1][2])
+        try:
+            with h5py.File("sine/%s_samples.h5" % str(id).zfill(4), "r") as f:
+                samples = f["samples"][...]
+            nwalkers, nsteps, ndim = np.shape(samples)
+            flat = np.reshape(samples, (nwalkers*nsteps, ndim))
+            mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                              zip(*np.percentile(np.exp(flat), [16, 50, 84],
+                                  axis=0)))
+            gpdata = np.exp(mcmc_result[-1])
+            GP_periods.append(mcmc_result[-1][0])
+            gerrm.append(mcmc_result[-1][1])
+            gerrp.append(mcmc_result[-1][2])
+        except:
+            GP_periods.append(0)
+            gerrm.append(0)
+            gerrp.append(0)
 
         # load pgram results
-        pid, pdata = np.genfromtxt("simulations/%s_pgram_result.txt"
-                                % str(int(i)).zfill(4))
-        p_periods.append(pdata)
-        pids.append(pid)
+        ps, pgram = np.genfromtxt("simulations/%s_pgram.txt"
+                                  % str(int(id)).zfill(4)).T
+        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                         pgram[i] and pgram[i+1] < pgram[i]])
+        period = ps[pgram==max(pgram[peaks])][0]
+        p_periods.append(period)
+
+        # load myacf results
+        myacf = np.genfromtxt("simulations/%s_myacf_result.txt"
+                              % str(int(id)).zfill(4))[0]
+        my_p.append(myacf)
 
     # format and save results
     acf_results = np.vstack((np.array(acf_periods), np.array(aerrs)))
     gp_results = np.vstack((np.array(GP_periods), np.array(gerrm),
                            np.array(gerrp)))
-    p_results = np.vstack((np.array(pids), np.array(p_periods)))
     np.savetxt("simulations/acf_results.txt", acf_results.T)
     np.savetxt("simulations/gp_results.txt", gp_results.T)
-    np.savetxt("simulations/pgram_results.txt", p_results.T)
-    return acf_results, gp_results, p_results
+    np.savetxt("simulations/pgram_results.txt", p_periods)
+    np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
+    return acf_results, gp_results, p_periods, my_p
 
-def compare_truth(N=100, coll=True):
+def compare_truth(N, coll=True):
     """
     make a plot comparing the truths to the measurements
     """
     ids, true_p, true_a = np.genfromtxt("simulations/true_periods.txt").T
 
     if coll:
-        acf_results, gp_results, p_results = collate(N)
+        acf_results, gp_results, p_p, my_p = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
-        _, p_p = p_results
-#         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
     else:
         acf_p, aerr = np.genfromtxt("simulations/acf_results.txt").T
         gp_p, gerrm, gerrp = np.genfromtxt("simulations/gp_results.txt").T
         _, p_p = np.genfromtxt("simulations/periodogram_results.txt").T
-#         _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
+        _, my_p = np.genfromtxt("simulations/myacf_results.txt").T
 
     s = np.log(true_a[:N]*1e15)
     s = true_a[:N]*1000
@@ -183,6 +198,7 @@ def compare_truth(N=100, coll=True):
     print len(acf_p), "acfs found"
     print len(gp_p), "gps found"
     print len(p_p), "periodograms found"
+    print len(my_p), "periodograms found"
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
@@ -190,10 +206,8 @@ def compare_truth(N=100, coll=True):
                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
     plt.errorbar(true_p[:N], gp_p, yerr=(gerrp, gerrm), color=cols.blue,
                  fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
-#     plt.scatter(true_p[:N], acf_p, color=cols.pink, s=s, alpha=.7)
-#     plt.scatter(true_p[:N], gp_p, color=cols.blue, s=s, alpha=.7)
-    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
-                label="$\mathrm{Pgram}$")
+#     plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
+#                 label="$\mathrm{Pgram}$")
 #     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
 #                 label="$\mathrm{simple}$")
     plt.plot(xs, xs, ".7", ls="--")
@@ -208,15 +222,11 @@ def compare_truth(N=100, coll=True):
 
 if __name__ == "__main__":
 
-    # simulate light curves FIXME: use a quiet star
-#     simulate("../kepler452b/8311864", pmin=.5, pmax=100., amin=1e-3,
-#              amax=1e-1, nsim=100)
-
     # measure periods using the periodogram method
-#     periodograms(N=1000, plot=False, savepgram=False)
+#     periodograms(N=500, plot=False)
 
     # measure periods using simple_acf
-#     my_acf(N=100)
+#     my_acf(500)
 
     # run full MCMC recovery
 #     start = int(sys.argv[1])
@@ -224,4 +234,4 @@ if __name__ == "__main__":
 #     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(N=9, coll=True)
+    compare_truth(500, coll=True)

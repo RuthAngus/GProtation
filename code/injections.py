@@ -8,7 +8,7 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 
 def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
-             gen_type, kepler=False, plot=False):
+             gen_type="s", kepler=False, plot=False):
     """
     pmin and pmax in days, amin and amax in ppm.
     """
@@ -25,10 +25,10 @@ def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
 
     # load test star data FIXME: I'm just using the time values
     # because this is not a quiet star
-    x, y, yerr = np.genfromtxt("%s_lc.txt" % id).T
-    if kepler:
-        time = x
-    else: time = np.arange(0, x[-1]-x[0], .02043365)
+#     x, y, yerr = np.genfromtxt("%s_lc.txt" % id).T
+#         time = x
+#     else: time = np.arange(0, x[-1]-x[0], .02043365)
+    time = np.arange(0, 1600, .02043365)
 
     std = 1e-5
     yerr = np.ones_like(time)*std
@@ -42,7 +42,7 @@ def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
             nspot, ff, amp_err = res0
             time, area_tot, dF_tot, dF_tot0 = res1
             simflux = dF_tot0 / np.median(dF_tot0) - 1
-        elif gen_type == "gp":
+        elif gen_type == "GP":
             k = thetas[i, 0] * ExpSquaredKernel(thetas[i, 1]) \
                     * ExpSine2Kernel(thetas[i, 2], thetas[i, 4]) \
                     + WhiteKernel(std)
@@ -56,9 +56,10 @@ def simulate(id, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
         if plot:
             plt.clf()
             plt.plot(time, simflux*amps[i]+flux, "k.")
-            plt.savefig("simulations/%s" % i)
+            plt.savefig("simulations/%s%s" % (i, gen_type))
             plt.title("p = %s, a = %s" % (p, amps[i]))
+            assert 0
 
 if __name__ == "__main__":
     simulate("../kepler452b/8311864", pmin=.5, pmax=100., amin=1e-5, amax=1e-2,
-             nsim=100)
+             nsim=100, gen_type="GP", plot=True)
