@@ -119,23 +119,25 @@ def collate(N):
     """
     assemble all the period measurements here
     """
+    ids, true_p, true_a = np.genfromtxt("simulations/true_periods.txt").T
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
     p_periods, pids = [], []  # periodogram results. pids is just a place hold
     my_p = []
-    for id in range(N):
+    for i, id in enumerate(ids[:N]):
 
         # load ACF results
         try:
             acfdata = np.genfromtxt("simulations/%s_result.txt"
                                     % int(id)).T
+            print id, true_p[i], acfdata[0]
             acf_periods.append(acfdata[0])
             aerrs.append(acfdata[1])
         except:
             acf_periods.append(0)
             aerrs.append(0)
 
-        # load GP results
         try:
+            # load GP results
             with h5py.File("sine/%s_samples.h5" % str(id).zfill(4), "r") as f:
                 samples = f["samples"][...]
             nwalkers, nsteps, ndim = np.shape(samples)
@@ -155,8 +157,8 @@ def collate(N):
         # load pgram results
         ps, pgram = np.genfromtxt("simulations/%s_pgram.txt"
                                   % str(int(id)).zfill(4)).T
-        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                         pgram[i] and pgram[i+1] < pgram[i]])
+        peaks = np.array([j for j in range(1, len(ps)-1) if pgram[j-1] <
+                         pgram[j] and pgram[j+1] < pgram[j]])
         period = ps[pgram==max(pgram[peaks])][0]
         p_periods.append(period)
 
@@ -165,15 +167,18 @@ def collate(N):
                               % str(int(id)).zfill(4))[0]
         my_p.append(myacf)
 
+    print acf_periods
     # format and save results
     acf_results = np.vstack((np.array(acf_periods), np.array(aerrs)))
     gp_results = np.vstack((np.array(GP_periods), np.array(gerrm),
                            np.array(gerrp)))
-    np.savetxt("simulations/acf_results.txt", acf_results.T)
-    np.savetxt("simulations/gp_results.txt", gp_results.T)
-    np.savetxt("simulations/pgram_results.txt", p_periods)
-    np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
+#     np.savetxt("simulations/acf_results.txt", acf_results.T)
+#     np.savetxt("simulations/gp_results.txt", gp_results.T)
+#     np.savetxt("simulations/pgram_results.txt", p_periods)
+#     np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
+    print np.shape(acf_results), np.shape(gp_results), len(p_periods), len(my_p)
     return acf_results, gp_results, p_periods, my_p
+#     return acf_results, gp_results
 
 def compare_truth(N, coll=True):
     """
@@ -183,6 +188,7 @@ def compare_truth(N, coll=True):
 
     if coll:
         acf_results, gp_results, p_p, my_p = collate(N)
+#         acf_results, gp_results = collate(N)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
     else:
@@ -195,21 +201,21 @@ def compare_truth(N, coll=True):
     s = true_a[:N]*1000
 
     print len(true_p[:N]), "truths found"
-    print len(acf_p), "acfs found"
-    print len(gp_p), "gps found"
-    print len(p_p), "periodograms found"
-    print len(my_p), "periodograms found"
+    print len(acf_p[:N]), "acfs found"
+    print len(gp_p[:N]), "gps found"
+    print len(p_p[:N]), "periodograms found"
+    print len(my_p[:N]), "myacfs found"
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
-    plt.errorbar(true_p[:N], acf_p, yerr=aerr, color=cols.pink, fmt=".",
+    plt.errorbar(true_p[:N], acf_p[:N], yerr=aerr[:N], color=cols.pink, fmt=".",
                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
-    plt.errorbar(true_p[:N], gp_p, yerr=(gerrp, gerrm), color=cols.blue,
+    plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]), color=cols.blue,
                  fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
-#     plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
-#                 label="$\mathrm{Pgram}$")
-#     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
-#                 label="$\mathrm{simple}$")
+    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
+                label="$\mathrm{Pgram}$")
+    plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
+                label="$\mathrm{simple}$")
     plt.plot(xs, xs, ".7", ls="--")
     plt.plot(xs, 2*xs, ".7", ls="--")
     plt.plot(xs, .5*xs, ".7", ls="--")
@@ -234,4 +240,4 @@ if __name__ == "__main__":
 #     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(500, coll=True)
+    compare_truth(20, coll=True)
