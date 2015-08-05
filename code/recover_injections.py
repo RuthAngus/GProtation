@@ -112,7 +112,7 @@ def recover_injections(start, stop, N=1000, runMCMC=True, plot=False):
         npts = int(p_init[0] / 10. * 48)  # 10 points per period
         cutoff = 10 * p_init[0]
         fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims),
-                burnin=2000, run=5000, npts=npts, cutoff=cutoff,
+                burnin=5000, run=10000, npts=npts, cutoff=cutoff,
                 sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
 
 def collate(N, save=False):
@@ -123,6 +123,7 @@ def collate(N, save=False):
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
     p_periods, pids = [], []  # periodogram results. pids is just a place hold
     my_p = []
+    gp_samps = np.zeros((len(ids), 50))
     for i, id in enumerate(ids[:N]):
 
         # load ACF results
@@ -148,10 +149,12 @@ def collate(N, save=False):
             GP_periods.append(mcmc_result[-1][0])
             gerrm.append(mcmc_result[-1][1])
             gerrp.append(mcmc_result[-1][2])
+            gp_samps[i, :] = np.exp(np.random.choice(flat[:, -1], 50))
         except:
             GP_periods.append(0)
             gerrm.append(0)
             gerrp.append(0)
+            gp_samps[i, :] = np.zeros(50)
 
         # load pgram results
         ps, pgram = np.genfromtxt("simulations/%s_pgram.txt"
@@ -175,7 +178,7 @@ def collate(N, save=False):
         np.savetxt("simulations/gp_results.txt", gp_results.T)
         np.savetxt("simulations/pgram_results.txt", p_periods)
         np.savetxt("simulations/myacf_results.txt", np.array(my_p).T)
-    return acf_results, gp_results, np.array(p_periods), np.array(my_p)
+    return acf_results, gp_results, np.array(p_periods), np.array(my_p), gp_samps
 
 def compare_truth(N, coll=True, save=False):
     """
@@ -184,7 +187,7 @@ def compare_truth(N, coll=True, save=False):
     ids, true_p, true_a = np.genfromtxt("simulations/true_periods.txt").T
 
     if coll:
-        acf_results, gp_results, p_p, my_p = collate(N, save=save)
+        acf_results, gp_results, p_p, my_p, gp_samps = collate(N, save=save)
         acf_p, aerr = acf_results
         gp_p, gerrm, gerrp = gp_results
     else:
@@ -211,23 +214,41 @@ def compare_truth(N, coll=True, save=False):
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
-    plt.errorbar(true_p[:N], acf_p[:N], yerr=aerr[:N], color=cols.pink, fmt=".",
-                 label="$\mathrm{ACF}$", capsize=0, alpha=.7)
+#     plt.errorbar(true_p[:N], acf_p[:N], yerr=aerr[:N], color=cols.pink, fmt=".",
+#                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
+
+#     plt.scatter(true_p[:N], acf_p[:N], color=cols.pink, s=15, alpha=.7,
+#                 label="$\mathrm{ACF}$")
+
     plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]), color=cols.blue,
-                 fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7)
-    plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
-                label="$\mathrm{Pgram}$")
-    plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
-                label="$\mathrm{simple}$")
+                 fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7, ms=5)
+#     plt.scatter(true_p[:N], gp_p[:N], color=cols.blue, s=20, alpha=.7,
+#                 label="$\mathrm{GP}$")
+
+#     true_samps = np.zeros((N, 50))
+#     for i in range(50):
+#         true_samps[:, i] = true_p[:N]
+#     plt.scatter(true_samps[:N, :], gp_samps[:N, :], color=cols.blue, s=20, alpha=.2,
+#                 label="$\mathrm{GP}$")
+
+#     plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
+#                 label="$\mathrm{Periodogram}$")
+#     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
+#                 label="$\mathrm{simple}$")
+
     plt.plot(xs, xs, ".7", ls="--")
     plt.plot(xs, 2*xs, ".7", ls="--")
     plt.plot(xs, .5*xs, ".7", ls="--")
-    plt.xlim(0, 100)
-    plt.ylim(0, 170)
+    plt.subplots_adjust(bottom=.2)
+    plt.xlim(0, 60)
+    plt.ylim(0, 120)
     plt.legend(loc="best")
     plt.xlabel("$\mathrm{True~period~(days)}$")
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
-    plt.savefig("compare")
+#     plt.savefig("compare")
+#     plt.savefig("compare_acf")
+    plt.savefig("compare_gp")
+#     plt.savefig("compare_pgram")
 
 if __name__ == "__main__":
 
@@ -238,9 +259,9 @@ if __name__ == "__main__":
 #     my_acf(500)
 
     # run full MCMC recovery
-#     start = int(sys.argv[1])
-#     stop = int(sys.argv[2])
-#     recover_injections(start, stop, runMCMC=True, plot=False)
+    start = int(sys.argv[1])
+    stop = int(sys.argv[2])
+    recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-    compare_truth(5, coll=True, save=False)
+#     compare_truth(200, coll=True, save=False)

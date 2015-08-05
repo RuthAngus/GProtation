@@ -62,7 +62,7 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
 
     if sine_kernel:
         print "sine kernel"
-        theta_init = [1., 1., 1., 1., p_init]
+        theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init]
         print theta_init
         from GProtation import MCMC, make_plot
     else:
