@@ -48,14 +48,13 @@ def simple_acf(x, y):
     acf = dan_acf(y)
 
     # smooth with Gaussian kernel convolution
-    Gaussian = lambda x, sig: 1./(2*np.pi*sig**.5) * \
+    Gaussian = lambda x, sig: 1./np.sqrt(2*np.pi*sig**2) * \
                  np.exp(-0.5*(x**2)/(sig**2))
-    conv_func = Gaussian(np.arange(-28,28,1.), 1.)
+    conv_func = Gaussian(np.arange(-28,28,1.), 9.)  # parameters from McQuillan
     acf_smooth = np.convolve(acf, conv_func, mode='same')
 
-    # create 'lags' array
-    gap_days = 0.02043365
-    lags = np.arange(len(acf))*gap_days
+    kepler_cadence = .02043365
+    lags = np.arange(len(acf)) * kepler_cadence
 
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
@@ -73,7 +72,7 @@ def simple_acf(x, y):
         period = lags[peaks[1]]
         h = acf_smooth[peaks[1]]
 
-    return period, acf_smooth, lags
+    return period_index, acf_smooth, lags
 
 def make_plot(acf_smooth, lags, id):
         # find all the peaks
@@ -105,16 +104,3 @@ def make_plot(acf_smooth, lags, id):
         plt.axvline(period, color="k")
         plt.plot(lags, acf_smooth)
         plt.savefig("%s_acf" % id)
-
-if __name__ == "__main__":
-
-    DIR = "."  # edit me!
-    fnames = glob.glob("%s/*.dat" % DIR)
-
-    for i, fname in enumerate(fnames[1:]):
-        id = fname.split("/")[-1].split("_")[0]  # edit me!
-        x, y, _, _ = np.genfromtxt(fname, skip_header=1).T
-        yerr = np.ones_like(y) * 1e-5  # FIXME
-
-        period, acf, lags = simple_acf(x, y)
-        make_plot(acf, lags, id)
