@@ -73,12 +73,7 @@ def simple_acf(x, y):
         period = lags[peaks[1]]
         h = acf_smooth[peaks[1]]
 
-    # flag tells you whether you might believe the ACF results!
-    flag = 1  # 1 is good, 0 is bad
-    if h < 0:
-        flag = 0
-
-    return period, acf_smooth, lags, flag
+    return period, acf_smooth, lags
 
 def make_plot(acf_smooth, lags, id):
         # find all the peaks
