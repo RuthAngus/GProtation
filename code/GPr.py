@@ -17,7 +17,8 @@ class GProtation(object):
 
     def lnprior(self, theta, plims):
         """
-        theta is an array of parameters
+        Here is a prior function if you want to use it!
+        theta is the array of parameters.
         plims is a tuple containing the (log) lower and upper limits for
         the rotation period. These are logarithmic!
         These form the upper and lower bounds of a prior that is
