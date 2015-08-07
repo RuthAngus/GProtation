@@ -67,14 +67,14 @@ def simple_acf(x, y):
     acf = dan_acf(y)
 
     # smooth with Gaussian kernel convolution
-    Gaussian = lambda x, sig: 1./(2*np.pi*sig**.5) * \
-                 np.exp(-0.5*(x**2)/(sig**2))
+    Gaussian = lambda x,sig: 1./np.sqrt(2*np.pi*sig**2) * \
+                 np.exp(-0.5*(x**2)/(sig**2)) #define a Gaussian
     conv_func = Gaussian(np.arange(-28,28,1.), 9.)
     acf_smooth = np.convolve(acf, conv_func, mode='same')
 
     # create 'lags' array
-    gap_days = 0.02043365
-    lags = np.arange(len(acf))*gap_days
+    kepler_cadence = .02043365
+    lags = np.arange(len(acf)) * kepler_cadence
 
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
@@ -92,9 +92,4 @@ def simple_acf(x, y):
         period = lags[peaks[1]]
         h = acf_smooth[peaks[1]]
 
-    # flag tells you whether you might believe the ACF results!
-    flag = 1  # 1 is good, 0 is bad
-    if h < 0:
-        flag = 0
-
-    return period, acf_smooth, lags, flag
+    return period, acf_smooth, lags

@@ -48,9 +48,9 @@ def simple_acf(x, y):
     acf = dan_acf(y)
 
     # smooth with Gaussian kernel convolution
-    Gaussian = lambda x, sig: 1./np.sqrt(2*np.pi*sig**2) * \
-                 np.exp(-0.5*(x**2)/(sig**2))
-    conv_func = Gaussian(np.arange(-28,28,1.), 9.)  # parameters from McQuillan
+    gauss_func = lambda x,sig: 1./np.sqrt(2*np.pi*sig**2) * \
+                 np.exp(-0.5*(x**2)/(sig**2)) #define a Gaussian
+    conv_func = gauss_func(np.arange(-28,28,1.),9.)
     acf_smooth = np.convolve(acf, conv_func, mode='same')
 
     kepler_cadence = .02043365
@@ -72,7 +72,7 @@ def simple_acf(x, y):
         period = lags[peaks[1]]
         h = acf_smooth[peaks[1]]
 
-    return period_index, acf_smooth, lags
+    return period, acf_smooth, lags
 
 def make_plot(acf_smooth, lags, id):
         # find all the peaks
