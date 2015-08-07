@@ -52,7 +52,7 @@ def dan_acf(x, axis=0, fast=False):
     m[axis] = 0
     return acf / acf[m]
 
-def simple_acf(x, y):
+def simple_acf(x, y, cadence):
     """
     A simple implementation of the ACF method.
     Takes x and y, returns period, smoothed acf, lags and flags
@@ -72,9 +72,7 @@ def simple_acf(x, y):
     conv_func = Gaussian(np.arange(-28,28,1.), 9.)
     acf_smooth = np.convolve(acf, conv_func, mode='same')
 
-    # create 'lags' array
-    kepler_cadence = .02043365
-    lags = np.arange(len(acf)) * kepler_cadence
+    lags = np.arange(len(acf)) * cadence
 
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
