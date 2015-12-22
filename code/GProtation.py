@@ -12,6 +12,7 @@ from plotstuff import params, colours
 reb = params()
 cols = colours()
 import scipy.optimize as spo
+import time
 
 def lnprior(theta, plims):
     """
@@ -43,7 +44,7 @@ def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
             * ExpSine2Kernel(theta[2], theta[4])
-    gp = george.GP(k)
+    gp = george.GP(k, solver=george.HODLRSolver)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
     except (ValueError, np.linalg.LinAlgError):
@@ -114,8 +115,8 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         print("%s/%s_prediction.png" % (DIR, ID))
 
 # take x, y, yerr and initial guess and do MCMC
-def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True,
-         plot_inits=False):
+def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
+         logsamp=True, plot_inits=False):
 
     print("\n", "log(theta_init) = ", theta_init)
     print("theta_init = ", np.exp(theta_init), "\n")
@@ -148,7 +149,7 @@ def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, logsamp=True,
         plt.savefig("%s/%s_init" % (DIR, ID))
         print("%s/%s_init.png" % (DIR, ID))
 
-    ndim, nwalkers = len(theta_init), 32
+    ndim, nwalkers = len(theta_init), nwalkers
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (x, y, yerr, plims)
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)

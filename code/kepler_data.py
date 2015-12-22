@@ -6,6 +6,8 @@ import glob
 from simple_acf import simple_acf
 from measure_GP_rotation import bin_data
 import h5py
+import time
+from GProtation import lnprob
 
 
 def load_kepler_data(fnames):
@@ -59,12 +61,24 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         from GProtation_cosine import MCMC, make_plot
 
     xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
-    m = xb < cutoff  # truncate data
+    m = cutoff  # truncate data
+    xb, yb, yerrb = xb[:m], yb[:m], yerrb[:m]
+
+    # plot data
+    plt.clf()
+    plt.plot(x, y, "k.")
+    plt.savefig("test")
 
     theta_init = np.log(theta_init)
+
+    start = time.time()
+    lnprob(theta_init, xb, yb, yerrb, plims)
+    end = time.time()
+    print("1 likelihood call takes", end-start, "seconds")
+
     if runMCMC:
-        sampler = MCMC(theta_init, xb[m], yb[m], yerr[m], id, DIR,
-                       traces=False, triangle=False, prediction=True)
+        sampler = MCMC(theta_init, xb, yb, yerrb, plims, burnin, run,
+                       id, DIR, nwalkers=12)
 
     # make various plots
     if plot:
@@ -105,4 +119,5 @@ if __name__ == "__main__":
     p_init = period
     plims = (period - .2*period, period + .2*period)
     DIR = "results"
-    fit(x, y, yerr, id, p_init, plims, DIR, plot=True)
+
+    fit(x, y, yerr, id, p_init, plims, DIR, burnin=2, run=60, plot=True)
