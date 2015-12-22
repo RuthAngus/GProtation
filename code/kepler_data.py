@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyfits
 import glob
+from simple_acf import simple_acf
+from measure_GP_rotation import bin_data
+import h5py
+
 
 def load_kepler_data(fnames):
     hdulist = pyfits.open(fnames[0])
@@ -32,14 +36,73 @@ def load_kepler_data(fnames):
        yerr = np.concatenate((yerr, flux_err[m]/med))
     return x, y, yerr
 
-# load Kepler IDs
-data = np.genfromtxt("data/garcia.txt", skip_header=1).T
-kids = data[0]
-id = kids[0]
-path = "/.kplr/data/lightcurves/{0}/*fits".format(str(int(id)).zfill(9))
-fnames = glob.glob(path)
-x, y, yerr = load_kepler_data(path)
 
-plt.clf()
-plt.plot(x, y, "k.")
-plt.savefig("test")
+def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
+        cutoff=1000, sine_kernel=True, runMCMC=True, plot=False):
+    """
+    takes x, y, yerr and initial guesses and priors for period and does the
+    the GP MCMC.
+    id: the kepler id
+    p_init: period initial guess
+    plims: tuple, upper and lower limit for the prior
+    DIR: the directory to save the results
+    """
+    if sine_kernel:
+        print("sine kernel")
+        theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init]
+        print("theta init = ", theta_init)
+        from GProtation import MCMC, make_plot
+    else:
+        print("cosine kernel")
+        theta_init = [1e-2, 1., 1e-2, p_init]
+        print("theta init = ", theta_init)
+        from GProtation_cosine import MCMC, make_plot
+
+    xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
+    m = xb < cutoff  # truncate data
+
+    theta_init = np.log(theta_init)
+    if runMCMC:
+        sampler = MCMC(theta_init, xb[m], yb[m], yerr[m], id, DIR,
+                       traces=False, triangle=False, prediction=True)
+
+    # make various plots
+    if plot:
+        with h5py.File("{0}/{1}_samples.h5".format(DIR, str(int(id).zfill(4))),
+                       "r") as f:
+            samples = f["samples"][...]
+        m = x < cutoff
+        mcmc_result = make_plot(samples, x[m], y[m], yerr[m], id, DIR,
+                                traces=False, triangle=False, prediction=True)
+
+
+if __name__ == "__main__":
+
+    # load Kepler IDs
+    data = np.genfromtxt("data/garcia.txt", skip_header=1).T
+    kids = data[0]
+    id = kids[0]
+
+    # load the first light curve
+    p = "/home/angusr/.kplr/data/lightcurves"
+    path = "{0}/{1}/*fits".format(p, str(int(id)).zfill(9))
+    fnames = glob.glob(path)
+    x, y, yerr = load_kepler_data(fnames)
+
+    plt.clf()
+    plt.subplot(2, 1, 1)
+    plt.plot(x, y, "k.")
+
+    # calculate acf
+    period, acf, lags = simple_acf(x, y)
+
+    plt.subplot(2, 1, 2)
+    plt.axvline(period, color="r")
+    plt.plot(lags, acf)
+    plt.savefig("test")
+
+    # run MCMC
+    p_init = period
+    plims = (period - .2*period, period + .2*period)
+    DIR = "results"
+    fit(x, y, yerr, id, p_init, plims, DIR, plot=True)
