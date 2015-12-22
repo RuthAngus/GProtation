@@ -40,7 +40,7 @@ def load_kepler_data(fnames):
 
 
 def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
-        cutoff=1000, sine_kernel=True, runMCMC=True, plot=False):
+        nwalkers=32, cutoff=1000, sine_kernel=True, runMCMC=True, plot=False):
     """
     takes x, y, yerr and initial guesses and priors for period and does the
     the GP MCMC.
@@ -48,16 +48,17 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
     p_init: period initial guess
     plims: tuple, upper and lower limit for the prior
     DIR: the directory to save the results
+    npts: number of points per bin (48 for one bin per day)
     """
     if sine_kernel:
         print("sine kernel")
         theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init]
-        print("theta init = ", theta_init)
+        print("log theta init = ", np.log(theta_init))
         from GProtation import MCMC, make_plot
     else:
         print("cosine kernel")
         theta_init = [1e-2, 1., 1e-2, p_init]
-        print("theta init = ", theta_init)
+        print("log theta init = ", np.log(theta_init))
         from GProtation_cosine import MCMC, make_plot
 
     xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
@@ -66,28 +67,31 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
 
     # plot data
     plt.clf()
-    plt.plot(x, y, "k.")
-    plt.savefig("test")
+    plt.plot(xb, yb, "k.")
+    plt.savefig("data")
 
     theta_init = np.log(theta_init)
 
     start = time.time()
     lnprob(theta_init, xb, yb, yerrb, plims)
     end = time.time()
-    print("1 likelihood call takes", end-start, "seconds")
+    ti = end-start
+    print("1 likelihood call takes", ti, "seconds")
+    print((burnin * nwalkers * ti)/60, "minutes for burnin")
+    print((run * nwalkers * ti)/60, "minutes for full run")
 
     if runMCMC:
         sampler = MCMC(theta_init, xb, yb, yerrb, plims, burnin, run,
-                       id, DIR, nwalkers=12)
+                       id, DIR, nwalkers)
 
     # make various plots
     if plot:
-        with h5py.File("{0}/{1}_samples.h5".format(DIR, str(int(id).zfill(4))),
+        with h5py.File("{0}/{1}_samples.h5".format(DIR, str(int(id)).zfill(9)),
                        "r") as f:
             samples = f["samples"][...]
         m = x < cutoff
         mcmc_result = make_plot(samples, x[m], y[m], yerr[m], id, DIR,
-                                traces=False, triangle=False, prediction=True)
+                                traces=True, tri=True, prediction=True)
 
 
 if __name__ == "__main__":
@@ -109,6 +113,7 @@ if __name__ == "__main__":
 
     # calculate acf
     period, acf, lags = simple_acf(x, y)
+    print("\n", "acf period = ", period, "days", "\n")
 
     plt.subplot(2, 1, 2)
     plt.axvline(period, color="r")
@@ -117,7 +122,8 @@ if __name__ == "__main__":
 
     # run MCMC
     p_init = period
-    plims = (period - .2*period, period + .2*period)
+    plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
 
-    fit(x, y, yerr, id, p_init, plims, DIR, burnin=2, run=60, plot=True)
+    fit(x, y, yerr, id, p_init, plims, DIR, burnin=50, run=100, npts=48*2,
+        nwalkers=24, plot=True)
