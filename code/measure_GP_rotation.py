@@ -8,7 +8,8 @@ from Kepler_ACF import corr_run
 import h5py
 
 def get_data(id):
-    fnames = glob.glob("/Users/angusr/.kplr/data/lightcurves/00%s/*" % id)
+    fnames = glob.glob("/Users/angusr/.kplr/data/lightcurves/%s/*" %
+                       str(int(id)).zfill(9))
     hdulist = pyfits.open(fnames[0])
     t = hdulist[1].data
     time = t["TIME"]

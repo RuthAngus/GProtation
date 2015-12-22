@@ -214,41 +214,47 @@ def compare_truth(N, coll=True, save=False):
 
     plt.clf()
     xs = np.linspace(0, 100, 100)
-#     plt.errorbar(true_p[:N], acf_p[:N], yerr=aerr[:N], color=cols.pink, fmt=".",
-#                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
+    plt.plot(xs, xs, ".5", ls="--")
+# #     plt.errorbar(true_p[:N], acf_p[:N], yerr=aerr[:N], color=cols.pink, fmt=".",
+# #                  label="$\mathrm{ACF}$", capsize=0, alpha=.7)
 
-#     plt.scatter(true_p[:N], acf_p[:N], color=cols.pink, s=15, alpha=.7,
-#                 label="$\mathrm{ACF}$")
+# #     plt.scatter(true_p[:N], acf_p[:N], color=cols.pink, s=8, alpha=.7,
+#     plt.scatter(true_p[:N], acf_p[:N], color=cols.orange, s=13,
+#                 label="$\mathrm{ACF}$", marker="s")
 
-    plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]), color=cols.blue,
-                 fmt=".", label="$\mathrm{GP}$", capsize=0, alpha=.7, ms=5)
-#     plt.scatter(true_p[:N], gp_p[:N], color=cols.blue, s=20, alpha=.7,
-#                 label="$\mathrm{GP}$")
+#     m = gerrp[:N] < 5
+#     plt.errorbar(true_p[:N][m], gp_p[:N][m], yerr=(gerrp[:N][m], gerrm[:N][m]),
+#                  color=cols.blue, #alpha=.7,
+#                  fmt="o", label="$\mathrm{GP}$", capsize=0, ms=4,
+#                  mec=cols.blue)
+# #     plt.scatter(true_p[:N], gp_p[:N], color=cols.blue, s=20, alpha=.7,
+# #                 label="$\mathrm{GP}$")
 
-#     true_samps = np.zeros((N, 50))
-#     for i in range(50):
-#         true_samps[:, i] = true_p[:N]
-#     plt.scatter(true_samps[:N, :], gp_samps[:N, :], color=cols.blue, s=20, alpha=.2,
-#                 label="$\mathrm{GP}$")
+# #     true_samps = np.zeros((N, 50))
+# #     for i in range(50):
+# #         true_samps[:, i] = true_p[:N]
+# #     plt.scatter(true_samps[:N, :], gp_samps[:N, :], color=cols.blue, s=20, alpha=.2,
+# #                 label="$\mathrm{GP}$")
 
-#     plt.scatter(true_p[:N], p_p[:N], color=cols.orange, s=20, alpha=.7,
-#                 label="$\mathrm{Periodogram}$")
-#     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
-#                 label="$\mathrm{simple}$")
+    plt.scatter(true_p[:N], p_p[:N], color=cols.maroon, s=20, marker="^",
+                label="$\mathrm{Periodogram}$")
+# #     plt.scatter(true_p[:N], my_p[:N], color=cols.green, s=20, alpha=.7,
+# #                 label="$\mathrm{simple}$")
 
-    plt.plot(xs, xs, ".7", ls="--")
-    plt.plot(xs, 2*xs, ".7", ls="--")
-    plt.plot(xs, .5*xs, ".7", ls="--")
+# #     plt.plot(xs, 2*xs, ".5", ls="--")
+# #     plt.plot(xs, .5*xs, ".5", ls="--")
     plt.subplots_adjust(bottom=.2)
     plt.xlim(0, 60)
-    plt.ylim(0, 120)
-    plt.legend(loc="best")
+# #     plt.xlim(20, 60)
+    plt.ylim(0, 80)
+# #     plt.ylim(20, 80)
+    plt.legend(loc="upper left")
     plt.xlabel("$\mathrm{True~period~(days)}$")
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
-#     plt.savefig("compare")
+#     plt.savefig("compare2")
 #     plt.savefig("compare_acf")
-    plt.savefig("compare_gp")
-#     plt.savefig("compare_pgram")
+#     plt.savefig("compare_gp")
+    plt.savefig("compare_pgram")
 
 if __name__ == "__main__":
 
@@ -259,9 +265,9 @@ if __name__ == "__main__":
 #     my_acf(500)
 
     # run full MCMC recovery
-    start = int(sys.argv[1])
-    stop = int(sys.argv[2])
-    recover_injections(start, stop, runMCMC=True, plot=False)
+#     start = int(sys.argv[1])
+#     stop = int(sys.argv[2])
+#     recover_injections(start, stop, runMCMC=True, plot=False)
 
     # make comparison plot
-#     compare_truth(200, coll=True, save=False)
+    compare_truth(300, coll=True, save=False)
