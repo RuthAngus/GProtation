@@ -67,8 +67,9 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
     m = cutoff  # truncate data
     xb, yb, yerrb = xb[:m], yb[:m], yerrb[:m]
     plt.clf()
-    plt.plot(xb, yb, "k.")
-    plt.savefig("data")
+    plt.title(p_init)
+    plt.plot(x[:cutoff*npts], y[:cutoff*npts], "k.")
+    plt.savefig("results/{0}".format(id))
 
     if opt:
         import george
@@ -144,18 +145,17 @@ def run_on_single_lc(id):
     plt.savefig(id)
 
     # run MCMC
-    p_init = period
     plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
-    fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=3000, npts=48,
-        nwalkers=24, cutoff=500, plot=True)
+    fit(x, y, yerr, id, period, plims, DIR, burnin=500, run=3000,
+        npts=48*period/10, nwalkers=24, cutoff=npts*500, plot=True)
 
 if __name__ == "__main__":
 
     # load Kepler IDs
     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
     kids = [str(int(i)).zfill(9) for i in data[0]]
-    id = kids[5]
+    id = kids[10]
     run_on_single_lc(id)
 
 #     pool = Pool()

@@ -81,7 +81,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     print(mcmc_result)
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["$A4", "$l_1$", "$\Gamma$", "$\sigma$", "$P$"]
+    fig_labels = ["A", "l", "G", "s", "P"]
 
     if traces:
         print("Plotting traces")
