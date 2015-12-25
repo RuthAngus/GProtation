@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import george
-from george.kernels import ExpSine2Kernel, ExpSquaredKernel
+from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import glob
 import emcee
 import triangle
@@ -100,18 +100,12 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     if prediction:
         print("plotting prediction")
         theta = np.exp(np.array(mcmc_result))
-        print(theta)
         k = theta[0] * ExpSquaredKernel(theta[1]) \
                 * ExpSine2Kernel(theta[2], theta[4])
-        print("1")
         gp = george.GP(k, solver=george.HODLRSolver)
-        print("2")
         gp.compute(x, yerr)
-        print("3")
         xs = np.linspace(x[0], x[-1], 1000)
-        print("4")
         mu, cov = gp.predict(y, xs)
-        print("5")
         plt.clf()
         plt.errorbar(x, y, yerr=yerr, **reb)
         plt.xlabel("$\mathrm{Time~(days)}$")

@@ -63,13 +63,35 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         from GProtation_cosine import MCMC, make_plot
 
     xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
+    plt.clf()
+    plt.plot(x, y, "k.")
+    plt.plot(xb, yb, "r.")
+    plt.xlim(220, 235)
+    plt.savefig("data")
+    assert 0
     m = cutoff  # truncate data
     xb, yb, yerrb = xb[:m], yb[:m], yerrb[:m]
 
-    # plot data
+    import george
+    from george.kernels import ExpSquaredKernel, ExpSine2Kernel, WhiteKernel
+    th = theta_init
+    k = th[0] * ExpSquaredKernel(th[1]) * ExpSine2Kernel(th[2], th[4]) + \
+            WhiteKernel(th[3])
+    gp = george.GP(k)
+    gp.compute(xb, yerrb)
+    xs = np.linspace(min(xb), max(xb), 1000)
+    mu, cov = gp.predict(yb, xs)
     plt.clf()
     plt.plot(xb, yb, "k.")
-    plt.savefig("data")
+    plt.plot(xs, mu)
+    plt.savefig("prediction_initial")
+
+    gp.optimize(xb, yb, yerrb)
+    mu, cov = gp.predict(yb, xs)
+    plt.clf()
+    plt.plot(xb, yb, "k.")
+    plt.plot(xs, mu)
+    plt.savefig("prediction_final")
 
     theta_init = np.log(theta_init)
 
@@ -102,7 +124,7 @@ def run_on_single_lc(id):
 
     # load the first light curve
     p = "/home/angusr/.kplr/data/lightcurves"
-    path = "{0}/{1}/*fits".format(p, str(int(id)).zfill(9))
+    path = "{0}/{1}/*llc.fits".format(p, str(int(id)).zfill(9))
     fnames = np.sort(glob.glob(path))
 
     x, y, yerr = load_kepler_data(fnames)
@@ -118,21 +140,21 @@ def run_on_single_lc(id):
     plt.subplot(2, 1, 2)
     plt.axvline(period, color="r")
     plt.plot(lags, acf)
-    plt.savefig("test")
+    plt.savefig(id)
 
     # run MCMC
     p_init = period
     plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
-    fit(x, y, yerr, id, p_init, plims, DIR, burnin=4, run=50, npts=48*2,
-        nwalkers=10, plot=True)
+    fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=3000, npts=12,
+        nwalkers=24, cutoff=500, plot=True)
 
 if __name__ == "__main__":
 
     # load Kepler IDs
     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
     kids = [str(int(i)).zfill(9) for i in data[0]]
-    id = kids[0]
+    id = kids[1]
     run_on_single_lc(id)
 
 #     pool = Pool()
