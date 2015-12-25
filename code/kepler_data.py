@@ -8,6 +8,7 @@ from measure_GP_rotation import bin_data
 import h5py
 import time
 from GProtation import lnprob
+from multiprocessing import Pool
 
 
 def load_kepler_data(fnames):
@@ -89,22 +90,21 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         with h5py.File("{0}/{1}_samples.h5".format(DIR, str(int(id)).zfill(9)),
                        "r") as f:
             samples = f["samples"][...]
-        m = x < cutoff
-        mcmc_result = make_plot(samples, x[m], y[m], yerr[m], id, DIR,
+        mcmc_result = make_plot(samples, xb, yb, yerrb, id, DIR,
                                 traces=True, tri=True, prediction=True)
 
 
-if __name__ == "__main__":
-
-    # load Kepler IDs
-    data = np.genfromtxt("data/garcia.txt", skip_header=1).T
-    kids = data[0]
-    id = kids[0]
+def run_on_single_lc(id):
+    """
+    Runs GProtation code on a ensemble of kepler targets
+    id: a kepler id (string)
+    """
 
     # load the first light curve
     p = "/home/angusr/.kplr/data/lightcurves"
     path = "{0}/{1}/*fits".format(p, str(int(id)).zfill(9))
-    fnames = glob.glob(path)
+    fnames = np.sort(glob.glob(path))
+
     x, y, yerr = load_kepler_data(fnames)
 
     plt.clf()
@@ -124,5 +124,16 @@ if __name__ == "__main__":
     p_init = period
     plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
-    fit(x, y, yerr, id, p_init, plims, DIR, burnin=100, run=500, npts=48*2,
-        nwalkers=24, plot=True)
+    fit(x, y, yerr, id, p_init, plims, DIR, burnin=4, run=50, npts=48*2,
+        nwalkers=10, plot=True)
+
+if __name__ == "__main__":
+
+    # load Kepler IDs
+    data = np.genfromtxt("data/garcia.txt", skip_header=1).T
+    kids = [str(int(i)).zfill(9) for i in data[0]]
+    id = kids[0]
+    run_on_single_lc(id)
+
+#     pool = Pool()
+#     results = pool.map(run_on_single_lc, kids)
