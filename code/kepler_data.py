@@ -124,6 +124,5 @@ if __name__ == "__main__":
     p_init = period
     plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
-
-    fit(x, y, yerr, id, p_init, plims, DIR, burnin=50, run=100, npts=48*2,
+    fit(x, y, yerr, id, p_init, plims, DIR, burnin=100, run=500, npts=48*2,
         nwalkers=24, plot=True)
