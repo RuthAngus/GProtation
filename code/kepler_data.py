@@ -68,8 +68,8 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         from GProtation_cosine import MCMC, make_plot
 
 #     xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
-    xb, yb, yerrb = x[::npts], y[::npts], yerr[::npts]  # subsample
-    xb -= xb[0]
+    x -= x[0]
+    xb, yb, yerrb = x[::npts]*1, y[::npts]*1, yerr[::npts]*1  # subsample
     m = xb < cutoff  # truncate data
     xb, yb, yerrb = xb[m], yb[m], yerrb[m]
 
@@ -83,7 +83,7 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
     mu, cov = gp.predict(yb, xs)
     plt.clf()
     plt.title(p_init)
-    plt.plot(x-x[0], y, "k.")
+    plt.plot(x[x < cutoff], y[x < cutoff], "k.")
     plt.plot(xb, yb, "r.")
     plt.plot(xs, mu)
     plt.xlim(0, max(xb))
@@ -172,7 +172,7 @@ def run_on_single_lc(id):
     ppp = ppd * period
     print("npts =", npts, "cutoff =", cutoff, "points per day =", ppd,
           "points per period =", ppp)
-    fit(x, y, yerr, id, period, plims, DIR, burnin=100, run=500,
+    fit(x, y, yerr, id, period, plims, DIR, burnin=500, run=5000,
         npts=npts, nwalkers=24, cutoff=cutoff, plot=True)
 
 if __name__ == "__main__":
@@ -180,8 +180,8 @@ if __name__ == "__main__":
     # load Kepler IDs
     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
     kids = [str(int(i)).zfill(9) for i in data[0]]
-    id = kids[1]
-    run_on_single_lc(id)
+#     id = kids[1]
+#     run_on_single_lc(id)
 
-#     pool = Pool()
-#     results = pool.map(run_on_single_lc, kids)
+    pool = Pool()
+    results = pool.map(run_on_single_lc, kids[:10])
