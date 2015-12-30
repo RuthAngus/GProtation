@@ -9,6 +9,9 @@ import h5py
 import time
 from GProtation import lnprob
 from multiprocessing import Pool
+import george
+from george.kernels import ExpSquaredKernel, ExpSine2Kernel, \
+        WhiteKernel
 
 
 def load_kepler_data(fnames):
@@ -51,10 +54,11 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
     plims: tuple, upper and lower limit for the prior
     DIR: the directory to save the results
     npts: number of points per bin (48 for one bin per day)
+    cutoff: the number of days covered by the light curve
     """
     if sine_kernel:
         print("sine kernel")
-        theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init]
+        theta_init = [np.exp(-5), 5*p_init, np.exp(.6), np.exp(-16), p_init]
         print("log theta init = ", np.log(theta_init))
         from GProtation import MCMC, make_plot
     else:
@@ -63,18 +67,29 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         print("log theta init = ", np.log(theta_init))
         from GProtation_cosine import MCMC, make_plot
 
-    xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
-    m = cutoff  # truncate data
-    xb, yb, yerrb = xb[:m], yb[:m], yerrb[:m]
+#     xb, yb, yerrb = bin_data(x, y, yerr, npts) # bin data
+    xb, yb, yerrb = x[::npts], y[::npts], yerr[::npts]  # subsample
+    xb -= xb[0]
+    m = xb < cutoff  # truncate data
+    xb, yb, yerrb = xb[m], yb[m], yerrb[m]
+
+    # plot a prediction with the initial parameters
+    th = theta_init
+    k = th[0] * ExpSquaredKernel(th[1]) * ExpSine2Kernel(th[2], th[4]) + \
+            WhiteKernel(th[3])
+    gp = george.GP(k)
+    gp.compute(xb, yerrb)
+    xs = np.linspace(min(xb), max(xb), 500)
+    mu, cov = gp.predict(yb, xs)
     plt.clf()
     plt.title(p_init)
-    plt.plot(x[:cutoff*npts], y[:cutoff*npts], "k.")
+    plt.plot(x-x[0], y, "k.")
+    plt.plot(xb, yb, "r.")
+    plt.plot(xs, mu)
+    plt.xlim(0, max(xb))
     plt.savefig("results/{0}".format(id))
 
     if opt:
-        import george
-        from george.kernels import ExpSquaredKernel, ExpSine2Kernel, \
-                WhiteKernel
         th = theta_init
         k = th[0] * ExpSquaredKernel(th[1]) * ExpSine2Kernel(th[2], th[4]) + \
                 WhiteKernel(th[3])
@@ -85,14 +100,14 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         plt.clf()
         plt.plot(xb, yb, "k.")
         plt.plot(xs, mu)
-        plt.savefig("prediction_initial")
+        plt.savefig("results/prediction_initial")
         pars, results = gp.optimize(xb, yb, yerrb)
         print("pars = ", pars)
         mu, cov = gp.predict(yb, xs)
         plt.clf()
         plt.plot(xb, yb, "k.")
         plt.plot(xs, mu)
-        plt.savefig("prediction_final")
+        plt.savefig("results/prediction_final")
         theta_init = np.log(pars)
 
     theta_init = np.log(theta_init)
@@ -114,7 +129,7 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         with h5py.File("{0}/{1}_samples.h5".format(DIR, str(int(id)).zfill(9)),
                        "r") as f:
             samples = f["samples"][...]
-        mcmc_result = make_plot(samples, xb, yb, yerrb, id, DIR,
+        mcmc_result = make_plot(samples, xb, yb, yerrb, x, y, yerr, id, DIR,
                                 traces=True, tri=True, prediction=True)
 
 
@@ -123,6 +138,7 @@ def run_on_single_lc(id):
     Runs GProtation code on a ensemble of kepler targets
     id: a kepler id (string)
     """
+    print("id = ", id)
 
     # load the first light curve
     p = "/home/angusr/.kplr/data/lightcurves"
@@ -133,29 +149,38 @@ def run_on_single_lc(id):
 
     plt.clf()
     plt.subplot(2, 1, 1)
-    plt.plot(x, y, "k.")
+    plt.plot(x-x[0], y, "k.")
 
     # calculate acf
     period, acf, lags = simple_acf(x, y)
     print("\n", "acf period = ", period, "days", "\n")
 
+    plt.xlim(0, period * 10)
     plt.subplot(2, 1, 2)
     plt.axvline(period, color="r")
+    plt.xlim(0, period * 10)
     plt.plot(lags, acf)
-    plt.savefig(id)
+    plt.title("period = {0}".format(period))
+    plt.savefig("results/{0}_acf".format(id))
 
     # run MCMC
     plims = (np.log(period - .2*period), np.log(period + .2*period))
     DIR = "results"
-    fit(x, y, yerr, id, period, plims, DIR, burnin=500, run=3000,
-        npts=48*period/10, nwalkers=24, cutoff=npts*500, plot=True)
+    npts = int(48 * period / 20)
+    cutoff = period * 20
+    ppd = 48. / npts
+    ppp = ppd * period
+    print("npts =", npts, "cutoff =", cutoff, "points per day =", ppd,
+          "points per period =", ppp)
+    fit(x, y, yerr, id, period, plims, DIR, burnin=100, run=500,
+        npts=npts, nwalkers=24, cutoff=cutoff, plot=True)
 
 if __name__ == "__main__":
 
     # load Kepler IDs
     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
     kids = [str(int(i)).zfill(9) for i in data[0]]
-    id = kids[10]
+    id = kids[1]
     run_on_single_lc(id)
 
 #     pool = Pool()
