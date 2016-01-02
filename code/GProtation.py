@@ -14,6 +14,13 @@ cols = colours()
 import scipy.optimize as spo
 import time
 
+plotpar = {"axis.labelsize": 20,
+           "font.size": 20,
+           "legend.fontsize": 20,
+           "xtick.labelsize": 20,
+           "text.usetex": True}
+plt.rcParams.update(plotpar)
+
 def lnprior(theta, plims):
     """
     plims is a tuple, list or array containing the lower and upper limits for
@@ -109,12 +116,12 @@ def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
         mu, cov = gp.predict(yb, xs)
         plt.clf()
         plt.errorbar(x-x[0], y, yerr=yerr, **reb)
-        plt.errorbar(xb, yb, yerr=yerrb, fmt="r.")
+#         plt.errorbar(xb, yb, yerr=yerrb, fmt="r.")
         plt.xlabel("$\mathrm{Time~(days)}$")
         plt.ylabel("$\mathrm{Normalised~Flux}$")
-        plt.plot(xs, mu, color=cols.blue)
+        plt.plot(xs, mu, color=cols.lightblue)
         plt.xlim(min(xb), max(xb))
-        plt.title("%s" % np.exp(mcmc_result[-1]))
+#         plt.title("%s" % np.exp(mcmc_result[-1]))
         plt.savefig("%s/%s_prediction" % (DIR, ID))
         print("%s/%s_prediction.png" % (DIR, ID))
 

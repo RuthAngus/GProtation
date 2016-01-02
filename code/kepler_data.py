@@ -58,7 +58,16 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
     """
     if sine_kernel:
         print("sine kernel")
-        theta_init = [np.exp(-5), 5*p_init, np.exp(.6), np.exp(-16), p_init]
+        import os.path
+        if os.path.isfile("results/{0}_result.txt".format(id)):
+            print("previous results found")
+            theta_init = \
+                        np.exp(np.genfromtxt(
+                               "results/{0}_result.txt".format(id)).T)
+        else:
+            print("No previous results found")
+            theta_init = [np.exp(-18), 5*p_init, np.exp(.6), np.exp(-16),
+                          p_init]
         print("log theta init = ", np.log(theta_init))
         from GProtation import MCMC, make_plot
     else:
@@ -164,7 +173,7 @@ def run_on_single_lc(id):
     plt.savefig("results/{0}_acf".format(id))
 
     # run MCMC
-    plims = (np.log(period - .2*period), np.log(period + .2*period))
+    plims = (np.log(period - .99*period), np.log(period + 3*period))
     DIR = "results"
     npts = int(48 * period / 20)
     cutoff = period * 20
@@ -172,7 +181,7 @@ def run_on_single_lc(id):
     ppp = ppd * period
     print("npts =", npts, "cutoff =", cutoff, "points per day =", ppd,
           "points per period =", ppp)
-    fit(x, y, yerr, id, period, plims, DIR, burnin=500, run=5000,
+    fit(x, y, yerr, id, period, plims, DIR, burnin=10, run=500,
         npts=npts, nwalkers=24, cutoff=cutoff, plot=True)
 
 if __name__ == "__main__":
@@ -180,8 +189,8 @@ if __name__ == "__main__":
     # load Kepler IDs
     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
     kids = [str(int(i)).zfill(9) for i in data[0]]
-#     id = kids[1]
+#     id = kids[7]
 #     run_on_single_lc(id)
 
     pool = Pool()
-    results = pool.map(run_on_single_lc, kids[:10])
+    results = pool.map(run_on_single_lc, kids[10:20])
