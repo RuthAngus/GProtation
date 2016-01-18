@@ -14,12 +14,20 @@ cols = colours()
 import scipy.optimize as spo
 import time
 
+plotpar = {"axis.labelsize": 20,
+           "font.size": 20,
+           "legend.fontsize": 20,
+           "xtick.labelsize": 20,
+           "text.usetex": True}
+plt.rcParams.update(plotpar)
+
 def lnprior(theta, plims):
     """
     plims is a tuple, list or array containing the lower and upper limits for
     the rotation period. These are logarithmic!
+    theta = A, l, Gamma, s, P
     """
-    if -20 < theta[0] < 20 and -20 < theta[1] < 20 and -20 < theta[2] < 20 \
+    if -20 < theta[0] < 20 and theta[4] < theta[1] and -20 < theta[2] < 20 \
     and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1]:
         return 0.
     return -np.inf
@@ -64,8 +72,8 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
-              prediction=True):
+def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
+              tri=False, prediction=True):
 
     ID = str(int(ID)).zfill(9)
 
@@ -103,15 +111,17 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         k = theta[0] * ExpSquaredKernel(theta[1]) \
                 * ExpSine2Kernel(theta[2], theta[4])
         gp = george.GP(k, solver=george.HODLRSolver)
-        gp.compute(x, yerr)
-        xs = np.linspace(x[0], x[-1], 1000)
-        mu, cov = gp.predict(y, xs)
+        gp.compute(xb, yerrb)
+        xs = np.linspace(xb[0], xb[-1], 1000)
+        mu, cov = gp.predict(yb, xs)
         plt.clf()
-        plt.errorbar(x, y, yerr=yerr, **reb)
+        plt.errorbar(x-x[0], y, yerr=yerr, **reb)
+#         plt.errorbar(xb, yb, yerr=yerrb, fmt="r.")
         plt.xlabel("$\mathrm{Time~(days)}$")
         plt.ylabel("$\mathrm{Normalised~Flux}$")
-        plt.plot(xs, mu, color=cols.blue)
-        plt.title("%s" % np.exp(mcmc_result[-1]))
+        plt.plot(xs, mu, color=cols.lightblue)
+        plt.xlim(min(xb), max(xb))
+#         plt.title("%s" % np.exp(mcmc_result[-1]))
         plt.savefig("%s/%s_prediction" % (DIR, ID))
         print("%s/%s_prediction.png" % (DIR, ID))
 
