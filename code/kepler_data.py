@@ -15,6 +15,11 @@ from george.kernels import ExpSquaredKernel, ExpSine2Kernel, \
 
 
 def load_kepler_data(fnames):
+    """
+    load and join quarters together.
+    Takes a list of fits file names for a given star.
+    Returns the concatenated arrays of time, flux and flux_err
+    """
     hdulist = pyfits.open(fnames[0])
     t = hdulist[1].data
     time = t["TIME"]

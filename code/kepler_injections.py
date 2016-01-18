@@ -6,18 +6,19 @@ import fitsio
 import scipy.interpolate as spi
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
+from kepler_data import load_kepler_data
+import glob
 
-def simulate(id, x, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
-             gen_type="s", kepler=False, plot=False):
+def simulate(id, time, periods, amps, gen_type="s", plot=False):
     """
     Simulate noise free light curves with the same time-sampling as the real
     target that you are going to inject into.
-    pmin and pmax in days, amin and amax in ppm.
+    id: the kepler id that the time values are taken from.
+    time: an array of time values.
+    takes an array of periods and amplitudes, periods, amps
+    periods in days, amplitudes in ppm.
+    gen_type == "s" for stellar and "GP" for gaussian process
     """
-    periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
-    amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
-    np.savetxt("simulations/true_periods.txt", np.transpose((np.arange(nsim),
-               periods, amps)))
 
     for i, p in enumerate(periods):
         print i, "of ", len(periods), "\n"
@@ -42,32 +43,33 @@ def simulate(id, x, pmin=.5, pmax=100., amin=1e-3, amax=1e-1, nsim=100,
             gp.compute(time, yerr)
             simflux = gp.sample()
 
-        np.savetxt("simulations/%s_%s.txt" % (str(int(i)).zfill(4), gen_type),
+        np.savetxt("simulations/kepler_injections/%s_%s.txt"
+                   % (str(int(i)).zfill(4), gen_type),
                    np.transpose((time, simflux)))
 
         if plot:
             plt.clf()
-            plt.plot(time, simflux*amps[i]+flux, "k.")
-            plt.savefig("simulations/%s%s" % (i, gen_type))
+            plt.plot(time, simflux*amps[i], "k.")
+            plt.savefig("simulations/kepler_injections/%s%s" % (i, gen_type))
+            print("simulations/kepler_injections/%s%s" % (i, gen_type))
             plt.title("p = %s, a = %s" % (p, amps[i]))
-            assert 0
 
 if __name__ == "__main__":
-    import glob
-    from kepler_data import load_kepler_data
+    pmin, pmax =.5, 100.
+    amin, amax = 1e-3, 1e-1
+    nsim = 100
 
-    ids = np.genfromtxt("kepler_ids.txt", dtype=int).T
-    for i in ids[1:]:
+    periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
+    amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
+    np.savetxt("simulations/kepler_injections/true_periods.txt",
+               np.transpose((np.arange(nsim), periods, amps)))
+
+    ids = np.genfromtxt("quiet_kepler_ids.txt", dtype=int).T
+    for i in ids:
         id = str(i)
         print(id)
         d = "/home/angusr/.kplr/data/lightcurves"
-        fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9)))
-        x, y, yerr = load_kepler_data(fnames)
-        plt.clf()
-        m = (x > 150) * (x < 400)
-#         m = x < 500
-        plt.plot(x[m], y[m], "k.")
-        plt.savefig("simulations/kepler_injections/{0}".format(id.zfill(9)))
+        fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
+        x, _, _ = load_kepler_data(fnames)
 
-#     simulate("../kepler452b/8311864", pmin=.5, pmax=100., amin=1e-5, amax=1e-2,
-#              nsim=100, gen_type="GP", plot=True)
+        simulate(id, x, periods, amps, plot=True)
