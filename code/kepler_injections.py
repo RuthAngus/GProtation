@@ -56,12 +56,12 @@ def simulate(id, time, periods, amps, gen_type="s", plot=False):
 
 if __name__ == "__main__":
     pmin, pmax =.5, 100.
-    amin, amax = 1e-3, 1e-1
+    amin, amax = 1e-7, 1e-5
     nsim = 100
 
     periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
     amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
-    np.savetxt("simulations/kepler_injections/true_periods.txt",
+    np.savetxt("simulations/kepler_injections/true_periods_amps.txt",
                np.transpose((np.arange(nsim), periods, amps)))
 
     ids = np.genfromtxt("quiet_kepler_ids.txt", dtype=int).T
