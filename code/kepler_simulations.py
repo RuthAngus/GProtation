@@ -20,6 +20,7 @@ def simulate(id, time, periods, amps, gen_type="s", plot=False):
     gen_type == "s" for stellar and "GP" for gaussian process
     """
 
+    indices, ids, ps, a_s,  = [], [], [], []  # lists for saving truths
     for i, p in enumerate(periods):
         print i, "of ", len(periods), "\n"
         print "amps = ", amps[i]
@@ -44,32 +45,52 @@ def simulate(id, time, periods, amps, gen_type="s", plot=False):
             simflux = gp.sample()
 
         np.savetxt("simulations/kepler_injections/%s_%s.txt"
-                   % (str(int(i)).zfill(4), gen_type),
+                   % (str(int(i)).zfill(4), str(int(id)).zfill(9)),
                    np.transpose((time, simflux)))
 
         if plot:
             plt.clf()
             plt.plot(time, simflux*amps[i], "k.")
-            plt.savefig("simulations/kepler_injections/%s%s" % (i, gen_type))
-            print("simulations/kepler_injections/%s%s" % (i, gen_type))
             plt.title("p = %s, a = %s" % (p, amps[i]))
+            plt.savefig("simulations/kepler_injections/%s_%s"
+                        % (str(int(i)).zfill(4), str(int(id)).zfill(9)))
+            print("simulations/kepler_injections/%s%s" % (i, gen_type))
+
+        indices.append(i)
+        ids.append(id)
+        ps.append(p)
+        a_s.append(amps[i])
+
+    return indices, ids, ps, a_s
 
 if __name__ == "__main__":
     pmin, pmax =.5, 100.
     amin, amax = 1e-7, 1e-5
-    nsim = 100
+    nsim = 2
 
+    # generate arrays of periods and amplitudes
     periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
     amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
-    np.savetxt("simulations/kepler_injections/true_periods_amps.txt",
-               np.transpose((np.arange(nsim), periods, amps)))
 
-    ids = np.genfromtxt("quiet_kepler_ids.txt", dtype=int).T
-    for i in ids:
+    r_inds, r_ids, r_ps, r_as = [], [], [], []
+    ids = np.genfromtxt("data/quiet_kepler_ids.txt", dtype=int).T
+    for i in ids:  # loop over the real kepler light curves
         id = str(i)
         print(id)
         d = "/home/angusr/.kplr/data/lightcurves"
         fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
-        x, _, _ = load_kepler_data(fnames)
+        x, _, _ = load_kepler_data(fnames)  # load the time arrays
 
-        simulate(id, x, periods, amps, plot=True)
+        inds, ids, ps, a_s = simulate(id, x, periods, amps, plot=True)  # sim
+        r_inds.append(inds)  # record the truths
+        r_ids.append(ids)
+        r_ps.append(ps)
+        r_as.append(a_s)
+
+    # record the truths
+    r_inds = np.array([i for j in r_inds for i in j])
+    r_ids = np.array([int(i) for j in r_ids for i in j])
+    r_ps = np.array([i for j in r_ps for i in j])
+    r_as = np.array([i for j in r_as for i in j])
+    data = np.vstack((r_inds, r_ids, r_ps, r_as))
+    np.savetxt("simulations/kepler_injections/true_periods_amps.txt", data.T)
