@@ -20,7 +20,6 @@ def simulate(id, time, periods, gen_type="s", plot=False):
     gen_type == "s" for stellar and "GP" for gaussian process
     """
 
-    indices, ids, ps  = [], [], []  # lists for saving truths
     for i, p in enumerate(periods):
         print i, "of ", len(periods), "\n"
         if gen_type == "s":
@@ -55,21 +54,11 @@ def simulate(id, time, periods, gen_type="s", plot=False):
                         % (str(int(i)).zfill(4), str(int(id)).zfill(9)))
             print("simulations/kepler_injections/%s%s" % (i, gen_type))
 
-        indices.append(i)
-        ids.append(id)
-        ps.append(p)
-
-    return indices, ids, ps
-
 if __name__ == "__main__":
     pmin, pmax =.5, 100.
-#     amin, amax = 1e-7, 1e-5
     nsim = 2
 
-    # generate arrays of periods and amplitudes
-    periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
-
-    r_inds, r_ids, r_ps = [], [], []
+    r_ps = []
     ids = np.genfromtxt("data/quiet_kepler_ids.txt", dtype=int).T
     for i in ids:  # loop over the real kepler light curves
         id = str(i)
@@ -78,14 +67,13 @@ if __name__ == "__main__":
         fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
         x, _, _ = load_kepler_data(fnames)  # load the time arrays
 
-        inds, ids, ps = simulate(id, x, periods, plot=True)  # sim
-        r_inds.append(inds)  # record the truths
-        r_ids.append(ids)
-        r_ps.append(ps)
+        # generate array of periods
+        periods = np.exp(np.random.uniform(np.log(pmin), np.log(pmax), nsim))
+
+        simulate(id, x, periods, plot=True)  # sim
+        r_ps.append(periods)
 
     # record the truths
-    r_inds = np.array([i for j in r_inds for i in j])
-    r_ids = np.array([int(i) for j in r_ids for i in j])
     r_ps = np.array([i for j in r_ps for i in j])
-    data = np.vstack((r_inds, r_ids, r_ps))
+    data = np.vstack((np.arange(len(r_ps)), r_ps))
     np.savetxt("simulations/kepler_injections/true_periods.txt", data.T)
