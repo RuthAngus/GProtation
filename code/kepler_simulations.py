@@ -48,12 +48,13 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
 
     r_ps, r_as = [], []
     n = 0
-    for j in ids:  # loop over the real kepler light curves
+    for number, j in enumerate(ids):  # loop over the real kepler light curves
         id = str(j)
         print(id)
         d = "/home/angusr/.kplr/data/lightcurves"
         fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
         x, y, yerr = load_kepler_data(fnames)  # load the time arrays
+        x -= x[0]
         std = np.std(y)
         y, yerr = y / std, yerr / std
 
@@ -64,6 +65,8 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
         r_as.append(amps)
 
         for i, p in enumerate(periods):  # loop over periods
+            print i, "of", len(periods), "periods", number, "of" len(ids), \
+                    "stars"
             new_y = simulate(id, x, p, plot=True)  # sim
             new_std = np.std(new_y)
             new_y /= new_std
