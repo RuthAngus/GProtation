@@ -90,6 +90,7 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
         with h5py.File("%s/%s_samples.h5" % (DIR, str(int(id)).zfill(4)),
                        "r") as f:
             samples = f["samples"][...]
-        m = x < cutoff
-        mcmc_result = make_plot(samples, x[m], y[m], yerr[m], id, DIR,
-                                traces=False, triangle=False, prediction=True)
+        m2 = x < cutoff
+        mcmc_result = make_plot(samples, xb[m], yb[m], yerrb[m], x[m2], y[m2],
+                                yerr[m2], id, DIR, traces=True, tri=True,
+                                prediction=True)
