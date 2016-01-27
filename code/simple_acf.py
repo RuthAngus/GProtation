@@ -72,7 +72,7 @@ def simple_acf(x, y):
 
     return period, acf_smooth, lags
 
-def make_plot(acf_smooth, lags, id):
+def make_plot(acf_smooth, lags, id, fn):
         # find all the peaks
         peaks = np.array([i for i in range(1, len(lags)-1)
                          if acf_smooth[i-1] < acf_smooth[i] and
@@ -97,7 +97,8 @@ def make_plot(acf_smooth, lags, id):
         plt.axvline(highest, color="g")
         plt.axvline(period, color="k")
         plt.plot(lags, acf_smooth)
-        plt.savefig("%s_acf" % id)
+        plt.xlim(0, 10*period)
+        plt.savefig("%s/%s_acf" % (fn, str(id).zfill(4)))
 
 if __name__ == "__main__":
 
