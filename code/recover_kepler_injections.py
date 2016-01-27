@@ -10,6 +10,7 @@ from gatspy.periodic import LombScargle
 import sys
 from simple_acf import simple_acf, make_plot
 from Kepler_ACF import corr_run
+from multiprocessing import Pool
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -19,123 +20,104 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def my_acf(N, plot=False, amy=False):
+def my_acf(id, plot=False, amy=False):
     """
-    takes the number of simulations (the files are saved in a directory that
-    is a global variable).
-    returns an array of period measurements and saves the results.
+    takes id of the star, returns an array of period measurements and saves the
+    results.
+    (the files are saved in a directory that is a global variable).
     """
-    ids = np.arange(N)
-    periods = []
-    for id in ids:
-        print "\n", id, "of", N
-        x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-                                                    str(int(id)).zfill(4))).T
 
-        if amy:
-            period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
-        else:
-            period, acf, lags = simple_acf(x, y)
-            if plot:
-                make_plot(acf, lags, id, fn)
-
-        periods.append(period)
-        print period
-        np.savetxt("{0}/{1}_myacf_result.txt".format(fn,
-                                    str(int(id)).zfill(4)), np.ones(5)*period)
-    np.savetxt("{0}/myacf_results.txt".format(fn),
-               np.transpose((ids, np.array(periods))))
-    return periods
-
-def periodograms(N, plot=False, savepgram=True):
-    """
-    takes the number of simulations (the files are saved in a directory that
-    is a global variable).
-    returns an array of period measurements and saves the results.
-    """
-    ids = np.arange(N)
-    periods = []
-    for id in ids:
-        print "\n", id, "of", N
-
-        # load simulated data
-        x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-            str(int(id)).zfill(4))).T
-
-        # initialise with acf
-        try:
-            p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, int((id))))
-        except:
-            corr_run(x, y, yerr, int(id), fn, saveplot=False)
-            p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, int(id)))
-        print "acf period, err = ", p_init
-
-        ps = np.linspace(p_init[0]*.1, p_init[0]*4, 1000)
-        model = LombScargle().fit(x, y, yerr)
-        pgram = model.periodogram(ps)
-
-        # find peaks
-        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                         pgram[i] and pgram[i+1] < pgram[i]])
-        period = ps[pgram==max(pgram[peaks])][0]
-        periods.append(period)
-        print "pgram period = ", period
-
+    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
+                                                str(int(id)).zfill(4))).T
+    if amy:
+        period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
+    else:
+        period, acf, lags = simple_acf(x, y)
+        np.savetxt("{0}/{1}_result.txt".format(fn, str(id).zfill(4)), period)
         if plot:
-            plt.clf()
-            plt.plot(ps, pgram)
-            plt.axvline(period, color="r")
-            plt.savefig("{0}/{1}_pgram".format(fn, str(int(id)).zfill(4)))
+            make_plot(acf, lags, id, fn)
+    return period
 
-        if savepgram:
-            np.savetxt("{0}/{1}_pgram.txt".format(fn, str(int(id)).zfill(4)),
-                       np.transpose((ps, pgram)))
+def periodograms(id, plot=False, savepgram=True):
+    """
+    takes id of the star, returns an array of period measurements and saves the
+    results.
+    (the files are saved in a directory that is a global variable).
+    """
+    # load simulated data
+    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
+        str(int(id)).zfill(4))).T
 
-    np.savetxt("{0}/periodogram_results.txt".format(fn),
-               np.transpose((ids, periods)))
-    return periods
+    # initialise with acf
+    try:
+        p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn,
+                                                str(int(id)).zfill(4)))
+    except:
+        corr_run(x, y, yerr, int(id), fn, saveplot=False)
+        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, int(id)))
+    print "acf period, err = ", p_init
 
-def recover_injections(start, stop, N, bi, ru, runMCMC=True, plot=False):
+    ps = np.linspace(p_init*.1, p_init*4, 1000)
+    model = LombScargle().fit(x, y, yerr)
+    pgram = model.periodogram(ps)
+
+    # find peaks
+    peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                     pgram[i] and pgram[i+1] < pgram[i]])
+    period = ps[pgram==max(pgram[peaks])][0]
+    print "pgram period = ", period
+
+    if plot:
+        plt.clf()
+        plt.plot(ps, pgram)
+        plt.axvline(period, color="r")
+        plt.savefig("{0}/{1}_pgram".format(fn, str(int(id)).zfill(4)))
+
+    if savepgram:
+        np.savetxt("{0}/{1}_pgram.txt".format(fn, str(int(id)).zfill(4)),
+                   np.transpose((ps, pgram)))
+
+    np.savetxt("{0}/{1}_pgram_result.txt".format(fn, str(int(id)).zfill(4)),
+               np.ones(2).T*period)
+    return period
+
+def recover_injections(id, bi, ru, runMCMC=True, plot=False):
     """
     run MCMC on each star, initialising with the ACF period
     Next you could try running for longer, using more of the lightcurve,
     subsampling less, etc
     """
-    ids = range(N)
+    # load simulated data
+    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
+                                            str(int(id)).zfill(4))).T
+    yerr = np.ones_like(y) * 1e-5
 
-    if start == 0: id_list = ids[:stop]
-    elif stop == N: id_list = ids[start:]
-    else: id_list = ids[start:stop]
-    for id in id_list:
-        print "\n", "star id = ", id
+    # initialise with acf
+    try:
+        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
+    except:
+        corr_run(x, y, yerr, id, fn, saveplot=plot)
+        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
+    print "acf period, err = ", p_init
 
-        # load simulated data
-        x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-                                                str(int(id)).zfill(4))).T
-        yerr = np.ones_like(y) * 1e-5
-
-        # initialise with acf
-        try:
-            p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-        except:
-            corr_run(x, y, yerr, id, fn)
-            p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-        print "acf period, err = ", p_init
-
-        # run MCMC
-        plims = [p_init[0]*.7, p_init[0]*1.5]
-        npts = int(p_init[0] / 10. * 48)  # 10 points per period
-        cutoff = 10 * p_init[0]
-        fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims), fn,
-                burnin=bi, run=ru, npts=npts, cutoff=cutoff,
-                sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
-        assert 0
+    # run MCMC
+    plims = [p_init[0] - .99*p_init[0], p_init[0] + 3*p_init[0]]
+    npts = int(p_init[0] / 10. * 48)  # 10 points per period
+    cutoff = 10 * p_init[0]
+    ppd = 48. / npts
+    ppp = ppd * p_init[0]
+    print("npts =", npts, "cutoff =", cutoff, "points per day =", ppd,
+          "points per period =", ppp)
+    fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims), fn,
+            burnin=bi, run=ru, npts=npts, cutoff=cutoff,
+            sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
 
 def collate(N):
     """
     assemble all the period measurements here
     """
-    ids, true_p, true_a = np.genfromtxt("{0}/true_periods.txt".format(fn)).T
+    ids, true_p, true_a = \
+            np.genfromtxt("{0}/true_periods_amps.txt".format(fn)).T
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
     p_periods, pids = [], []  # periodogram results. pids is just a place hold
     my_p = []
@@ -244,18 +226,21 @@ def compare_truth(N, coll=True):
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
     plt.savefig("compare.pdf")
 
-if __name__ == "__main__":
-
-    fn = "simulations/kepler_injections"
-    N = 10
+def acf_pgram_GP(id):
     # measure periods using the periodogram method
-#     periodograms(N, plot=True)
+    periodograms(id, plot=True)
 
     # measure periods using simple_acf
-#     my_acf(N, plot=True, amy=True)
+    my_acf(id, plot=True, amy=True)
 
     # run full MCMC recovery
-    start = int(sys.argv[1])
-    stop = int(sys.argv[2])
-    burnin, run = 500, 1000
-    recover_injections(start, stop, N, burnin, run, runMCMC=True, plot=True)
+    burnin, run = 1000, 2000
+    recover_injections(id, burnin, run, runMCMC=True, plot=True)
+
+if __name__ == "__main__":
+    fn = "simulations/kepler_injections"
+    N = 2
+    ids = range(N)
+    pool = Pool()
+    pool.map(acf_pgram_GP, ids)
+#     acf_pgram_GP(0)

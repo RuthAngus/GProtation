@@ -99,6 +99,7 @@ def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
 
     if tri:
         print("Making triangle plot")
+        flat[:, -1] = np.exp(flat[:, -1])
         fig = triangle.corner(flat, labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
         print("%s/%s_triangle.png" % (DIR, ID))

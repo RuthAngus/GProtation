@@ -33,7 +33,7 @@ jump_arr = scipy.array([131.51139, 169.51883, 169.75000, 182.00000, 200.31000,
                        874.50000, 906.84469, 937.00000, 970.00000, 1001.20718,
                        1032.50000, 1063.50000 ,1071.00000, 1093.60000])
 
-def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
+def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
 
     id_list = [id]
     # Create empty arrays
