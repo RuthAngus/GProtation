@@ -126,9 +126,10 @@ def recover_injections(start, stop, N, bi, ru, runMCMC=True, plot=False):
         plims = [p_init[0]*.7, p_init[0]*1.5]
         npts = int(p_init[0] / 10. * 48)  # 10 points per period
         cutoff = 10 * p_init[0]
-        fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims),
+        fit(x, y, yerr, str(int(id)).zfill(4), p_init[0], np.log(plims), fn,
                 burnin=bi, run=ru, npts=npts, cutoff=cutoff,
                 sine_kernel=True, acf=False, runMCMC=runMCMC, plot=plot)
+        assert 0
 
 def collate(N):
     """
@@ -251,10 +252,10 @@ if __name__ == "__main__":
 #     periodograms(N, plot=True)
 
     # measure periods using simple_acf
-    my_acf(N, plot=True, amy=True)
+#     my_acf(N, plot=True, amy=True)
 
     # run full MCMC recovery
-#     start = int(sys.argv[1])
-#     stop = int(sys.argv[2])
-#     burnin, run = 100, 500
-#     recover_injections(start, stop, N, burnin, run, runMCMC=True, plot=True)
+    start = int(sys.argv[1])
+    stop = int(sys.argv[2])
+    burnin, run = 500, 1000
+    recover_injections(start, stop, N, burnin, run, runMCMC=True, plot=True)

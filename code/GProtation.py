@@ -75,8 +75,6 @@ def neglnlike(theta, x, y, yerr):
 def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
               tri=False, prediction=True):
 
-    ID = str(int(ID)).zfill(9)
-
 #     nwalkers, nsteps, ndim = np.shape(sampler.chain)
 #     flat = sampler.flatchain
 
@@ -172,7 +170,7 @@ def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
     p0, lp, state = sampler.run_mcmc(p0, run)
 
     # save samples
-    f = h5py.File("%s/%s_samples.h5" % (DIR, str(int(ID)).zfill(9)), "w")
+    f = h5py.File("%s/%s_samples.h5" % (DIR, ID), "w")
     data = f.create_dataset("samples", np.shape(sampler.chain))
     data[:, :] = np.array(sampler.chain)
     f.close()

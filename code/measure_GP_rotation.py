@@ -48,13 +48,14 @@ def bin_data(x, y, yerr, npts):
         x, y, yerr = x[1:], y[1:], yerr[1:]
     return xb/npts, yb/npts, yerrb**.5/npts
 
-def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
+def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         cutoff=100, sine_kernel=False, acf=False, runMCMC=True, plot=False):
     """
     takes x, y, yerr and initial guesses and priors for period and does
     the full GP MCMC.
     Tuning parameters include cutoff (number of days), npts (number of points
     per bin).
+    DIR is where to save output
     """
 
     # measure ACF period
@@ -76,9 +77,6 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
     m = xb < cutoff  # truncate
 
     theta_init = np.log(theta_init)
-    DIR = "cosine"
-    if sine_kernel:
-        DIR = "sine"
 
     print theta_init
     if runMCMC:
@@ -87,10 +85,9 @@ def fit(x, y, yerr, id, p_init, plims, burnin=500, run=1500, npts=48,
 
     # make various plots
     if plot:
-        with h5py.File("%s/%s_samples.h5" % (DIR, str(int(id)).zfill(4)),
-                       "r") as f:
+        with h5py.File("%s/%s_samples.h5" % (DIR, id), "r") as f:
             samples = f["samples"][...]
         m2 = x < cutoff
         mcmc_result = make_plot(samples, xb[m], yb[m], yerrb[m], x[m2], y[m2],
-                                yerr[m2], id, DIR, traces=True, tri=True,
-                                prediction=True)
+                                yerr[m2], str(int(id)).zfill(4), DIR,
+                                traces=True, tri=True, prediction=True)

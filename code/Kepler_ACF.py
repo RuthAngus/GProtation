@@ -187,8 +187,8 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
 
         if saveplot:
             print "saving figure", "%s/%s_full.png" % (savedir,
-                                                str(int(id_list)).zfill(4))
-            pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
+                                                str(int(id_list[0])).zfill(4))
+            pylab.savefig('%s/%s_full.png' %(savedir, str(int(id_list[0])).zfill(4)))
 
         maxpts = 40.0
         if scipy.floor(lc_tab.time.max() / acf_peak_per[x]) < maxpts:
@@ -211,7 +211,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
 
         print 'PERIOD = ', period[x], '+/-', error,
         print 'saving as', '%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4))
-        np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
+        np.savetxt('%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4)),
                    np.transpose((period[x], error)))
     else:
         blank = np.array([0,0])
