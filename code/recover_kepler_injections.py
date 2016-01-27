@@ -9,6 +9,7 @@ cols = colours()
 from gatspy.periodic import LombScargle
 import sys
 from simple_acf import simple_acf, make_plot
+from Kepler_ACF import corr_run
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -18,7 +19,7 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def my_acf(N, plot=False):
+def my_acf(N, plot=False, amy=False):
     """
     takes the number of simulations (the files are saved in a directory that
     is a global variable).
@@ -30,9 +31,14 @@ def my_acf(N, plot=False):
         print "\n", id, "of", N
         x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
                                                     str(int(id)).zfill(4))).T
-        period, acf, lags = simple_acf(x, y)
-        if plot:
-            make_plot(acf, lags, id)
+
+        if amy:
+            period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
+        else:
+            period, acf, lags = simple_acf(x, y)
+            if plot:
+                make_plot(acf, lags, id, fn)
+
         periods.append(period)
         print period
         np.savetxt("{0}/{1}_myacf_result.txt".format(fn,
@@ -245,10 +251,10 @@ if __name__ == "__main__":
 #     periodograms(N, plot=True)
 
     # measure periods using simple_acf
-#     my_acf(N, plot=True)
+    my_acf(N, plot=True, amy=True)
 
     # run full MCMC recovery
-    start = int(sys.argv[1])
-    stop = int(sys.argv[2])
-    burnin, run = 100, 500
-    recover_injections(start, stop, N, burnin, run, runMCMC=True, plot=True)
+#     start = int(sys.argv[1])
+#     stop = int(sys.argv[2])
+#     burnin, run = 100, 500
+#     recover_injections(start, stop, N, burnin, run, runMCMC=True, plot=True)
