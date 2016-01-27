@@ -69,6 +69,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
     pylab.figure(1,(12, 9))
     pylab.clf()
     pylab.subplot(4,1,1)
+    pylab.xlim(period[x] * 10)
     pylab.title('ID: %s' %(id_list[0]), fontsize = 16)
     for j in scipy.arange(tablen):
         if j % 2 == 0:
@@ -125,6 +126,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
 
     pylab.figure(1)
     pylab.subplot(4,1,4)
+    pylab.xlim(period[x] * 10)
     pylab.plot(acf_tab.lags_days, acf_tab.acf_smooth, 'k-')
     pylab.axhline(0, ls = '--', c = 'k')
     for i in scipy.arange(len(acf_per_pos)):
@@ -163,6 +165,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
             pylab.axvspan(med_dlag_per[x]-dlag_per_err[x], \
                           med_dlag_per[x]+dlag_per_err[x],\
                 facecolor = 'k', alpha=0.2)
+        pylab.xlim(period[x] * 10)
 
         # variability stats
         print 'calculating var for P_med...'
@@ -180,9 +183,11 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
         pylab.text(0.415, -0.15, 'Time (days)', transform = ax.transAxes)
         pylab.text(0.415, -1.4, 'Period (days)', transform = ax.transAxes)
         pylab.ylabel('Amplitudes')
+        pylab.xlim(period[x] * 10)
 
         if saveplot:
-            print "saving figure", "%s/%s_full.png"%(savedir, id_list)
+            print "saving figure", "%s/%s_full.png" % (savedir,
+                                                str(int(id_list)).zfill(4))
             pylab.savefig('%s/%s_full.png' %(savedir, id_list[0]))
 
         maxpts = 40.0
@@ -205,7 +210,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=False):
         else: error = dlag_per_err[x]
 
         print 'PERIOD = ', period[x], '+/-', error,
-        print 'saving as', '%s/%s_result.txt'%(savedir, id_list[0])
+        print 'saving as', '%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4))
         np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
                    np.transpose((period[x], error)))
     else:
