@@ -20,15 +20,12 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def my_acf(id, plot=False, amy=False):
+def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
     """
     takes id of the star, returns an array of period measurements and saves the
     results.
     (the files are saved in a directory that is a global variable).
     """
-
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-                                                str(int(id)).zfill(4))).T
     if amy:
         period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
     else:
@@ -38,15 +35,12 @@ def my_acf(id, plot=False, amy=False):
             make_plot(acf, lags, id, fn)
     return period
 
-def periodograms(id, plot=False, savepgram=True):
+def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     """
     takes id of the star, returns an array of period measurements and saves the
     results.
     (the files are saved in a directory that is a global variable).
     """
-    # load simulated data
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-        str(int(id)).zfill(4))).T
 
     # initialise with acf
     try:
@@ -54,7 +48,7 @@ def periodograms(id, plot=False, savepgram=True):
                                                 str(int(id)).zfill(4)))
     except:
         corr_run(x, y, yerr, int(id), fn, saveplot=False)
-        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, int(id)))
+        p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn, int(id)))
     print "acf period, err = ", p_init
 
     ps = np.linspace(p_init*.1, p_init*4, 1000)
@@ -81,16 +75,16 @@ def periodograms(id, plot=False, savepgram=True):
                np.ones(2).T*period)
     return period
 
-def recover_injections(id, bi, ru, runMCMC=True, plot=False):
+def recover_injections(id, x, y, yerr, fn, bi, ru, runMCMC=True, plot=False):
     """
     run MCMC on each star, initialising with the ACF period
     Next you could try running for longer, using more of the lightcurve,
     subsampling less, etc
+    takes id, x, y, yerr
+    fn = path to where the files are saved and where files are loaded
+    bi = number of burn in steps
+    ru = number of run steps
     """
-    # load simulated data
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(fn,
-                                            str(int(id)).zfill(4))).T
-    yerr = np.ones_like(y) * 1e-5
 
     # initialise with acf
     try:
@@ -226,21 +220,65 @@ def compare_truth(N, coll=True):
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
     plt.savefig("compare.pdf")
 
-def acf_pgram_GP(id):
-    # measure periods using the periodogram method
-    periodograms(id, plot=True)
-
-    # measure periods using simple_acf
-    my_acf(id, plot=True, amy=True)
-
+def acf_pgram_GP_noisy(id):
+    """
+    Run acf, pgram and MCMC recovery on noisy simulations.
+    """
     # run full MCMC recovery
-    burnin, run = 1000, 2000
-    recover_injections(id, burnin, run, runMCMC=True, plot=True)
+    id = str(int(id)).zfill(4)
+    path = "simulations/kepler_injections"
+    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load data
+    periodograms(id, x, y, yerr, path, plot=True)  # pgram
+    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    burnin, run = 5000, 10000
+    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
+                       plot=True)  # MCMC
+
+def acf_pgram_GP(id):
+    """
+    Run acf, pgram and MCMC recovery on real kepler light curves.
+    """
+    id = str(int(id)).zfill(9)
+    p = "/home/angusr/.kplr/data/lightcurves"
+    fits_path = "{0}/{1}/*llc.fits".format(p, id)
+    fnames = np.sort(glob.glob(fits_path))
+    x, y, yerr = load_kepler_data(fnames)  # load data
+    path = "real_lcs"
+    periodograms(id, x, y, yerr, path, plot=True)  # pgram
+    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    burnin, run = 5000, 10000
+    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
+                       plot=True)  # MCMC
+
+def acf_pgram_GP_sim(id):
+    """
+    Run acf, pgram and MCMC recovery on noise-free simulations
+    """
+    id = str(int(id)).zfill(4)
+    path = "simulations/noise-free"
+    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
+    periodograms(id, x, y, yerr, path, plot=True)  # pgram
+    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    burnin, run = 5000, 10000
+    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
+                       plot=True)  # MCMC
 
 if __name__ == "__main__":
-    fn = "simulations/kepler_injections"
+
+    # noise-free simulations
     N = 2
     ids = range(N)
     pool = Pool()
-    pool.map(acf_pgram_GP, ids)
-#     acf_pgram_GP(0)
+    pool.map(acf_pgram_GP_sim, ids)
+
+#     # noisy simulations
+#     N = 2
+#     ids = range(N)
+#     pool = Pool()
+#     pool.map(acf_pgram_GP_noisy, ids)
+
+#     # real lcs
+#     data = np.genfromtxt("data/garcia.txt", skip_header=1).T
+#     kids = [str(int(i)).zfill(9) for i in data[0]]
+#     pool = Pool()
+#     pool.map(acf_pgram_GP, kids)
