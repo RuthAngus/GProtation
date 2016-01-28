@@ -75,8 +75,9 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
             noisy_data = np.vstack((x, noisy_y, yerr))
             data = np.vstack((x, new_y * amps[i], yerr))
             fn = "simulations/kepler_injections"
+            fn2 = "simulations/noise-free"
             np.savetxt("{0}/{1}.txt".format(fn, str(n).zfill(4)), noisy_data.T)
-            np.savetxt("{0}/{1}_sim.txt".format(fn, str(n).zfill(4)), data.T)
+            np.savetxt("{0}/{1}.txt".format(fn2, str(n).zfill(4)), data.T)
 
             if plot:
                 plt.clf()
@@ -97,5 +98,5 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
 if __name__ == "__main__":
     pmin, pmax =.5, 100.
     amin, amax = 1e-1, 10
-    nsim = 2
+    nsim = 1
     run(pmin, pmax, amin, amax, nsim, plot=True)
