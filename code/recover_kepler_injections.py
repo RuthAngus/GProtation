@@ -49,7 +49,7 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     except:
         corr_run(x, y, yerr, id, fn, saveplot=False)
         p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-    print "acf period, err = ", p_init
+    print("acf period, err = ", p_init)
 
     ps = np.linspace(p_init*.1, p_init*4, 1000)
     model = LombScargle().fit(x, y, yerr)
@@ -59,7 +59,7 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                      pgram[i] and pgram[i+1] < pgram[i]])
     period = ps[pgram==max(pgram[peaks])][0]
-    print "pgram period = ", period
+    print("pgram period = ", period)
 
     if plot:
         plt.clf()
@@ -92,7 +92,7 @@ def recover_injections(id, x, y, yerr, fn, bi, ru, runMCMC=True, plot=False):
     except:
         corr_run(x, y, yerr, id, fn, saveplot=plot)
         p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-    print "acf period, err = ", p_init
+    print("acf period, err = ", p_init)
 
     # run MCMC
     plims = [p_init[0] - .99*p_init[0], p_init[0] + 3*p_init[0]]
@@ -150,13 +150,13 @@ def acf_pgram_GP_sim(id):
 
 if __name__ == "__main__":
 
-#     # noise-free simulations
-#     N = 2
-#     ids = range(N)
-#     ids = [str(int(i)).zfill(4) for i in ids]
-#     pool = Pool()
-#     pool.map(acf_pgram_GP_sim, ids)
-#     acf_pgram_GP_sim(0)
+    # noise-free simulations
+    N = 2
+    ids = range(N)
+    ids = [str(int(i)).zfill(4) for i in ids]
+    pool = Pool()
+    pool.map(acf_pgram_GP_sim, ids)
+    acf_pgram_GP_sim(0)
 
 #     # noisy simulations
 #     N = 2

@@ -43,7 +43,7 @@ def simulate(id, time, period, gen_type="s", plot=False):
     y = simflux - np.mean(simflux)
     return y / np.std(y)
 
-def run(pmin, pmax, amin, amax, nsim, plot=False):
+def run(pmin, pmax, amin, amax, nsim, d, plot=False):
     ids = np.genfromtxt("data/quiet_kepler_ids.txt", dtype=int).T
 
     r_ps, r_as = [], []
@@ -51,7 +51,6 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
     for number, j in enumerate(ids):  # loop over the real kepler light curves
         id = str(j)
         print(id)
-        d = "/home/angusr/.kplr/data/lightcurves"
         fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
         x, y, yerr = load_kepler_data(fnames)  # load the time arrays
         x -= x[0]
@@ -100,4 +99,6 @@ if __name__ == "__main__":
     pmin, pmax =.5, 100.
     amin, amax = 1e-1, 10
     nsim = 1
-    run(pmin, pmax, amin, amax, nsim, plot=True)
+    bbq_d = "/home/angusr/.kplr/data/lightcurves"  # bbq
+    local_d = "/Users/ruthangus/.kplr/data/lightcurves"  # laptop
+    run(pmin, pmax, amin, amax, nsim, local_d, plot=True)

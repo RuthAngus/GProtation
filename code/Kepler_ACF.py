@@ -90,7 +90,6 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
     pylab.figure(2,(12, 9))
     pylab.clf()
     pylab.subplot(3,1,1)
-    pylab.title('ID: C27b_lc', fontsize = 16)
     for j in scipy.arange(tablen):
         if j % 2 == 0:
             pylab.axvspan(qt_max[j], qt_max[j+1], facecolor = 'k', alpha=0.1)
