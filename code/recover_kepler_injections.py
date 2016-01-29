@@ -11,6 +11,8 @@ import sys
 from simple_acf import simple_acf, make_plot
 from Kepler_ACF import corr_run
 from multiprocessing import Pool
+import glob
+from kepler_data import load_kepler_data
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -30,7 +32,7 @@ def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
         period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
     else:
         period, acf, lags = simple_acf(x, y)
-        np.savetxt("{0}/{1}_result.txt".format(fn, str(id).zfill(4)), period)
+        np.savetxt("{0}/{1}_result.txt".format(fn, id, period))
         if plot:
             make_plot(acf, lags, id, fn)
     return period
@@ -41,7 +43,6 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     results.
     (the files are saved in a directory that is a global variable).
     """
-    id = str(int(id)).zfill(4)
     # initialise with acf
     try:
         p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
@@ -125,8 +126,7 @@ def acf_pgram_GP(id):
     """
     id = str(int(id)).zfill(9)
     p = "/home/angusr/.kplr/data/lightcurves"
-    fits_path = "{0}/{1}/*llc.fits".format(p, id)
-    fnames = np.sort(glob.glob(fits_path))
+    fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(p, id)))
     x, y, yerr = load_kepler_data(fnames)  # load data
     path = "real_lcs"
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
@@ -150,16 +150,18 @@ def acf_pgram_GP_sim(id):
 
 if __name__ == "__main__":
 
-    # noise-free simulations
-    N = 2
-    ids = range(N)
-    pool = Pool()
+#     # noise-free simulations
+#     N = 2
+#     ids = range(N)
+#     ids = [str(int(i)).zfill(4) for i in ids]
+#     pool = Pool()
 #     pool.map(acf_pgram_GP_sim, ids)
-    acf_pgram_GP_sim(0)
+#     acf_pgram_GP_sim(0)
 
 #     # noisy simulations
 #     N = 2
 #     ids = range(N)
+#     ids = [str(int(i)).zfill(4) for i in ids]
 #     pool = Pool()
 #     pool.map(acf_pgram_GP_noisy, ids)
 

@@ -94,6 +94,7 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
     r_as = np.array([i for j in r_as for i in j])
     data = np.vstack((np.arange(len(r_ps)), r_ps, r_as))
     np.savetxt("simulations/kepler_injections/true_periods_amps.txt", data.T)
+    np.savetxt("simulations/noise-free/true_periods_amps.txt", data.T)
 
 if __name__ == "__main__":
     pmin, pmax =.5, 100.
