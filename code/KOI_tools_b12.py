@@ -9,10 +9,10 @@ BJDREF_lc = 2454833
 
 def GetLc(id = None, dir = None, tr_out = False, filename = None):
     if dir == None:
-        print 'Must supply directory'
+        print('Must supply directory')
         return
     if id == None:
-        print 'Must supply kepler id'
+        print('Must supply kepler id')
         return
     kic = scipy.copy(id)
     LcFiles = scipy.array([''])
@@ -20,15 +20,15 @@ def GetLc(id = None, dir = None, tr_out = False, filename = None):
         for fn in filename:
             LcFiles = scipy.append(LcFiles, glob.glob(fn)[0])
         LcFiles = LcFiles[1:]
-        print LcFiles
+        print(LcFiles)
     else: LcFiles = glob.glob('%s/kplr%09d-?????????????_llc.fits' % (dir,kic))
     nlc = len(LcFiles)
     if nlc == 0:
-        print 'File not found for KIC %d' % kic
+        print('File not found for KIC %d' % kic)
         if filename != None: 'Was looking for: %s' % filename
-        else: print 'Was looking for: %s/kplr%09d-?????????????_llc.fits' % (dir,kic)
+        else: print('Was looking for: %s/kplr%09d-?????????????_llc.fits' % (dir,kic))
         return scipy.array([]), 0
-    else: print 'Found %d long cadence lightcurve files for KIC %d' % (nlc, kic)
+    else: print('Found %d long cadence lightcurve files for KIC %d' % (nlc, kic))
     tset = atpy.TableSet()
     if tr_out == True:
         tset.append(PlanetCands.where(scipy.floor(PlanetCands.KID) == kic))
@@ -78,12 +78,12 @@ def PlotLc(id=None, dir = None, quarter=None, tset = None):
         tset, status = GetLc(id = id, dir = dir, tr_out = True)
         if tset is None: return
     elif tset == None:
-        print 'no tset'
+        print('no tset')
         return
     if quarter != None:
         tset.tables[1] = tset.tables[1].where(tset.tables[1].Q == quarter)
         if len(tset.tables[1].TIME) == 0:
-            print 'No data for Q%d' % quarter
+            print('No data for Q%d' % quarter)
             return
     time = tset.tables[1].TIME
     phase, inTr = TransitPhase(tset)
@@ -128,7 +128,7 @@ def RNFinder(KID):
     ind = scipy.where(X2.T[1] == KID)
     ind = ind[0]
 
-    print 'ind', ind
+    print('ind', ind)
     if len(ind) == 0: return scipy.array([-999])
 
     return X2.T[:,ind]
@@ -136,20 +136,20 @@ def RNFinder(KID):
 def get_allQ(dir = None, kic = None):
 
     if dir == None:
-        print 'Must supply directory'
+        print('Must supply directory')
         return
     if id == None:
-        print 'Must supply kepler id'
+        print('Must supply kepler id')
         return
 
     LcFiles = glob.glob('%s/kplr%09d-?????????????_llc.fits' % (dir,kic))
     nlc = len(LcFiles)
     if nlc == 0:
-        print 'File not found for KIC %d' % kic
-        print 'Was looking for: %s/kplr%09d-?????????????_llc.fits' % (dir,kic)
+        print('File not found for KIC %d' % kic)
+        print('Was looking for: %s/kplr%09d-?????????????_llc.fits' % (dir,kic))
         return scipy.array([]), 0
     else:
-        print 'Found %d long cadence lightcurve files for KIC %d' % (nlc, kic)
+        print('Found %d long cadence lightcurve files for KIC %d' % (nlc, kic))
 
     tset = atpy.TableSet()
     for i in scipy.arange(nlc):

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import kplr
-client = kplr.API()
+# import kplr
+# client = kplr.API()
 import pyfits
 import glob
 from Kepler_ACF import corr_run
@@ -63,14 +63,14 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         corr_run(x, y, yerr, id, "/Users/angusr/Python/GProtation/code")
 
     if sine_kernel:
-        print "sine kernel"
+        print("sine kernel")
         theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init]
-        print theta_init
+        print(theta_init)
         from GProtation import MCMC, make_plot
     else:
-        print "cosine kernel"
+        print("cosine kernel")
         theta_init = [1e-2, 1., 1e-2, p_init]
-        print "theta_init = ", np.log(theta_init)
+        print("theta_init = ", np.log(theta_init))
         from GProtation_cosine import MCMC, make_plot
 
     xb, yb, yerrb = bin_data(x, y, yerr, npts)  # bin data
@@ -78,7 +78,7 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
 
     theta_init = np.log(theta_init)
 
-    print theta_init
+    print(theta_init)
     if runMCMC:
         sampler = MCMC(theta_init, xb[m], yb[m], yerrb[m], plims, burnin, run,
                        id, DIR)
