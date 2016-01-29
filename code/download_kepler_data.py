@@ -3,8 +3,9 @@ import numpy as np
 import kplr
 client = kplr.API()
 
-data = np.genfromtxt("data/garcia.txt", skip_header=1).T
-kid = data[0]
+# data = np.genfromtxt("data/garcia.txt", skip_header=1).T
+# kid = data[0]
+kid = np.genfromtxt("data/quiet_kepler_ids.txt", skip_header=1).T
 for i, id in enumerate(kid):
     print(i, "of", len(kid))
     star = client.star(str(int(id)))
