@@ -23,7 +23,7 @@ def mklc(t, nspot=200, incl=(scipy.pi)*5./12., amp=1., tau=30.5, p=10.0):
               rotation period
     (unit of time is equatorial rotation period)'''
 
-    print 'Period = ', p
+    print('Period = ', p)
     dur = (max(t) - min(t))
 
     # (crude estimate of) total number of spots needed during entire
@@ -56,7 +56,7 @@ def mklc(t, nspot=200, incl=(scipy.pi)*5./12., amp=1., tau=30.5, p=10.0):
     pk = scipy.rand(nspot_tot) * (dur + 2 * extra) - extra
 
     # COMPUTE THE LIGHT CURVE
-    print "Computing light curve..."
+    print("Computing light curve...")
     time = numpy.array(t - min(t))
 
     area_tot = scipy.zeros_like(time)
@@ -99,9 +99,9 @@ def mklc(t, nspot=200, incl=(scipy.pi)*5./12., amp=1., tau=30.5, p=10.0):
     res1[2,:] = dF_tot
     res1[3,:] = dF_tot0
 
-    print 'Used %d spots in total over %d rotation periods.' % (nspot_tot, dur)
-    print 'Mean filling factor of individual spots was %.4f.' % ff
-    print 'Desired amplitude was %.4f, actual amplitude was %.4f.' \
-            % (amp, amp_eff)
-    print 'Desired number of spots at any one time was %d.' % nspot
+    print('Used %d spots in total over %d rotation periods.' % (nspot_tot, dur))
+    print('Mean filling factor of individual spots was %.4f.' % ff)
+    print('Desired amplitude was %.4f, actual amplitude was %.4f.' \
+            % (amp, amp_eff))
+    print('Desired number of spots at any one time was %d.' % nspot)
     return res0, res1

@@ -65,8 +65,8 @@ def run(pmin, pmax, amin, amax, nsim, plot=False):
         r_as.append(amps)
 
         for i, p in enumerate(periods):  # loop over periods
-            print i, "of", len(periods), "periods", number, "of", len(ids), \
-                    "stars"
+            print(i, "of", len(periods), "periods", number, "of", len(ids), \
+                    "stars")
             new_y = simulate(id, x, p, plot=True)  # sim
             new_std = np.std(new_y)
             new_y /= new_std

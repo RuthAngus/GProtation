@@ -5,7 +5,8 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import glob
 import emcee
-import triangle
+# import triangle
+import corner
 import h5py
 import subprocess
 from plotstuff import params, colours
@@ -14,12 +15,6 @@ cols = colours()
 import scipy.optimize as spo
 import time
 
-plotpar = {"axis.labelsize": 20,
-           "font.size": 20,
-           "legend.fontsize": 20,
-           "xtick.labelsize": 20,
-           "text.usetex": True}
-plt.rcParams.update(plotpar)
 
 def lnprior(theta, plims):
     """
@@ -31,6 +26,7 @@ def lnprior(theta, plims):
     and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1]:
         return 0.
     return -np.inf
+
 
 def Glnprior(theta, plims):
     """
@@ -100,7 +96,8 @@ def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
     if tri:
         print("Making triangle plot")
         flat[:, -1] = np.exp(flat[:, -1])
-        fig = triangle.corner(flat, labels=fig_labels)
+        # fig = triangle.corner(flat, labels=fig_labels)
+        fig = corner.corner(flat, labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
         print("%s/%s_triangle.png" % (DIR, ID))
 

@@ -11,7 +11,7 @@ import atpy
 import pylab
 import copy
 import glob
-from sets import Set
+# from sets import Set
 import collections
 no_rpy = True
 import scipy.io
@@ -114,7 +114,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
     max_psearch_len = len(lc_tab.flux) / 2.0
 
     # Calculate ACF
-    print 'Calculating ACF...'
+    print('Calculating ACF...')
 
     acf_tab, acf_per_pos, acf_per_height, acf_per_err, locheight, asym,  = \
         acf_calc(time = lc_tab.time, flux = lc_tab.flux, interval = gap_days, \
@@ -151,7 +151,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         n_s = 'k'
 
         period[x] = acf_peak_per[x]
-#         print 'PEAK RATIO = ', peak_ratio
+#         print('PEAK RATIO = ', peak_ratio)
 
         # plot period lines on full plot
         pylab.figure(1)
@@ -168,7 +168,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         pylab.xlim(period[x] * 10)
 
         # variability stats
-        print 'calculating var for P_med...'
+        print('calculating var for P_med...')
         amp_all[x], amp_per[x], per_cent, var_arr_real = \
             calc_var(kid = x, time_in = lc_tab.time, \
                      flux = lc_tab.flux, period = acf_peak_per[x])
@@ -186,8 +186,8 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         pylab.xlim(period[x] * 10)
 
         if saveplot:
-            print "saving figure", "%s/%s_full.png" % (savedir,
-                                                str(int(id_list[0])).zfill(4))
+            print("saving figure", "%s/%s_full.png" % (savedir,
+                                                str(int(id_list[0])).zfill(4)))
             pylab.savefig('%s/%s_full.png' %(savedir, str(int(id_list[0])).zfill(4)))
 
         maxpts = 40.0
@@ -195,8 +195,8 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
             maxpts = float(scipy.floor(lc_tab.time.max() / acf_peak_per[x]))
         inc = lc_tab.time - lc_tab.time.min() <= (maxpts*acf_peak_per[x])
 
-#         print '**************************', 'KID = ', x, 'PEAK HEIGHT = ', \
-#             max(acf_per_height[:2]), 'LOCAL PEAK HEIGHT = ', lh1[x]
+#         print('**************************', 'KID = ', x, 'PEAK HEIGHT = ', \
+#             max(acf_per_height[:2]), 'LOCAL PEAK HEIGHT = ', lh1[x])
 
         t_stats = atpy.Table()
         t_stats.add_column('acf_per_pos', acf_per_pos)
@@ -209,8 +209,8 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
              error = acf_per_err[x]
         else: error = dlag_per_err[x]
 
-        print 'PERIOD = ', period[x], '+/-', error,
-        print 'saving as', '%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4))
+        print('PERIOD = ', period[x], '+/-', error)
+        print('saving as', '%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4)))
         np.savetxt('%s/%s_result.txt'%(savedir, str(int(id_list[0])).zfill(4)),
                    np.transpose((period[x], error)))
     else:
@@ -318,7 +318,7 @@ def acf_calc(time, flux, interval, kid, max_psearch_len):
         acf_per_pos = lags[t_max_s.ind]
         acf_per_height = acf[t_max_s.ind]
 
-        print 'Calculating errors and asymmetries...'
+        print('Calculating errors and asymmetries...')
         # Calculate peak widths, asymmetries etc
         acf_per_err, locheight, asym= \
             calc_err(kid = kid, lags = lags, acf = acf, inds = \
@@ -509,7 +509,7 @@ def plot_stats(time, flux, kid_x, acf_per_pos_in, acf_per_height_in, acf_per_err
         one_peak_only = 0
         ind = scipy.r_[1:len(acf_per_pos_in)+1:1]
         if locheight_in[1] > locheight_in[0]:
-            print '1/2 P found (1st)'
+            print('1/2 P found (1st)')
             hdet = 1  # mark harmonic found
             pk1 = acf_per_pos_in[1]
             acf_per_pos_in = acf_per_pos_in[1:]
@@ -527,10 +527,10 @@ def plot_stats(time, flux, kid_x, acf_per_pos_in, acf_per_height_in, acf_per_err
             locheight_in = locheight_in[pknumin:]
             asym_in = asym_in[pknumin:]'''
         else:
-            print 'no harmonic found or harmonic not 1st peak'
+            print('no harmonic found or harmonic not 1st peak')
             pk1 = acf_per_pos_in[0]
     else:
-        print 'Only 1 peak'
+        print('Only 1 peak')
         one_peak_only = 1
         pk1 = acf_per_pos_in[0]
 
@@ -576,21 +576,21 @@ def plot_stats(time, flux, kid_x, acf_per_pos_in, acf_per_height_in, acf_per_err
     acf_per_err = acf_per_err_in[ind_keep][:x]
     asym = asym_in[ind_keep][:x]
     locheight = locheight_in[ind_keep][:x]
-    print '%d Peaks kept' %len(acf_per_pos)
+    print('%d Peaks kept' %len(acf_per_pos))
 
     if len(acf_per_pos) == 1:
-        print 'err', acf_per_err[0]
+        print('err', acf_per_err[0])
         return -9999, 0.0, pk1, acf_per_height[0], acf_per_err[0], locheight[0], -9999, -9999, -9999, -9999, 1, hdet, -9999, 1, 0.0
 
     ''' Delta Lag '''
     acf_per_pos_0 = scipy.append(0,acf_per_pos)
     delta_lag = acf_per_pos_0[1:] - acf_per_pos_0[:-1]
     av_delt = scipy.median(delta_lag)
-    print '>>>>>>>>>>', delta_lag - av_delt
+    print('>>>>>>>>>>', delta_lag - av_delt)
     delt_mad = 1.483*scipy.median(abs(delta_lag - av_delt)) # calc MAD
-    print delt_mad
+    print(delt_mad)
     delt_mad = delt_mad / scipy.sqrt(float(len(delta_lag)-1.0)) # err = MAD / sqrt(n-1)
-    print delt_mad
+    print(delt_mad)
     med_per = av_delt
     mad_per_err = delt_mad
 
@@ -637,7 +637,7 @@ def plot_stats(time, flux, kid_x, acf_per_pos_in, acf_per_height_in, acf_per_err
     pylab.ylabel('Local Height')
 
     if len(acf_per_pos) > 2 and no_rpy == False:
-        print 'Fitting line to Local Height...'
+        print('Fitting line to Local Height...')
         st_line = lambda p, x: p[0] + p[1] * x
         '''st_line_err = lambda p, x, y, fjac: [0, (y - st_line(p, x)), None]
         fa = {'x': acf_per_pos, 'y': locheight}
@@ -691,7 +691,7 @@ def plot_stats(time, flux, kid_x, acf_per_pos_in, acf_per_height_in, acf_per_err
     pylab.xlabel('Lag (days)')
 
     if len(acf_per_pos) > 2 and no_rpy == False:
-        print 'Fitting line to Width...'
+        print('Fitting line to Width...')
         r.assign('xdf1', acf_per_pos)
         r.assign('ydf1', acf_per_err)
         p1 = r('''

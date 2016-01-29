@@ -89,7 +89,7 @@ def make_plot(acf_smooth, lags, id, fn):
         if acf_smooth[peaks[0]] > acf_smooth[peaks[1]]:
             period = lags[peaks[0]]
         else: period = lags[peaks[1]]
-        print period
+        print(period)
 
         plt.clf()
         for i in peaks:

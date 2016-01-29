@@ -13,7 +13,7 @@ def filt1d(array, nmed, nlin, fill = False, circ = False):
     """Nonlinear (median+boxcar) filter with edge reflection."""
     nmed = 2 * int(nmed/2) + 1
     N = len(array)
-    if N < (3*nmed): 
+    if N < (3*nmed):
         return array
     # Check for NaNs
     lnan = numpy.isnan(array)
@@ -30,7 +30,7 @@ def filt1d(array, nmed, nlin, fill = False, circ = False):
         il = numpy.min(lnotnan)
         ih = numpy.max(lnotnan)
         xnew = numpy.arange(ih-il+1) + il
-        f = interpolate.interp1d(lnotnan, array[lnotnan])  
+        f = interpolate.interp1d(lnotnan, array[lnotnan])
         work[il:ih+1] = f(xnew)
         # ... or extending slope of nearest data points if at the edges
         if (il!=0):
@@ -44,7 +44,7 @@ def filt1d(array, nmed, nlin, fill = False, circ = False):
     # Edge reflection
     nr = min(20, nlin)
     sz = max([nmed, nlin])
-    if sz >= (N-1): 
+    if sz >= (N-1):
         sz = N-2
     if circ != False:
         wl = work[N-sz:]
@@ -63,7 +63,7 @@ def filt1d(array, nmed, nlin, fill = False, circ = False):
     work2[sz:sz+N] = work
     work2[sz+N:2*sz+N] = wr
     # Filter
-    if nmed > 1: work = signaltools.medfilt(work2, nmed) 
+    if nmed > 1: work = signaltools.medfilt(work2, nmed)
     else: work = work2
     box = scipy.signal.boxcar(2*nlin+1)
     work = signaltools.convolve(work, box) / float(2*nlin+1)
@@ -86,7 +86,7 @@ def NIF(array, nmed, nlin, nsig = 3.0, prefilt = False, \
     Irwin 2004)."""
     # Pre-filter if requested
     if prefilt != False:
-        wd = filt1d(array[:], 7, 3) 
+        wd = filt1d(array[:], 7, 3)
     else:
         wd = array[:]
     wd2 = wd
@@ -99,7 +99,7 @@ def NIF(array, nmed, nlin, nsig = 3.0, prefilt = False, \
             out = numpy.isnan(wd) + (abs(wd2-wd) > (nsig*sigma))
             irej = sum(out)
             wd = array[:]
-            print iter, irej, sigma
+            print(iter, irej, sigma)
             if irej != 0: wd[out] = numpy.nan
         wd = filt1d(wd, nmed, nlin, fill = fill, circ = circ)
         sigma = 1.48 * numpy.median(abs(wd-array))
@@ -126,7 +126,7 @@ def IRF(period, time, flux, timescale = 0.99, nbin = 3000):
     t_pf = tmod / period
     spf = numpy.argsort(t_pf)
     st = numpy.argsort(spf)
-  
+
     # Initial estimate of stellar variability
     fvar = fnorm - fnorm
     fvar_im1 = fvar
@@ -137,7 +137,7 @@ def IRF(period, time, flux, timescale = 0.99, nbin = 3000):
     # Initial residuals
     fres = fnorm / trans - fvar
     sigres = signorm
-  
+
     # Start iteration
     i = -1
     conv = False
@@ -149,9 +149,9 @@ def IRF(period, time, flux, timescale = 0.99, nbin = 3000):
         trans_old  = trans
         fres_old   = fres
         sigres_old = sigres
-        i += 1  
+        i += 1
 
-        print i
+        print(i)
         pylab.clf()
         pylab.subplot(211)
         pylab.plot(t_pf, fnorm-fvar, 'k.')
@@ -177,8 +177,8 @@ def IRF(period, time, flux, timescale = 0.99, nbin = 3000):
         medres, sigres = medsig(fres)
 
         # Test for convergence
-        stcur = numpy.sum((fres-medres)**2) / float(ndata - 1)        
-        print stcur
+        stcur = numpy.sum((fres-medres)**2) / float(ndata - 1)
+        print(stcur)
         raw_input('?')
 
         if i == 0: stat = stcur
@@ -202,8 +202,8 @@ def bin_old(x, y, binsz = None, nbin = None):
     xmax = max(x)
     xrange = xmax - xmin
     if nbin == None:
-        if binsz == None: 
-            print 'bin: must supply either binsz or nbin'
+        if binsz == None:
+            print('bin: must supply either binsz or nbin')
         nbin = int(xrange / binsz)
     if nbin <= 1: return x, y
     binsz = xrange / float(nbin)
@@ -222,12 +222,12 @@ def bin(x, y, binsz = None, nbin = None):
     xmax = max(x)
     xrange = xmax - xmin
     if nbin == None:
-        if binsz == None: 
-            print 'bin: must supply either binsz or nbin'
+        if binsz == None:
+            print('bin: must supply either binsz or nbin')
         nbin = int(xrange / binsz)
     if nbin <= 1: return x, y
     binsz = xrange / float(nbin)
-    
+
     xbin = scipy.r_[xmin:xmax-binsz:nbin*1j] + binsz / 2.
     xbinedge = xbin - (binsz / 2.)
     xbinedge = scipy.append(xbinedge, xbinedge.max()+(binsz))
@@ -235,6 +235,6 @@ def bin(x, y, binsz = None, nbin = None):
     indices = numpy.digitize(x, xbinedge)
     for i in scipy.arange(len(xbin)):
         ybin[i] = y[indices == i+1].mean()
-        
+
     return xbin, ybin
 
