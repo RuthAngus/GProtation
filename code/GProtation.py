@@ -5,8 +5,8 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import glob
 import emcee
-# import triangle
-import corner
+import triangle
+# import corner
 import h5py
 import subprocess
 from plotstuff import params, colours

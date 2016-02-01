@@ -21,6 +21,7 @@ def simulate(id, time, period, gen_type="s", plot=False):
     """
 
     if gen_type == "s":
+        np.random.seed(1234)
         res0, res1 = mklc.mklc(time, p=period)
         nspot, ff, amp_err = res0
         time, area_tot, dF_tot, dF_tot0 = res1
@@ -76,18 +77,17 @@ def run(pmin, pmax, amin, amax, nsim, d, plot=False):
         for i, p in enumerate(periods):  # loop over periods
             print(i, "of", len(periods), "periods", number, "of", len(ids), \
                     "stars")
-            np.random.seed(1234)  # first use the original xs
             new_y = simulate(id, x, p, plot=True)  # simulate
             new_std = np.std(new_y)
             new_y /= new_std  # normalise to unit variance
+            noisy_y = y + new_y * amps[i]
 
-            np.random.seed(1234)  # then use a fake interpolated x
             new_full_y = simulate(id, full_x, p, plot=True)  # simulate
             new_full_std = np.std(new_full_y)
             new_full_y /= new_full_std  # normalise to unit variance
 
             noisy_data = np.vstack((x, noisy_y, yerr))
-            data = np.vstack((x, new_full_y * amps[i], yerr))
+            data = np.vstack((full_x, new_full_y * amps[i]))
             fn = "simulations/kepler_injections"
             fn2 = "simulations/noise-free"
             np.savetxt("{0}/{1}.txt".format(fn, str(n).zfill(4)), noisy_data.T)
