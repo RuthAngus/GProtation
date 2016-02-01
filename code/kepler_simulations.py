@@ -43,6 +43,15 @@ def simulate(id, time, period, gen_type="s", plot=False):
     y = simflux - np.mean(simflux)
     return y / np.std(y)
 
+def time_interpolate(x):
+    """
+    Take the time values for a Kepler light curve and fill in the gaps.
+    """
+    gap_days = 0.02043365
+    diff = np.diff(x)
+    m = diff > 1.5 * gap_days
+    return np.arange(x[0], x[-1], gap_days)
+
 def run(pmin, pmax, amin, amax, nsim, d, plot=False):
     ids = np.genfromtxt("data/quiet_kepler_ids.txt", dtype=int).T
 
@@ -54,6 +63,7 @@ def run(pmin, pmax, amin, amax, nsim, d, plot=False):
         fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(d, id.zfill(9))))
         x, y, yerr = load_kepler_data(fnames)  # load the time arrays
         x -= x[0]
+        full_x = time_interpolate(x)
         std = np.std(y)
         y, yerr = y / std, yerr / std
 
@@ -66,13 +76,18 @@ def run(pmin, pmax, amin, amax, nsim, d, plot=False):
         for i, p in enumerate(periods):  # loop over periods
             print(i, "of", len(periods), "periods", number, "of", len(ids), \
                     "stars")
-            new_y = simulate(id, x, p, plot=True)  # sim
+            np.random.seed(1234)  # first use the original xs
+            new_y = simulate(id, x, p, plot=True)  # simulate
             new_std = np.std(new_y)
-            new_y /= new_std
-            noisy_y = y + new_y * amps[i]
+            new_y /= new_std  # normalise to unit variance
+
+            np.random.seed(1234)  # then use a fake interpolated x
+            new_full_y = simulate(id, full_x, p, plot=True)  # simulate
+            new_full_std = np.std(new_full_y)
+            new_full_y /= new_full_std  # normalise to unit variance
 
             noisy_data = np.vstack((x, noisy_y, yerr))
-            data = np.vstack((x, new_y * amps[i], yerr))
+            data = np.vstack((x, new_full_y * amps[i], yerr))
             fn = "simulations/kepler_injections"
             fn2 = "simulations/noise-free"
             np.savetxt("{0}/{1}.txt".format(fn, str(n).zfill(4)), noisy_data.T)
@@ -101,4 +116,4 @@ if __name__ == "__main__":
     nsim = 1
     bbq_d = "/home/angusr/.kplr/data/lightcurves"  # bbq
     local_d = "/Users/ruthangus/.kplr/data/lightcurves"  # laptop
-    run(pmin, pmax, amin, amax, nsim, local_d, plot=True)
+    run(pmin, pmax, amin, amax, nsim, bbq_d, plot=True)
