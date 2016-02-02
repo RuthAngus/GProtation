@@ -141,7 +141,8 @@ def acf_pgram_GP_sim(id):
     """
     id = str(int(id)).zfill(4)
     path = "simulations/noise-free"
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
+    x, y = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
+    yerr = np.ones_like(y) * 1e-5
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
     my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
     burnin, run = 5000, 10000
@@ -156,7 +157,6 @@ if __name__ == "__main__":
     ids = [str(int(i)).zfill(4) for i in ids]
     pool = Pool()
     pool.map(acf_pgram_GP_sim, ids)
-    acf_pgram_GP_sim(0)
 
 #     # noisy simulations
 #     N = 2
