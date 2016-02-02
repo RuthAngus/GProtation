@@ -5,8 +5,10 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import glob
 import emcee
-import triangle
-# import corner
+try:
+    import corner
+except:
+    import triangle
 import h5py
 import subprocess
 from plotstuff import params, colours
