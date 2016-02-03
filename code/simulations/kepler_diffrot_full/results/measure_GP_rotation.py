@@ -73,14 +73,14 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         print "theta_init = ", np.log(theta_init)
         from GProtation_cosine import MCMC, make_plot
 
-    xb, yb, yerrb = bin_data(x, y, yerr, npts)  # bin data
-    m = xb < cutoff  # truncate
+#     xb, yb, yerrb = bin_data(x, y, yerr, npts)  # bin data
+#     m = xb < cutoff  # truncate
 
     theta_init = np.log(theta_init)
 
     print theta_init
     if runMCMC:
-        sampler = MCMC(theta_init, xb[m], yb[m], yerrb[m], plims, burnin, run,
+        sampler = MCMC(theta_init, x, y, yerrb, plims, burnin, run,
                        id, DIR)
 
     # make various plots
@@ -88,6 +88,5 @@ def fit(x, y, yerr, id, p_init, plims, DIR, burnin=500, run=1500, npts=48,
         with h5py.File("%s/%s_samples.h5" % (DIR, id), "r") as f:
             samples = f["samples"][...]
         m2 = x < cutoff
-        mcmc_result = make_plot(samples, xb[m], yb[m], yerrb[m], x[m2], y[m2],
-                                yerr[m2], str(int(id)).zfill(4), DIR,
-                                traces=True, tri=True, prediction=True)
+        mcmc_result = make_plot(samples, x, y, yerr, id, DIR, traces=True,
+                                tri=True, prediction=True)
