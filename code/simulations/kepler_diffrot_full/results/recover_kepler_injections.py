@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from measure_GP_rotation import fit
@@ -13,6 +14,7 @@ from Kepler_ACF import corr_run
 from multiprocessing import Pool
 import glob
 from kepler_data import load_kepler_data
+from quarters import split_into_quarters
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -86,6 +88,11 @@ def recover_injections(id, x, y, yerr, fn, bi, ru, runMCMC=True, plot=False):
     ru = number of run steps
     """
 
+    # figure out whether x, y and yerr are arrays or lists of lists
+    quarters = False
+    if len(x) < 20:
+        quarters = True
+
     # initialise with acf
     try:
         p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
@@ -148,7 +155,32 @@ def acf_pgram_GP_sim(id):
     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
                        plot=True)  # MCMC
 
+def acf_pgram_GP_suz(id, noise_free=True):
+    """
+    Run acf, pgram and MCMC recovery on Suzanne's simulations
+    """
+    print(id)
+    id = str(int(id)).zfill(4)
+    print(id)
+    assert 0
+    if noise_free:
+        path = "noise-free"  # where to save results
+    x, y, yerr = np.genfromtxt("../noise_free/{0}.txt".format(id)).T  # load
+    periodograms(id, x, y, yerr, path, plot=True)  # pgram
+    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    burnin, run = 5000, 10000
+    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
+                       plot=True)  # MCMC
+
 if __name__ == "__main__":
+
+    # noise-free simulations
+    N = 2
+    ids = range(N)
+    ids = [str(int(i)).zfill(4) for i in ids]
+    pool = Pool()
+#     pool.map(acf_pgram_GP_suz, ids)
+    acf_pgram_GP_suz(0)
 
 #     # noise-free simulations
 #     N = 2
