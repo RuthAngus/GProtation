@@ -16,7 +16,6 @@ reb = params()
 cols = colours()
 import scipy.optimize as spo
 import time
-from quarters import lnprob_split
 
 
 def lnprior(theta, plims):
@@ -71,11 +70,8 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
-              tri=False, prediction=True):
-
-#     nwalkers, nsteps, ndim = np.shape(sampler.chain)
-#     flat = sampler.flatchain
+def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
+              prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
@@ -99,8 +95,10 @@ def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
     if tri:
         print("Making triangle plot")
         flat[:, -1] = np.exp(flat[:, -1])
-        # fig = triangle.corner(flat, labels=fig_labels)
-        fig = corner.corner(flat, labels=fig_labels)
+        try:
+            fig = corner.corner(flat, labels=fig_labels)
+        except:
+            fig = triangle.corner(flat, labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
         print("%s/%s_triangle.png" % (DIR, ID))
 
@@ -110,17 +108,15 @@ def make_plot(sampler, xb, yb, yerrb, x, y, yerr, ID, DIR, traces=False,
         k = theta[0] * ExpSquaredKernel(theta[1]) \
                 * ExpSine2Kernel(theta[2], theta[4])
         gp = george.GP(k, solver=george.HODLRSolver)
-        gp.compute(xb, yerrb)
-        xs = np.linspace(xb[0], xb[-1], 1000)
-        mu, cov = gp.predict(yb, xs)
+        gp.compute(x, yerr)
+        xs = np.linspace(x[0], x[-1], 1000)
+        mu, cov = gp.predict(y, xs)
         plt.clf()
         plt.errorbar(x-x[0], y, yerr=yerr, **reb)
-#         plt.errorbar(xb, yb, yerr=yerrb, fmt="r.")
         plt.xlabel("$\mathrm{Time~(days)}$")
         plt.ylabel("$\mathrm{Normalised~Flux}$")
         plt.plot(xs, mu, color=cols.lightblue)
-        plt.xlim(min(xb), max(xb))
-#         plt.title("%s" % np.exp(mcmc_result[-1]))
+        plt.xlim(min(x), max(x))
         plt.savefig("%s/%s_prediction" % (DIR, ID))
         print("%s/%s_prediction.png" % (DIR, ID))
 

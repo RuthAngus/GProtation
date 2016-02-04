@@ -11,9 +11,10 @@ from Kepler_ACF import corr_run
 from multiprocessing import Pool
 import glob
 from kepler_data import load_kepler_data
-from quarters import split_into_quarters
+from quarters import split_into_quarters, lnprob_split
 from GProtation import make_plot, lnprob
 import emcee
+import time
 
 
 def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
@@ -22,19 +23,13 @@ def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
     results.
     (the files are saved in a directory that is a global variable).
     """
-    if amy:
-        try:
-            period, period_err = \
-                    np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-        except:
-            period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
-            period, period_err = \
-                    np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-    else:
-        period, acf, lags = simple_acf(x, y)
-        np.savetxt("{0}/{1}_result.txt".format(fn, id, period))
-        if plot:
-            make_plot(acf, lags, id, fn)
+    try:
+        period, period_err = \
+                np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+    except:
+        period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
+        period, period_err = \
+                np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     return period
 
 def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
@@ -45,11 +40,11 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     """
     # initialise with acf
     try:
-        p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
+        p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
         corr_run(x, y, yerr, id, fn, saveplot=False)
-        p_init, _ = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
-    print("acf period, err = ", p_init)
+        p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+    print("acf period, err = ", p_init, err)
 
     ps = np.linspace(p_init*.1, p_init*4, 1000)
     model = LombScargle().fit(x, y, yerr)
@@ -75,6 +70,34 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
                np.ones(2).T*period)
     return period
 
+def plot_init(theta_init, x, y, yerr):
+    print("plotting inits")
+    print(np.exp(theta_init))
+    t = np.exp(theta_init)
+    k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
+    gp = george.GP(k)
+    gp.compute(x, yerr)
+    xs = np.linspace(x[0], x[-1], 1000)
+    mu, cov = gp.predict(y, xs)
+
+    plt.clf()
+    plt.errorbar(x, y, yerr=yerr, **reb)
+    plt.plot(xs, mu, color=cols.blue)
+
+    args = (x, y, yerr)
+    results = spo.minimize(neglnlike, theta_init, args=args)
+    print("optimisation results = ", results.x)
+
+    r = np.exp(results.x)
+    k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
+    gp = george.GP(k)
+    gp.compute(x, yerr)
+
+    mu, cov = gp.predict(y, xs)
+    plt.plot(xs, mu, color=cols.pink, alpha=.5)
+    plt.savefig("%s/%s_init" % (fn, id))
+    print("%s/%s_init.png" % (fn, id))
+
 
 def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
                        plot_inits=False, plot=True, quarters=False):
@@ -85,58 +108,33 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
 
     # initialise with acf
     try:
-        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
+        p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
         corr_run(x, y, yerr, id, fn, saveplot=plot)
-        p_init = np.genfromtxt("{0}/{1}_result.txt".format(fn, id))
+        p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init)
 
     # Format data
     plims = np.log([p_init[0] - .99*p_init[0], p_init[0] + 3*p_init[0]])
-    n = int(p_init[0] / npts * 48)  # 10 points per period
-    ppd = 48. / n
+    sub = int(p_init[0] / npts * 48)  # 10 points per period
+    ppd = 48. / sub
     ppp = ppd * p_init[0]
-    print("npts =", npts, "points per day =", ppd, "points per period =", ppp)
+    print("sub = ", sub, "points per day =", ppd, "points per period =", ppp)
     # subsample
-    xsub, ysub, yerrsub = x[::n], y[::n], yerr[::n]
+    xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
     if quarters:
         xb, yb, yerrb = split_into_quarters(xsub, ysub, yerrsub)
     else:
         xb, yb, yerrb = x, y, yerr
 
+    # assign theta_init
     theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init[0]]
     theta_init = np.log(theta_init)
-
     print("\n", "log(theta_init) = ", theta_init)
     print("theta_init = ", np.exp(theta_init), "\n")
 
-    if plot_inits:  # plot initial guess and the result of minimize
-        print("plotting inits")
-        print(np.exp(theta_init))
-        t = np.exp(theta_init)
-        k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
-        gp = george.GP(k)
-        gp.compute(x, yerr)
-        xs = np.linspace(x[0], x[-1], 1000)
-        mu, cov = gp.predict(y, xs)
-
-        plt.clf()
-        plt.errorbar(x, y, yerr=yerr, **reb)
-        plt.plot(xs, mu, color=cols.blue)
-
-        args = (x, y, yerr)
-        results = spo.minimize(neglnlike, theta_init, args=args)
-        print("optimisation results = ", results.x)
-
-        r = np.exp(results.x)
-        k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
-        gp = george.GP(k)
-        gp.compute(x, yerr)
-
-        mu, cov = gp.predict(y, xs)
-        plt.plot(xs, mu, color=cols.pink, alpha=.5)
-        plt.savefig("%s/%s_init" % (fn, id))
-        print("%s/%s_init.png" % (fn, id))
+    if plot_inits:  # plot the initialisation
+        plot_init(theta_init, x, y, err)
 
     # set up MCMC
     ndim, nwalkers = len(theta_init), nwalkers
@@ -145,9 +143,20 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
     lp = lnprob
     if quarters:  # if fitting each quarter separately, use a different lnprob
         lp = lnprob_split
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lp, args=args)
+
+    # time the lhf call
+    start = time.time()
+    lp(theta_init, xb, yb, yerrb, plims)
+    end = time.time()
+    tm = end - start
+    print("1 lhf call takes ", tm, "seconds")
+    print("burn in will take", tm * nwalkers * burnin, "s")
+    print("run will take", tm * nwalkers * run, "s")
+    print("total = ", (tm * nwalkers * run + tm * nwalkers * burnin)/60, \
+          "mins")
 
     # run MCMC
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lp, args=args)
     print("burning in...")
     p0, lp, state = sampler.run_mcmc(p0, burnin)
     sampler.reset()
@@ -162,11 +171,10 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
 
     # make various plots
     if plot:
-        with h5py.File("%s/%s_samples.h5" % (DIR, id), "r") as f:
+        with h5py.File("%s/%s_samples.h5" % (fn, id), "r") as f:
             samples = f["samples"][...]
-        m2 = x < cutoff
-        mcmc_result = make_plot(samples, x, y, yerr, id, DIR, traces=True,
-                                tri=True, prediction=True)
+        mcmc_result = make_plot(samples, xsub, ysub, yerrsub, id, fn,
+                                traces=True, tri=True, prediction=True)
 
 
 def acf_pgram_GP_noisy(id):
@@ -222,8 +230,9 @@ def acf_pgram_GP_suz(id, noise_free=True):
     yerr = np.ones_like(y) * 1e-10
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
     my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
-    burnin, run = 1, 5  # MCMC
-    recover_injections(id, x, y, yerr, path, burnin, run, npts=10, plot=True)
+    burnin, run, npts = 500, 500, 10  # MCMC
+    recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
+                       plot=True, quarters=True)
 
 if __name__ == "__main__":
 

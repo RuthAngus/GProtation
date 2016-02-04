@@ -1,4 +1,5 @@
 import numpy as np
+from GProtation import lnlike, lnprior
 
 
 def split_into_quarters(x, y, yerr):
@@ -33,4 +34,4 @@ def lnprob_split(theta, xb, yb, yerrb, plims):
     nqs = len(xb)
     lps = [lnlike(theta, np.array(xb[i]), np.array(yb[i]), np.array(yerrb[i]))
            for i in range(nqs)]
-    return np.sum(lps) + lnprior(t, plims)
+    return np.sum(lps) + lnprior(theta, plims)
