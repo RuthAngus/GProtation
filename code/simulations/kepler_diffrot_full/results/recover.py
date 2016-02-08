@@ -120,7 +120,7 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
     print("acf period, err = ", p_init)
 
     # Format data
-    plims = np.log([p_init[0] - .2 * p_init[0], p_init[0] + .2 * p_init[0]])
+    plims = np.log([p_init[0] - .4 * p_init[0], p_init[0] + .4 * p_init[0]])
     sub = int(p_init[0] / npts * 48)  # 10 points per period
     ppd = 48. / sub
     ppp = ppd * p_init[0]
@@ -247,7 +247,7 @@ def acf_pgram_GP_suz(id, noise_free=True):
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
     interval = (x[1] - x[0])
     my_acf(id, x, y, yerr, interval, path, plot=True, amy=False)  # acf
-    burnin, run, npts = 1000, 8000, 20  # MCMC
+    burnin, run, npts = 1000, 15000, 20  # MCMC
     recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
                        plot=True, quarters=True)
 
