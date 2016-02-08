@@ -15,9 +15,10 @@ from quarters import split_into_quarters, lnprob_split
 from GProtation import make_plot, lnprob
 import emcee
 import time
+from simple_acf import simple_acf
 
 
-def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
+def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=False):
     """
     takes id of the star, returns an array of period measurements and saves the
     results.
@@ -27,9 +28,13 @@ def my_acf(id, x, y, yerr, fn, plot=False, amy=False):
         period, period_err = \
                 np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
-        period, period_err = corr_run(x, y, yerr, id, fn, saveplot=plot)
-        period, period_err = \
-                np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+        if amy:
+            period, period_err = corr_run(x, y, yerr, id, interval, fn,
+                                          saveplot=plot)
+        else:
+            period, acf_smooth, lags = simple_acf(x, y, interval)
+            np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
+                       np.transpose((period, period*.1)))
     return period
 
 def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
@@ -115,7 +120,7 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
     print("acf period, err = ", p_init)
 
     # Format data
-    plims = np.log([p_init[0] - .99*p_init[0], p_init[0] + 3*p_init[0]])
+    plims = np.log([p_init[0] - .2 * p_init[0], p_init[0] + .2 * p_init[0]])
     sub = int(p_init[0] / npts * 48)  # 10 points per period
     ppd = 48. / sub
     ppp = ppd * p_init[0]
@@ -126,6 +131,13 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
         xb, yb, yerrb = split_into_quarters(xsub, ysub, yerrsub)
     else:
         xb, yb, yerrb = x, y, yerr
+
+#     plt.clf()
+#     plt.plot(x, y, "k.")
+#     for i in range(len(xb)):
+#         plt.plot(xb[i], yb[i], "r.")
+#     plt.xlim(min(x), min(x) + 10 * p_init[0])
+#     plt.savefig("{0}/{1}_test".format(fn, id))
 
     # assign theta_init
     theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init[0]]
@@ -146,7 +158,7 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
 
     # time the lhf call
     start = time.time()
-    lp(theta_init, xb, yb, yerrb, plims)
+    print("lnprob = ", lp(theta_init, xb, yb, yerrb, plims))
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -158,10 +170,13 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
     # run MCMC
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lp, args=args)
     print("burning in...")
+    start = time.time()
     p0, lp, state = sampler.run_mcmc(p0, burnin)
     sampler.reset()
     print("production run...")
     p0, lp, state = sampler.run_mcmc(p0, run)
+    end = time.time()
+    print("actual time = ", end - start)
 
     # save samples
     f = h5py.File("%s/%s_samples.h5" % (fn, id), "w")
@@ -186,7 +201,7 @@ def acf_pgram_GP_noisy(id):
     path = "simulations/kepler_injections"
     x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load data
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    my_acf(id, x, y, yerr, path, plot=True)  # acf
     burnin, run = 5000, 10000
     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
                        plot=True)  # MCMC
@@ -201,7 +216,7 @@ def acf_pgram_GP(id):
     x, y, yerr = load_kepler_data(fnames)  # load data
     path = "real_lcs"
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
+    my_acf(id, x, y, yerr, path, plot=True, amy=False)  # acf
     burnin, run = 5000, 10000
     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
                        plot=True)  # MCMC
@@ -211,13 +226,14 @@ def acf_pgram_GP_sim(id):
     Run acf, pgram and MCMC recovery on noise-free simulations
     """
     id = str(int(id)).zfill(4)
-    path = "simulations/noise-free"
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
-    periodograms(id, x, y, yerr, path, plot=True)  # pgram
+    path = "../../noise-free"
+    x, y = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
+    yerr = np.ones_like(y) * 1e-8
+#     periodograms(id, x, y, yerr, path, plot=True)  # pgram
     my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
-    burnin, run = 5000, 10000
-    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
-                       plot=True)  # MCMC
+#     burnin, run = 5000, 10000
+#     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
+#                        plot=True)  # MCMC
 
 def acf_pgram_GP_suz(id, noise_free=True):
     """
@@ -227,29 +243,29 @@ def acf_pgram_GP_suz(id, noise_free=True):
     if noise_free:
         path = "noise-free"  # where to save results
     x, y = np.genfromtxt("../noise_free/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-10
+    yerr = np.ones_like(y) * 1e-8
     periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
-    burnin, run, npts = 500, 500, 10  # MCMC
+    interval = (x[1] - x[0])
+    my_acf(id, x, y, yerr, interval, path, plot=True, amy=False)  # acf
+    burnin, run, npts = 1000, 8000, 20  # MCMC
     recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
                        plot=True, quarters=True)
 
 if __name__ == "__main__":
 
-    # noise-free simulations
-    N = 1
-    ids = range(N)
+    # Suzanne's noise-free simulations
+    data = np.genfromtxt("../par/final_table.txt", skip_header=1).T
+    m = data[13] == 0  # just the stars without diffrot
+    ids = data[0][m]
     pool = Pool()
-#     pool.map(acf_pgram_GP_suz, ids)
-    acf_pgram_GP_suz(0)
+    pool.map(acf_pgram_GP_suz, ids)
+#     acf_pgram_GP_suz(0)
 
-#     # noise-free simulations
-#     N = 2
+#     # my noise-free simulations
+#     N = 60
 #     ids = range(N)
-#     ids = [str(int(i)).zfill(4) for i in ids]
 #     pool = Pool()
 #     pool.map(acf_pgram_GP_sim, ids)
-#     acf_pgram_GP_sim(0)
 
 #     # noisy simulations
 #     N = 2

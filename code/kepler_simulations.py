@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import mklc
@@ -21,7 +22,7 @@ def simulate(id, time, period, gen_type="s", plot=False):
     """
 
     if gen_type == "s":
-        np.random.seed(1234)
+#         np.random.seed(1234)
         res0, res1 = mklc.mklc(time, p=period)
         nspot, ff, amp_err = res0
         time, area_tot, dF_tot, dF_tot0 = res1
@@ -73,10 +74,11 @@ def run(pmin, pmax, amin, amax, nsim, d, plot=False):
         amps = np.exp(np.random.uniform(np.log(amin), np.log(amax), nsim))
         r_ps.append(periods)
         r_as.append(amps)
+        print(r_ps)
 
         for i, p in enumerate(periods):  # loop over periods
-            print(i, "of", len(periods), "periods", number, "of", len(ids), \
-                    "stars")
+            print(i+1, "of", len(periods), "periods", number+1, "of", \
+                    len(ids), "stars")
             new_y = simulate(id, x, p, plot=True)  # simulate
             new_std = np.std(new_y)
             new_y /= new_std  # normalise to unit variance
@@ -104,8 +106,10 @@ def run(pmin, pmax, amin, amax, nsim, d, plot=False):
             n += 1
 
     # record the truths
+    print(r_ps)
     r_ps = np.array([i for j in r_ps for i in j])
     r_as = np.array([i for j in r_as for i in j])
+    print(r_ps)
     data = np.vstack((np.arange(len(r_ps)), r_ps, r_as))
     np.savetxt("simulations/kepler_injections/true_periods_amps.txt", data.T)
     np.savetxt("simulations/noise-free/true_periods_amps.txt", data.T)
