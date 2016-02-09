@@ -208,13 +208,13 @@ def corr_run(time, flux, flux_err, id, gap_days, savedir, saveplot=True):
         else: error = dlag_per_err[x]
 
         print('PERIOD = ', period[x], '+/-', error)
-        print('saving as', '%s/%s_result.txt'%(savedir, id_list[0]))
-        np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
+        print('saving as', '%s/%s_acfresult.txt'%(savedir, id_list[0]))
+        np.savetxt('%s/%s_acfresult.txt'%(savedir, id_list[0]),
                    np.transpose((period[x], error)))
     else:
         blank = np.array([0,0])
-        print('saving as', '%s/%s_result.txt'%(savedir, id_list[0]))
-        np.savetxt('%s/%s_result.txt'%(savedir, id_list[0]),
+        print('saving as', '%s/%s_acfresult.txt'%(savedir, id_list[0]))
+        np.savetxt('%s/%s_acfresult.txt'%(savedir, id_list[0]),
                    np.transpose((0, 0)))
 #         np.savetxt('%s/%s_result.txt' %(savedir, id_list[0]), blank)
 

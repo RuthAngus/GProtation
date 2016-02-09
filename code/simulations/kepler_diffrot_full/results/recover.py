@@ -18,7 +18,7 @@ import time
 from simple_acf import simple_acf
 
 
-def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=False):
+def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     """
     takes id of the star, returns an array of period measurements and saves the
     results.
@@ -28,13 +28,13 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=False):
         period, period_err = \
                 np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
-        if amy:
-            period, period_err = corr_run(x, y, yerr, id, interval, fn,
-                                          saveplot=plot)
-        else:
-            period, acf_smooth, lags = simple_acf(x, y, interval)
-            np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
-                       np.transpose((period, period*.1)))
+	    if amy:
+		period, period_err = corr_run(x, y, yerr, id, interval, fn,
+					      saveplot=True)
+	    else:
+		    period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
+		    np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
+			       np.transpose((period, period*.1)))
     return period
 
 def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
@@ -48,6 +48,7 @@ def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
         corr_run(x, y, yerr, id, interval, fn, saveplot=False)
+        print(np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id)))
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init, err)
 
@@ -58,8 +59,10 @@ def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
     # find peaks
     peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                      pgram[i] and pgram[i+1] < pgram[i]])
-    period = ps[pgram==max(pgram[peaks])][0]
-    print("pgram period = ", period)
+    if len(peaks):
+        period = ps[pgram==max(pgram[peaks])][0]
+        print("pgram period = ", period)
+    else: period = 0
 
     if plot:
         plt.clf()
@@ -118,6 +121,9 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
         corr_run(x, y, yerr, id, fn, saveplot=plot)
         p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init)
+
+    if p_init[0] < .5:  # prevent unphysical periods
+	    p_init[0] = 1.
 
     # Format data
     plims = np.log([p_init[0] - .4 * p_init[0], p_init[0] + .4 * p_init[0]])
@@ -245,13 +251,14 @@ def acf_pgram_GP_suz(id):
         path = "noise-free"  # where to save results
         x, y = np.genfromtxt("../noise_free/lightcurve_{0}.txt".format(id)).T
         interval = (x[1] - x[0])
+	yerr = np.ones_like(y) * 1e-8
     else:
         path = "noisy"  # where to save results
         x, y = np.genfromtxt("../final/lightcurve_{0}.txt".format(id)).T
         interval = 0.02043365
-    yerr = np.ones_like(y) * 1e-5
-    periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, interval, path, plot=True, amy=False)  # acf
+	yerr = np.ones_like(y) * 1e-5
+#     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
+#     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
     burnin, run, npts = 1000, 15000, 20  # MCMC
     recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
                        plot=True, quarters=True)

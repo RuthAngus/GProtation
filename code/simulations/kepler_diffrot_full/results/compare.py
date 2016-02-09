@@ -20,7 +20,7 @@ def compare_acf(true_periods, ids, path):  # path is where the results are saved
     plt.ylim(0, 80)
     xs = np.linspace(min(true_periods), max(true_periods), 100)
     plt.plot(xs, xs, "r--")
-    plt.savefig("acf_compare")
+    plt.savefig("acf_compare_{0}".format(path))
 
 def compare_GP(true_periods, ids, path):
 
@@ -47,7 +47,7 @@ def compare_GP(true_periods, ids, path):
     plt.ylim(0, 80)
     xs = np.linspace(min(true_periods), max(true_periods), 100)
     plt.plot(xs, xs, "r--")
-    plt.savefig("GP_compare")
+    plt.savefig("GP_compare_{0}".format(path))
 
 if __name__ == "__main__":
 
@@ -57,5 +57,7 @@ if __name__ == "__main__":
     ids = data[0][m]
     true_periods = data[-3][m]
 
-    compare_acf(true_periods, ids, "noise-free")
+#     compare_acf(true_periods, ids, "noise-free")
+    compare_acf(true_periods, ids, "noisy")
 #     compare_GP(true_periods, ids, "noise-free")
+#     compare_GP(true_periods, ids, "noisy")
