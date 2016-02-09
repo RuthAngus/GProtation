@@ -57,5 +57,5 @@ if __name__ == "__main__":
     ids = data[0][m]
     true_periods = data[-3][m]
 
-#     compare_acf(true_periods, ids, "noise-free")
-    compare_GP(true_periods, ids, "noise-free")
+    compare_acf(true_periods, ids, "noise-free")
+#     compare_GP(true_periods, ids, "noise-free")

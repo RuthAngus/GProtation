@@ -37,7 +37,7 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=False):
                        np.transpose((period, period*.1)))
     return period
 
-def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
+def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
     """
     takes id of the star, returns an array of period measurements and saves the
     results.
@@ -47,7 +47,7 @@ def periodograms(id, x, y, yerr, fn, plot=False, savepgram=True):
     try:
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     except:
-        corr_run(x, y, yerr, id, fn, saveplot=False)
+        corr_run(x, y, yerr, id, interval, fn, saveplot=False)
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init, err)
 
@@ -235,17 +235,22 @@ def acf_pgram_GP_sim(id):
 #     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
 #                        plot=True)  # MCMC
 
-def acf_pgram_GP_suz(id, noise_free=True):
+def acf_pgram_GP_suz(id):
     """
     Run acf, pgram and MCMC recovery on Suzanne's simulations
     """
+    noise_free = False
     id = str(int(id)).zfill(4)
     if noise_free:
         path = "noise-free"  # where to save results
-    x, y = np.genfromtxt("../noise_free/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-8
-    periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    interval = (x[1] - x[0])
+        x, y = np.genfromtxt("../noise_free/lightcurve_{0}.txt".format(id)).T
+        interval = (x[1] - x[0])
+    else:
+        path = "noisy"  # where to save results
+        x, y = np.genfromtxt("../final/lightcurve_{0}.txt".format(id)).T
+        interval = 0.02043365
+    yerr = np.ones_like(y) * 1e-5
+    periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
     my_acf(id, x, y, yerr, interval, path, plot=True, amy=False)  # acf
     burnin, run, npts = 1000, 15000, 20  # MCMC
     recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
