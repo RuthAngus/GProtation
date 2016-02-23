@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import h5py
 import os
 
-def compare_acf(true_periods, ids, path):  # path is where the results are saved
+def compare_acf(true_periods, ids, path):  # path is where results are saved
 
     # load recovered
     recovered_periods = np.zeros_like(ids)
@@ -58,6 +58,6 @@ if __name__ == "__main__":
     true_periods = data[-3][m]
 
 #     compare_acf(true_periods, ids, "noise-free")
-    compare_acf(true_periods, ids, "noisy")
+#     compare_acf(true_periods, ids, "noisy")
 #     compare_GP(true_periods, ids, "noise-free")
-#     compare_GP(true_periods, ids, "noisy")
+    compare_GP(true_periods, ids, "noisy")
