@@ -102,9 +102,15 @@ def make_plot(x, y, acf_smooth, lags, id, fn):
         print(period)
 
         plt.clf()
-        plt.subplot(2, 1, 1)
+        plt.subplot(4, 1, 1)
         plt.plot(x, y, "k.")
-        plt.subplot(2, 1, 2)
+        plt.subplot(4, 1, 2)
+        plt.plot(x, y, "k.")
+        plt.xlim(0, 200)
+        plt.subplot(4, 1, 3)
+        plt.plot(x, y, "k.")
+        plt.xlim(0, 20)
+        plt.subplot(4, 1, 4)
         for i in peaks:
             plt.axvline(lags[i], color="r")
         plt.axvline(highest, color="g")

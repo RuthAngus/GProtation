@@ -26,18 +26,20 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     results.
     (the files are saved in a directory that is a global variable).
     """
-    try:
-        period, period_err = \
-                np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-    except:
-	    if amy:
-		period, period_err = corr_run(x, y, yerr, id, interval, fn,
-					      saveplot=True)
-	    else:
-                period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
-                                                     plot=True)
-                np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
-                           np.transpose((period, period*.1)))
+    period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
+                                         plot=True)
+#     try:
+#         period, period_err = \
+#                 np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+#     except:
+# 	    if amy:
+# 		period, period_err = corr_run(x, y, yerr, id, interval, fn,
+# 					      saveplot=True)
+# 	    else:
+#                 period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
+#                                                      plot=True)
+#                 np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
+#                            np.transpose((period, period*.1)))
     return period
 
 def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
@@ -120,11 +122,12 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
 
     if by_hand:
         # load initial guesses
-        _, flag, my_p, lower_p, upper_p = \
+        myid, flag, my_p, lower_p, upper_p = \
                 np.genfromtxt("{0}/input.txt".format(fn), skip_header=1).T
-        if flag[id] == 0:  # this means the acf period is bad
-            p_init = [my_p[id]]
-            plims = [lower_p[id], upper_p[id]]
+        iid = id == myid
+        if flag[iid] == 0:  # this means the acf period is bad
+            p_init = [my_p[iid]]
+            plims = [lower_p[iid], upper_p[iid]]
         else:
             by_hand = False
 
@@ -283,7 +286,7 @@ def acf_pgram_GP_suz(id):
 
 #     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
 #     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
-    burnin, run, npts = 1000, 5000, 50  # MCMC. max npts is 48 * period
+    burnin, run, npts = 1000, 5000, 20  # MCMC. max npts is 48 * period
     recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
                        nwalkers=12, plot=True, quarters=True, amy=True,
                        by_hand=True)
@@ -293,10 +296,10 @@ if __name__ == "__main__":
     # Suzanne's noise-free simulations
     data = np.genfromtxt("../par/final_table.txt", skip_header=1).T
     m = data[13] == 0  # just the stars without diffrot
-    ids = data[0][m]
+    ids = data[0][m][:6]
     pool = Pool()  # try pool = Pool(8) to use 8 cores?
-#     pool.map(acf_pgram_GP_suz, ids)
-    acf_pgram_GP_suz(5)
+    pool.map(acf_pgram_GP_suz, ids)
+#     acf_pgram_GP_suz(5)
 
 #     # my noise-free simulations
 #     N = 60
