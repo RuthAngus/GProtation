@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import emcee
@@ -62,6 +63,10 @@ def simple_acf(id, x, y, interval, fn, plot):
     # create 'lags' array
     lags = np.arange(len(acf_smooth)) * interval
 
+    # throw away the first quarter of a day
+    c = 12  # one quarter of a day
+    acf_smooth, acf, lags = acf_smooth[c:], acf[c:], lags[c:]
+
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
                      if acf_smooth[i-1] < acf_smooth[i] and
@@ -76,18 +81,15 @@ def simple_acf(id, x, y, interval, fn, plot):
         period = lags[peaks[0]]
 
     if plot:
-        make_plot(acf_smooth, lags, id, fn)
+        make_plot(x, y, acf_smooth, lags, id, fn)
 
     return period, acf_smooth, lags
 
-def make_plot(acf_smooth, lags, id, fn):
+def make_plot(x, y, acf_smooth, lags, id, fn):
         # find all the peaks
         peaks = np.array([i for i in range(1, len(lags)-1)
                          if acf_smooth[i-1] < acf_smooth[i] and
                          acf_smooth[i+1] < acf_smooth[i]])
-
-        # throw the first peak away
-        peaks = peaks[1:]
 
         # find the lag of highest correlation
         m = acf_smooth ==  max(acf_smooth[peaks])
@@ -100,12 +102,15 @@ def make_plot(acf_smooth, lags, id, fn):
         print(period)
 
         plt.clf()
+        plt.subplot(2, 1, 1)
+        plt.plot(x, y, "k.")
+        plt.subplot(2, 1, 2)
         for i in peaks:
             plt.axvline(lags[i], color="r")
         plt.axvline(highest, color="g")
         plt.axvline(period, color="k")
         plt.plot(lags, acf_smooth)
-        plt.xlim(0, 10*period)
+        plt.xlim(0, 100)
         print("saving plot as", "%s/%s_acf.png" % (fn, str(id).zfill(4)))
         plt.savefig("%s/%s_acf" % (fn, str(id).zfill(4)))
 

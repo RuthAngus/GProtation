@@ -8,6 +8,7 @@ cols = colours()
 from gatspy.periodic import LombScargle
 import sys
 from Kepler_ACF import corr_run
+import multiprocessing as mp
 from multiprocessing import Pool
 import glob
 from kepler_data import load_kepler_data
@@ -16,7 +17,8 @@ from GProtation import make_plot, lnprob
 import emcee
 import time
 from simple_acf import simple_acf
-
+import george
+from george.kernels import ExpSquaredKernel, ExpSine2Kernel
 
 def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     """
@@ -24,9 +26,6 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     results.
     (the files are saved in a directory that is a global variable).
     """
-#     period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
-#     np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
-#                np.transpose((period, period*.1)))
     try:
         period, period_err = \
                 np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
@@ -36,7 +35,6 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
 					      saveplot=True)
 	    else:
                 period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
-
                                                      plot=True)
                 np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
                            np.transpose((period, period*.1)))
@@ -112,26 +110,46 @@ def plot_init(theta_init, x, y, yerr):
     print("%s/%s_init.png" % (fn, id))
 
 
-def recover_injections(id, x, y, yerr, fn, burnin, run, npts=10, nwalkers=32,
-                       plot_inits=False, plot=True, quarters=False):
+def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
+                       nwalkers=32, plot_inits=False, plot=True,
+                       quarters=False, amy=False, by_hand=True):
     """
     Take x, y, yerr, calculate ACF period for initialisation and do MCMC.
     npts: number of points per period.
     """
 
-    # initialise with acf
-    try:
-        p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-    except:
-        corr_run(x, y, yerr, id, fn, saveplot=plot)
-        p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-    print("acf period, err = ", p_init)
+    if by_hand:
+        # load initial guesses
+        _, flag, my_p, lower_p, upper_p = \
+                np.genfromtxt("{0}/input.txt".format(fn), skip_header=1).T
+        if flag[id] == 0:  # this means the acf period is bad
+            p_init = [my_p[id]]
+            plims = [lower_p[id], upper_p[id]]
+        else:
+            by_hand = False
 
-    if p_init[0] < .5:  # prevent unphysical periods
-	    p_init[0] = 1.
+    if not by_hand:
+        # initialise with acf
+        try:
+            p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+        except:
+            if amy:
+                corr_run(x, y, yerr, id, fn, saveplot=plot)
+                p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+            else:
+                p_init, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
+                                                      plot=True)
+                np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
+                           np.transpose((p_init, period*.1)))
 
-    # Format data
-    plims = np.log([p_init[0] - .4 * p_init[0], p_init[0] + .4 * p_init[0]])
+        print("acf period, err = ", p_init)
+
+        if p_init[0] < .5:  # prevent unphysical periods
+                p_init[0] = 1.
+
+        # Format data
+        plims = np.log([p_init[0] - .4 * p_init[0], p_init[0] + .4 * p_init[0]])
+
     sub = int(p_init[0] / npts * 48)  # 10 points per period
     ppd = 48. / sub
     ppp = ppd * p_init[0]
@@ -262,21 +280,23 @@ def acf_pgram_GP_suz(id):
         x, y = np.genfromtxt("../final/lightcurve_{0}.txt".format(id)).T
         interval = 0.02043365
 	yerr = np.ones_like(y) * 1e-5
+
 #     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
-#     my_acf(id, x, y, yerr, interval, path, plot=True, amy=False)  # acf
-    burnin, run, npts = 1000, 5000, 20  # MCMC
-    recover_injections(id, x, y, yerr, path, burnin, run, npts, nwalkers=12,
-                       plot=True, quarters=True)
+#     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
+    burnin, run, npts = 1000, 5000, 50  # MCMC. max npts is 48 * period
+    recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
+                       nwalkers=12, plot=True, quarters=True, amy=True,
+                       by_hand=True)
 
 if __name__ == "__main__":
 
     # Suzanne's noise-free simulations
     data = np.genfromtxt("../par/final_table.txt", skip_header=1).T
     m = data[13] == 0  # just the stars without diffrot
-    ids = data[0][m][:5]
-    pool = Pool()
-    pool.map(acf_pgram_GP_suz, ids)
-#     acf_pgram_GP_suz(0)
+    ids = data[0][m]
+    pool = Pool()  # try pool = Pool(8) to use 8 cores?
+#     pool.map(acf_pgram_GP_suz, ids)
+    acf_pgram_GP_suz(5)
 
 #     # my noise-free simulations
 #     N = 60

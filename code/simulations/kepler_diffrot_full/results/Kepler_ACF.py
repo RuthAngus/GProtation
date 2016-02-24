@@ -1,7 +1,4 @@
-# This version of the ACF code is designed to run without the stupid index step
-# It is also totally stripped down and only saves the information that I actually use.
-# the corr_run function takes
-
+from __future__ import print_function
 import scipy
 from numpy.random import normal
 import matplotlib.image as mpimg
