@@ -27,26 +27,26 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     (the files are saved in a directory that is a global variable).
     """
 #     period, period_err = corr_run(x, y, yerr, id, interval, fn, saveplot=True)
-    period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
-    np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
-               np.transpose((period, period*.1)))
-#     if amy:
-#         try:
-#             period, period_err = \
-#                     np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-#         except:
-#             period, period_err = corr_run(x, y, yerr, id, interval, fn,
-# 					      saveplot=True)
-#     else:
-#         try:
-#             period, period_err = \
-#                     np.genfromtxt("{0}/{1}_simple_acfresult.txt".format(fn,
-#                                   id))
-#         except:
-#             period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
-#                                                  plot=True)
-#             np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
-#                        np.transpose((period, period*.1)))
+#     period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
+#     np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
+#                np.transpose((period, period*.1)))
+    if amy:
+        try:
+            period, period_err = \
+                    np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+        except:
+            period, period_err = corr_run(x, y, yerr, id, interval, fn,
+					      saveplot=True)
+    else:
+        try:
+            period, period_err = \
+                    np.genfromtxt("{0}/{1}_simple_acfresult.txt".format(fn,
+                                  id))
+        except:
+            period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
+                                                 plot=True)
+            np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
+                       np.transpose((period, period*.1)))
     return period
 
 def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
