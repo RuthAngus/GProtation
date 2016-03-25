@@ -7,6 +7,43 @@ from plotstuff import params, colours
 reb = params()
 cols = colours()
 
+def compare_pgram(true_periods, ids, path):  # path is where results are saved
+
+    # load recovered
+    recovered_periods = np.zeros_like(ids)
+    for i in range(len(ids)):
+        id = str(int(ids[i])).zfill(4)
+        recovered_periods[i], _ = \
+                np.genfromtxt("{0}/{1}_pgram_result.txt".format(path, id)).T
+
+    f = .3
+    m = (recovered_periods < true_periods + true_periods*f) * \
+            (true_periods - true_periods*f < recovered_periods)
+    print("recovered", len(recovered_periods[m]), "out of ",
+          len(recovered_periods),
+          100*len(recovered_periods[m])/float(len(recovered_periods)), "%")
+
+    plt.clf()
+    recovered_periods[recovered_periods==-9999] = 0
+    plt.plot(true_periods, recovered_periods, "^", color=cols.red,
+             mec=cols.red, ms=3)
+    m = clen < 3
+#     plt.plot(true_periods[m], recovered_periods[m], "^", color=cols.blue,
+#              mec=cols.blue, ms=5)
+#     plt.ylim(0, 80)
+    plt.xlabel("$\mathrm{True~P}_{\mathrm{rot}}~\mathrm{(days)}$")
+    plt.ylabel("$\mathrm{Measured~P}_{\mathrm{rot}}~\mathrm{(days)}$")
+    xs = np.linspace(min(true_periods), 100, 100)
+    plt.plot(xs, xs, color=".5", ls="--")
+    plt.xlim(0, 55)
+    plt.savefig("pgram_compare_{0}.pdf".format(path))
+
+    resids = ((recovered_periods - true_periods)**2)**.5
+    print(max(resids))
+    m = resids > 80
+    print(ids[m])
+    print("Pgram RMS = ", np.mean((recovered_periods - true_periods)**2)**.5)
+
 def compare_acf(true_periods, ids, path):  # path is where results are saved
 
     # load recovered
@@ -49,6 +86,7 @@ def compare_acf(true_periods, ids, path):  # path is where results are saved
     plt.xlabel("$\mathrm{P}_{\mathrm{rot}}~\mathrm{(days)}$")
     plt.ylabel("$\mathrm{N}$")
     plt.savefig("acf_compare_{0}_hist.pdf".format(path))
+    print("ACF RMS = ", np.mean((recovered_periods - true_periods)**2)**.5)
 
 def compare_GP(true_periods, ids, path):
 
@@ -75,7 +113,7 @@ def compare_GP(true_periods, ids, path):
     plt.ylim(0, 80)
     xs = np.linspace(min(true_periods), max(true_periods), 100)
     plt.plot(xs, xs, "r--")
-    plt.savefig("GP_compare_{0}".format(path))
+    plt.savefig("GP_compare_{0}.pdf".format(path))
 
 if __name__ == "__main__":
 
@@ -84,8 +122,11 @@ if __name__ == "__main__":
     m = data[13] == 0  # just the stars without diffrot
     ids = data[0][m]
     true_periods = data[-3][m]
+    clen = data[2][m]
 
-    compare_acf(true_periods, ids, "noise-free")
+#     compare_acf(true_periods, ids, "noise-free")
 #     compare_acf(true_periods, ids, "noisy")
-#     compare_GP(true_periods, ids, "noise-free")
-#     compare_GP(true_periods, ids, "noisy")
+    compare_GP(true_periods, ids, "noise-free")
+#     compare_acf(true_periods, ids, "noisy")
+#     compare_pgram(true_periods, ids, "noisy")
+#     compare_pgram(true_periods, ids, "noise-free")

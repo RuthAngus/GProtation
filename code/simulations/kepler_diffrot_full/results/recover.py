@@ -64,7 +64,9 @@ def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init, err)
 
-    ps = np.linspace(p_init*.1, p_init*4, 1000)
+#     ps = np.linspace(p_init*.1, p_init*4, 1000)
+    ps = np.linspace(1., 50, 1000)
+#     ps = 1./np.linspace(1./50, 1., 10000)
     model = LombScargle().fit(x, y, yerr)
     pgram = model.periodogram(ps)
 
@@ -293,12 +295,12 @@ def acf_pgram_GP_suz(id):
         interval = 0.02043365
 	yerr = np.ones_like(y) * 1e-5
 
-    periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
-#     burnin, run, npts = 5000, 20000, 20  # MCMC. max npts is 48 * period
-#     recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
-#                        nwalkers=12, plot=True, quarters=True, amy=True,
-#                        by_hand=True)
+#     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
+#     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
+    burnin, run, npts = 1000, 5000, 20  # MCMC. max npts is 48 * period
+    recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
+                       nwalkers=12, plot=True, quarters=True, amy=True,
+                       by_hand=False)
 
 if __name__ == "__main__":
 
