@@ -26,20 +26,27 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     results.
     (the files are saved in a directory that is a global variable).
     """
-#     period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
-#                                          plot=True)
-    try:
-        period, period_err = \
-                np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-    except:
-	    if amy:
-		period, period_err = corr_run(x, y, yerr, id, interval, fn,
-					      saveplot=True)
-	    else:
-                period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
-                                                     plot=True)
-                np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
-                           np.transpose((period, period*.1)))
+#     period, period_err = corr_run(x, y, yerr, id, interval, fn, saveplot=True)
+    period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
+    np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
+               np.transpose((period, period*.1)))
+#     if amy:
+#         try:
+#             period, period_err = \
+#                     np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+#         except:
+#             period, period_err = corr_run(x, y, yerr, id, interval, fn,
+# 					      saveplot=True)
+#     else:
+#         try:
+#             period, period_err = \
+#                     np.genfromtxt("{0}/{1}_simple_acfresult.txt".format(fn,
+#                                   id))
+#         except:
+#             period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
+#                                                  plot=True)
+#             np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
+#                        np.transpose((period, period*.1)))
     return period
 
 def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
@@ -273,7 +280,7 @@ def acf_pgram_GP_suz(id):
     """
     Run acf, pgram and MCMC recovery on Suzanne's simulations
     """
-    noise_free = False
+    noise_free = True
     id = str(int(id)).zfill(4)
     if noise_free:
         path = "noise-free"  # where to save results
@@ -286,22 +293,22 @@ def acf_pgram_GP_suz(id):
         interval = 0.02043365
 	yerr = np.ones_like(y) * 1e-5
 
-#     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
-#     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
-    burnin, run, npts = 5000, 20000, 20  # MCMC. max npts is 48 * period
-    recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
-                       nwalkers=12, plot=True, quarters=True, amy=True,
-                       by_hand=True)
+    periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
+    my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
+#     burnin, run, npts = 5000, 20000, 20  # MCMC. max npts is 48 * period
+#     recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
+#                        nwalkers=12, plot=True, quarters=True, amy=True,
+#                        by_hand=True)
 
 if __name__ == "__main__":
 
     # Suzanne's noise-free simulations
     data = np.genfromtxt("../par/final_table.txt", skip_header=1).T
     m = data[13] == 0  # just the stars without diffrot
-    ids = data[0][m][:2]
+    ids = data[0][m]
     pool = Pool()  # try pool = Pool(8) to use 8 cores?
     pool.map(acf_pgram_GP_suz, ids)
-#     acf_pgram_GP_suz(2)
+#     acf_pgram_GP_suz(99)
 
 #     # my noise-free simulations
 #     N = 60
