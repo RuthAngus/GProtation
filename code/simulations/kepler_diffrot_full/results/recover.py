@@ -19,6 +19,7 @@ import time
 from simple_acf import simple_acf
 import george
 from george.kernels import ExpSquaredKernel, ExpSine2Kernel
+import os
 
 def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     """
@@ -122,8 +123,8 @@ def plot_init(theta_init, x, y, yerr):
 
 
 def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
-                       nwalkers=32, plot_inits=False, plot=True,
-                       quarters=False, amy=False, by_hand=True):
+                       nwalkers=32, initialisation="mcmc", plot_inits=False,
+                       plot=True, quarters=False, amy=False, by_hand=True):
     """
     Take x, y, yerr, calculate ACF period for initialisation and do MCMC.
     npts: number of points per period.
@@ -140,11 +141,11 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
         else:
             by_hand = False
 
-    if not by_hand:
-        # initialise with acf
-        try:
-            p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-        except:
+    else:
+        fname = "{0}/{1}_acfresult.txt".format(fn, id)
+        if os.path.exists(fname):
+            p_init = np.genfromtxt(fname)
+        else:
             if amy:
                 corr_run(x, y, yerr, id, fn, saveplot=plot)
                 p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
@@ -183,8 +184,24 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
 #     plt.savefig("{0}/{1}_test".format(fn, id))
 
     # assign theta_init
-    theta_init = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), p_init[0]]
-    theta_init = np.log(theta_init)
+    if initialisation == "mcmc":
+        print("mcmc initialisation")
+        fname = "{0}/{1}_samples.h5".format(fn, id)
+        if os.path.exists(fname):
+            with h5py.File(fname, "r") as f:
+                samples = f["samples"][...]
+            nwalkers, nsteps, ndims = np.shape(samples)
+            flat = np.reshape(samples, (nwalkers * nsteps, ndims))
+            mcmc_result = np.array(map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                              zip(*np.percentile(flat, [16, 50, 84],
+                                  axis=0))))
+            theta_init = mcmc_result[:, 0]
+        else:
+            theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6),
+                                np.exp(-16), p_init[0]])
+    else:
+        theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
+                            p_init[0]])
     print("\n", "log(theta_init) = ", theta_init)
     print("theta_init = ", np.exp(theta_init), "\n")
 
@@ -310,7 +327,7 @@ if __name__ == "__main__":
     ids = data[0][m]
     pool = Pool()  # try pool = Pool(8) to use 8 cores?
     pool.map(acf_pgram_GP_suz, ids)
-#     acf_pgram_GP_suz(99)
+#     acf_pgram_GP_suz(0)
 
 #     # my noise-free simulations
 #     N = 60
