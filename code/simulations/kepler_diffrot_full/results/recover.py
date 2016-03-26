@@ -27,23 +27,18 @@ def my_acf(id, x, y, yerr, interval, fn, plot=False, amy=True):
     results.
     (the files are saved in a directory that is a global variable).
     """
-#     period, period_err = corr_run(x, y, yerr, id, interval, fn, saveplot=True)
-#     period, acf_smooth, lags = simple_acf(id, x, y, interval, fn, plot=True)
-#     np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
-#                np.transpose((period, period*.1)))
     if amy:
-        try:
-            period, period_err = \
-                    np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-        except:
+        fname = "{0}/{1}_acfresult.txt".format(fn, id)
+        if os.path.exists(fname):
+            period, period_err = np.genfromtxt(fname)
+        else:
             period, period_err = corr_run(x, y, yerr, id, interval, fn,
 					      saveplot=True)
     else:
-        try:
-            period, period_err = \
-                    np.genfromtxt("{0}/{1}_simple_acfresult.txt".format(fn,
-                                  id))
-        except:
+        fname = "{0}/{1}_simple_acfresult.txt".format(fn, id)
+        if os.path.exists(fname):
+            period, period_err = np.genfromtxt(fname)
+        else:
             period, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
                                                  plot=True)
             np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
@@ -57,15 +52,15 @@ def periodograms(id, x, y, yerr, interval, fn, plot=False, savepgram=True):
     (the files are saved in a directory that is a global variable).
     """
     # initialise with acf
-    try:
-        p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
-    except:
+    fname = "{0}/{1}_acfresult.txt".format(fn, id)
+    if os.path.exists(fname):
+        period, period_err = np.genfromtxt(fname)
+    else:
         corr_run(x, y, yerr, id, interval, fn, saveplot=False)
         print(np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id)))
         p_init, err = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
     print("acf period, err = ", p_init, err)
 
-#     ps = np.linspace(p_init*.1, p_init*4, 1000)
     ps = np.linspace(1., 50, 1000)
 #     ps = 1./np.linspace(1./50, 1., 10000)
     model = LombScargle().fit(x, y, yerr)
@@ -130,7 +125,7 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
     npts: number of points per period.
     """
 
-    if by_hand:
+    if by_hand:  # if initialising by hand
         # load initial guesses
         myid, flag, my_p, lower_p, upper_p = \
                 np.genfromtxt("{0}/input.txt".format(fn), skip_header=1).T
@@ -141,18 +136,18 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
         else:
             by_hand = False
 
-    else:
+    else:  # if not initialising by hand, use acf (replaced later if mcmc)
         fname = "{0}/{1}_acfresult.txt".format(fn, id)
         if os.path.exists(fname):
             p_init = np.genfromtxt(fname)
         else:
             if amy:
                 corr_run(x, y, yerr, id, fn, saveplot=plot)
-                p_init = np.genfromtxt("{0}/{1}_acfresult.txt".format(fn, id))
+                p_init = np.genfromtxt(fname)
             else:
                 p_init, acf_smooth, lags = simple_acf(id, x, y, interval, fn,
                                                       plot=True)
-                np.savetxt("{0}/{1}_acfresult.txt".format(fn, id),
+                np.savetxt("{0}/{1}_simple_acfresult.txt".format(fn, id),
                            np.transpose((p_init, period*.1)))
 
         print("acf period, err = ", p_init)
@@ -161,7 +156,8 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
                 p_init[0] = 1.
 
         # Format data
-        plims = np.log([p_init[0] - .4 * p_init[0], p_init[0] + .4 * p_init[0]])
+        tol = .4
+        plims = np.log([p_init[0] - tol*p_init[0], p_init[0] + tol*p_init[0]])
 
     print(p_init[0], np.exp(plims))
 
@@ -176,13 +172,6 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
     else:
         xb, yb, yerrb = x, y, yerr
 
-#     plt.clf()
-#     plt.plot(x, y, "k.")
-#     for i in range(len(xb)):
-#         plt.plot(xb[i], yb[i], "r.")
-#     plt.xlim(min(x), min(x) + 10 * p_init[0])
-#     plt.savefig("{0}/{1}_test".format(fn, id))
-
     # assign theta_init
     if initialisation == "mcmc":
         print("mcmc initialisation")
@@ -196,6 +185,8 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
                               zip(*np.percentile(flat, [16, 50, 84],
                                   axis=0))))
             theta_init = mcmc_result[:, 0]
+            mcmc_p = np.exp(theta_init[4])
+            plims = np.log([mcmc_p - tol * mcmc_p, mcmc_p + tol * mcmc_p])
         else:
             theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6),
                                 np.exp(-16), p_init[0]])
