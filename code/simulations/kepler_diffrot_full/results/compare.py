@@ -94,6 +94,8 @@ def compare_GP(true_periods, ids, path):
     recovered_periods = np.zeros_like(ids)
     errps = np.zeros_like(ids)
     errms = np.zeros_like(ids)
+    acf_periods, acf_errs = [np.zeros_like(ids) for i in range(2)]
+    pgram_periods = np.zeros_like(ids)
     for i in range(len(ids)):
         id = str(int(ids[i])).zfill(4)
         fname = "{0}/{1}_samples.h5".format(path, id)
@@ -104,16 +106,28 @@ def compare_GP(true_periods, ids, path):
             flat = np.reshape(samples, (nwalkers * nsteps, ndims))
             mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                               zip(*np.percentile(flat, [16, 50, 84], axis=0)))
-            recovered_periods[i], errps[i], errps[i] = np.exp(mcmc_result[4])
+            recovered_periods[i], errps[i], errms[i] = np.exp(mcmc_result[4])
+        acf_periods[i], acf_errs[i] = \
+                np.genfromtxt("{0}/{1}_acfresult.txt".format(path, id)).T
+        pgram_periods[i], _ = \
+                np.genfromtxt("{0}/{1}_pgram_result.txt".format(path, id)).T
 
+    t = .1
+    m = (acf_periods - t*acf_periods < pgram_periods) \
+            * (pgram_periods < acf_periods + t*acf_periods)
     plt.clf()
-    recovered_periods[recovered_periods==-9999] = 0
-    plt.errorbar(true_periods, recovered_periods, yerr=errps,
+    plt.errorbar(true_periods[m], recovered_periods[m], yerr=errps[m],
                  fmt="k.", capsize=0)
     plt.ylim(0, 80)
     xs = np.linspace(min(true_periods), max(true_periods), 100)
     plt.plot(xs, xs, "r--")
+    plt.plot(xs, .5*xs, "r--")
     plt.savefig("GP_compare_{0}.pdf".format(path))
+
+    resids = ((recovered_periods - true_periods)**2)**.5
+    print(max(resids))
+    m = resids > 800
+    print(ids[m])
 
 if __name__ == "__main__":
 
