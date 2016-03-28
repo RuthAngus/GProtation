@@ -5,12 +5,21 @@ from plotstuff import params, colours
 reb = params()
 cols = colours()
 
+plotpar = {'axes.labelsize': 18,
+           'text.fontsize': 10,
+           'legend.fontsize': 18,
+           'xtick.labelsize': 18,
+           'ytick.labelsize': 18,
+           'text.usetex': True}
+plt.rcParams.update(plotpar)
+
 def collate(N):
     """
     assemble all the period measurements here
     """
     ids, true_p, true_a = \
-            np.genfromtxt("{0}/true_periods_amps.txt".format(fn)).T
+            np.genfromtxt("{0}/true_periods.txt".format(fn)).T
+#             np.genfromtxt("{0}/true_periods_amps.txt".format(fn)).T
     acf_periods, aerrs, GP_periods, gerrp, gerrm = [], [], [], [], []
     p_periods, pids = [], []  # periodogram results. pids is just a place hold
     my_p = []
@@ -103,13 +112,14 @@ def compare_truth(N, coll=True):
     plt.clf()
     xs = np.linspace(0, 100, 100)
     plt.plot(xs, xs, ".5", ls="--")
-    plt.scatter(true_p[:N], acf_p[:N], color=cols.pink, s=8, alpha=.7)
-    plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]),
-                 color=cols.blue, #alpha=.7,
-                 fmt="o", label="$\mathrm{GP}$", capsize=0, ms=4,
-                 mec=cols.blue)
-    plt.scatter(true_p[:N], p_p[:N], color=cols.maroon, s=20, marker="^",
-                label="$\mathrm{Periodogram}$")
+    plt.scatter(true_p[:N], acf_p[:N], color=cols.orange, s=20, alpha=.7,
+                marker="s", label="$\mathrm{ACF}$")
+#     plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]),
+#                  color=cols.blue, #alpha=.7,
+#                  fmt="o", label="$\mathrm{GP}$", capsize=0, ms=4,
+#                  mec=cols.blue)
+#     plt.scatter(true_p[:N], p_p[:N], color=cols.maroon, s=20, marker="^",
+#                 label="$\mathrm{Periodogram}$")
 
     plt.subplots_adjust(bottom=.2)
     plt.xlim(0, 60)
@@ -117,7 +127,9 @@ def compare_truth(N, coll=True):
     plt.legend(loc="upper left")
     plt.xlabel("$\mathrm{True~period~(days)}$")
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
-    plt.savefig("compare.pdf")
+#     plt.savefig("compare.pdf")
+    plt.savefig("compare_acf.pdf")
 
 if __name__ == "__main__":
-    compare_truth(10)
+    fn = "simulations"
+    compare_truth(300)
