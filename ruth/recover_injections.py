@@ -17,52 +17,6 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def my_acf(id):
-    id = str(int(id)).zfill(4)
-    x, y = np.genfromtxt("simulations/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-5
-    period, p_err = corr_run(x, y, yerr, id, "simulations")
-    periods.append(period)
-    np.savetxt("simulations/{0}_acf_result.txt".format(id),
-               np.array([period, p_err]).T)
-
-def periodograms(id, plot=False, savepgram=True):
-
-    id = str(int(i)).zfill(4)
-
-    # load simulated data
-    x, y = np.genfromtxt("simulations/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-5
-
-    # initialise with acf
-    fname = "simulations/{0}_acf_result.txt".format(id)
-    if os.path.exists(fname):
-        p_init, err = np.genfromtxt(fname).T
-    else:
-        p_init, err = corr_run(x, y, yerr, id, "simulations")
-        np.savetxt("simulations/{0}_acf_result.txt".format(id),
-                   np.array([period, p_err]).T)
-    print "acf period, err = ", p_init, err
-
-    ps = np.linspace(p_init*.1, p_init*4, 1000)
-    model = LombScargle().fit(x, y, yerr)
-    pgram = model.periodogram(ps)
-
-    # find peaks
-    peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                     pgram[i] and pgram[i+1] < pgram[i]])
-    period = ps[pgram==max(pgram[peaks])][0]
-    periods.append(period)
-    print "pgram period = ", period
-
-    plt.clf()
-    plt.plot(ps, pgram)
-    plt.axvline(period, color="r")
-    plt.savefig("simulations/{0}_pgram".format(id))
-
-    data = np.array([period, period])
-    np.savetxt("simulations/periodogram_results.txt", data.T)
-
 def recover_injections(id):
     """
     run MCMC on each star, initialising with the ACF period.
