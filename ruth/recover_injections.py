@@ -32,20 +32,19 @@ def recover_injections(id):
     if os.path.exists(fname):
         p_init, err = np.genfromtxt(fname)
     else:
-        print(fname)
-        assert 0
         p_init, err = corr_run(x, y, yerr, id, "simulations")
         np.savetxt("simulations/{0}_acf_result.txt".format(id),
                    np.array([p_init, err]).T)
     print "acf period, err = ", p_init, err
 
     # Format data
+    npts = 10
     sub = int(p_init / npts * 48)  # 10 points per period
     ppd = 48. / sub
-    ppp = ppd * p_init[0]
+    ppp = ppd * p_init
     print("sub = ", sub, "points per day =", ppd, "points per period =",
           ppp)
-    xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
+    xb, yb, yerrb = x[::sub], y[::sub], yerr[::sub]
 
     # prep MCMC
     plims = np.log([p_init*.7, p_init*1.5])
@@ -66,8 +65,9 @@ def recover_injections(id):
     print("total = ", (tm * nwalkers * run + tm * nwalkers * burnin)/60, \
           "mins")
 
-    MCMC(theta_init, xsub, ysub, yerrsub, plims, burnin, run, id,
-         "simulations", nwalkers)
+    sampler = MCMC(theta_init, xb, yb, yerrb, plims, burnin, run, id,
+                   "simulations", nwalkers)
+    make_plot(sampler, xb, yb, yerrb, id, "simulations", traces=True, tri=True)
 
 if __name__ == "__main__":
 

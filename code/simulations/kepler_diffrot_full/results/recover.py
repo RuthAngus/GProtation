@@ -117,9 +117,10 @@ def plot_init(theta_init, x, y, yerr):
     print("%s/%s_init.png" % (fn, id))
 
 
-def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
-                       nwalkers=32, initialisation="mcmc", plot_inits=False,
-                       plot=True, quarters=False, amy=False, by_hand=True):
+def recover_injections(id, x, y, yerr, fn, burnin, run, interval, tol, npts=10,
+                       nwalkers=32, p_guess=None, initialisation="mcmc",
+                       plot_inits=False, plot=True, quarters=False, amy=False,
+                       by_hand=True):
     """
     Take x, y, yerr, calculate ACF period for initialisation and do MCMC.
     npts: number of points per period.
@@ -156,7 +157,6 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
                 p_init[0] = 1.
 
         # Format data
-        tol = .4
         plims = np.log([p_init[0] - tol*p_init[0], p_init[0] + tol*p_init[0]])
 
     print(p_init[0], np.exp(plims))
@@ -193,6 +193,11 @@ def recover_injections(id, x, y, yerr, fn, burnin, run, interval, npts=10,
     else:
         theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                             p_init[0]])
+
+    if p_guess != None:
+        theta_init[-1] = np.log(p_guess)
+        plims = np.log([p_guess - tol*p_guess, p_guess + tol*p_guess])
+
     print("\n", "log(theta_init) = ", theta_init)
     print("theta_init = ", np.exp(theta_init), "\n")
 
@@ -249,48 +254,23 @@ def acf_pgram_GP_noisy(id):
     """
     # run full MCMC recovery
     id = str(int(id)).zfill(4)
-    path = "simulations/kepler_injections"
-    x, y, yerr = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load data
-    periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True)  # acf
-    burnin, run = 5000, 10000
-    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
-                       plot=True)  # MCMC
-
-def acf_pgram_GP(id):
-    """
-    Run acf, pgram and MCMC recovery on real kepler light curves.
-    """
-    id = str(int(id)).zfill(9)
-    p = "/home/angusr/.kplr/data/lightcurves"
-    fnames = np.sort(glob.glob("{0}/{1}/*llc.fits".format(p, id)))
-    x, y, yerr = load_kepler_data(fnames)  # load data
-    path = "real_lcs"
-    periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True, amy=False)  # acf
-    burnin, run = 5000, 10000
-    recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
-                       plot=True)  # MCMC
-
-def acf_pgram_GP_sim(id):
-    """
-    Run acf, pgram and MCMC recovery on noise-free simulations
-    """
-    id = str(int(id)).zfill(4)
-    path = "../../noise-free"
-    x, y = np.genfromtxt("{0}/{1}.txt".format(path, id)).T  # load
-    yerr = np.ones_like(y) * 1e-8
+    path = "../final"
+    x, y = np.genfromtxt("{0}/lightcurve_{1}.txt".format(path, id)).T
+    yerr = np.ones_like(y)*1e-5
 #     periodograms(id, x, y, yerr, path, plot=True)  # pgram
-    my_acf(id, x, y, yerr, path, plot=True, amy=True)  # acf
-#     burnin, run = 5000, 10000
-#     recover_injections(id, x, y, yerr, path, burnin, run, runMCMC=True,
-#                        plot=True)  # MCMC
+#     my_acf(id, x, y, yerr, path, plot=True)  # acf
+    burnin, run, npts, tol = 1000, 5000, 50, .4  # MCMC. max npts is 48 * per
+    recover_injections(id, x, y, yerr, path, burnin, run, interval, tol, npts,
+                       nwalkers=12, p_guess=20, initialisation="mcmc",
+                       plot_inits=False, plot=True, quarters=True,
+                       amy=True, by_hand=False)
 
 def acf_pgram_GP_suz(id):
     """
     Run acf, pgram and MCMC recovery on Suzanne's simulations
     """
-    noise_free = True
+#     noise_free = True
+    noise_free = False
     id = str(int(id)).zfill(4)
     if noise_free:
         path = "noise-free"  # where to save results
@@ -305,10 +285,10 @@ def acf_pgram_GP_suz(id):
 
 #     periodograms(id, x, y, yerr, interval, path, plot=True)  # pgram
 #     my_acf(id, x, y, yerr, interval, path, plot=True, amy=True)  # acf
-    burnin, run, npts = 1000, 5000, 20  # MCMC. max npts is 48 * period
-    recover_injections(id, x, y, yerr, path, burnin, run, interval, npts,
-                       nwalkers=12, plot=True, quarters=True, amy=True,
-                       by_hand=False)
+    burnin, run, npts, tol = 500, 1000, 50, .4  # MCMC. max npts is 48 * pe
+    recover_injections(id, x, y, yerr, path, burnin, run, interval, tol, npts,
+                       nwalkers=12, p_guess=20, initialisation=None, plot=True,
+                       quarters=True, amy=True, by_hand=False)
 
 if __name__ == "__main__":
 
@@ -316,9 +296,9 @@ if __name__ == "__main__":
     data = np.genfromtxt("../par/final_table.txt", skip_header=1).T
     m = data[13] == 0  # just the stars without diffrot
     ids = data[0][m]
-    pool = Pool()  # try pool = Pool(8) to use 8 cores?
-    pool.map(acf_pgram_GP_suz, ids)
-#     acf_pgram_GP_suz(0)
+#     pool = Pool()  # try pool = Pool(8) to use 8 cores?
+#     pool.map(acf_pgram_GP_suz, ids)
+    acf_pgram_GP_suz(2)
 
 #     # my noise-free simulations
 #     N = 60

@@ -112,14 +112,25 @@ def compare_truth(N, coll=True):
     plt.clf()
     xs = np.linspace(0, 100, 100)
     plt.plot(xs, xs, ".5", ls="--")
-    plt.scatter(true_p[:N], acf_p[:N], color=cols.orange, s=20, alpha=.7,
-                marker="s", label="$\mathrm{ACF}$")
-#     plt.errorbar(true_p[:N], gp_p[:N], yerr=(gerrp[:N], gerrm[:N]),
-#                  color=cols.blue, #alpha=.7,
-#                  fmt="o", label="$\mathrm{GP}$", capsize=0, ms=4,
-#                  mec=cols.blue)
-#     plt.scatter(true_p[:N], p_p[:N], color=cols.maroon, s=20, marker="^",
-#                 label="$\mathrm{Periodogram}$")
+    m = true_p[:N] < 60
+    truth = true_p[:N][m]
+    gp, pgram, acf = gp_p[:N][m], p_p[:N][m], acf_p[:N][m]
+    plt.scatter(truth, acf, color=cols.orange, s=20, alpha=.7, marker="s",
+                label="$\mathrm{ACF}$")
+    plt.errorbar(truth, gp, yerr=(gerrp[:N][m], gerrm[:N][m]), color=cols.blue,
+                 fmt="o", label="$\mathrm{GP}$", capsize=0, ms=4,
+                 mec=cols.blue)
+    plt.scatter(truth, pgram, color=cols.maroon, s=20, marker="^",
+                label="$\mathrm{Periodogram}$")
+
+    # calculate stats
+    RMS = lambda y1, y2: (np.mean((y1 - y2)**2))**.5
+    acf_RMS = RMS(truth, acf)
+    gp_RMS = RMS(truth, gp)
+    pgram_RMS = RMS(truth, pgram)
+    print("acf_RMS = ", acf_RMS)
+    print("gp_RMS = ", gp_RMS)
+    print("pgram_RMS = ", pgram_RMS)
 
     plt.subplots_adjust(bottom=.2)
     plt.xlim(0, 60)
@@ -127,8 +138,8 @@ def compare_truth(N, coll=True):
     plt.legend(loc="upper left")
     plt.xlabel("$\mathrm{True~period~(days)}$")
     plt.ylabel("$\mathrm{Measured~period~(days)}$")
-#     plt.savefig("compare.pdf")
-    plt.savefig("compare_acf.pdf")
+    plt.savefig("compare_test.pdf")
+#     plt.savefig("compare_acf.pdf")
 
 if __name__ == "__main__":
     fn = "simulations"

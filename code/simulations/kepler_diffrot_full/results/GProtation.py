@@ -17,6 +17,13 @@ cols = colours()
 import scipy.optimize as spo
 import time
 
+plotpar = {'axes.labelsize': 20,
+           'text.fontsize': 20,
+           'legend.fontsize': 20,
+           'xtick.labelsize': 15,
+           'ytick.labelsize': 15,
+           'text.usetex': True}
+plt.rcParams.update(plotpar)
 
 def lnprior(theta, plims):
     """
@@ -82,7 +89,8 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     print(mcmc_result)
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["A", "l", "G", "s", "P"]
+    fig_labels = ["$\ln(A)$", "$'ln(l)$", "$\ln(\Gamma)", "$\ln(\sigma)$",
+                  "$P_{rot}$"]
 
     if traces:
         print("Plotting traces")
