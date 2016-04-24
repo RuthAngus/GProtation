@@ -53,7 +53,7 @@ def recover_injections(id):
     cutoff = 10 * p_init
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                         p_init])
-    burnin, run, nwalkers = 50, 100, 12
+    burnin, run, nwalkers = 2000, 10000, 12
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (xb, yb, yerrb, plims)
