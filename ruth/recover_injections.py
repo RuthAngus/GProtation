@@ -39,21 +39,31 @@ def recover_injections(id):
     print("acf period, err = ", p_init, err)
 
     # Format data
+#     p_init = .5
     npts = 10
     sub = int(p_init / npts * 48)  # 10 points per period
     ppd = 48. / sub
     ppp = ppd * p_init
     print("sub = ", sub, "points per day =", ppd, "points per period =",
           ppp)
-    xb, yb, yerrb = x[::sub], y[::sub], yerr[::sub]
+    xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
+    c = 100 * p_init  # cutoff
+    m = xsub < (xsub[0] + c)
+    xb, yb, yerrb = xsub[m], ysub[m], yerrsub[m]
+
+    # plot data
+    plt.clf()
+    m = x < (xsub[0] + c)
+    plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
+    plt.errorbar(xb, yb, yerr=yerrb, fmt="r.", capsize=0)
+    plt.savefig("simulations/{0}_sub".format(id))
 
     # prep MCMC
-    plims = np.log([p_init*.7, p_init*1.5])
-    npts = int(p_init / 20. * 48)  # 10 points per period
-    cutoff = 10 * p_init
+    plims = np.log([.1*p_init, 1.9*p_init])
+    print("total number of points = ", len(xb))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                         p_init])
-    burnin, run, nwalkers = 2000, 10000, 12
+    burnin, run, nwalkers = 2000, 5000, 12
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (xb, yb, yerrb, plims)
@@ -95,4 +105,4 @@ def recover_injections(id):
 if __name__ == "__main__":
 
     # run full MCMC recovery
-    recover_injections(2)
+    recover_injections(24)
