@@ -26,7 +26,10 @@ def recover_injections(id):
 
     # load simulated data
     x, y = np.genfromtxt("simulations/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-5
+    yerr = np.ones_like(y) * 1e-4
+
+    # add some noise
+    y += np.random.randn(len(y)) * yerr
 
     # initialise with acf
     fname = "simulations/{0}_acf_result.txt".format(id)
@@ -39,7 +42,6 @@ def recover_injections(id):
     print("acf period, err = ", p_init, err)
 
     # Format data
-#     p_init = .5
     npts = 10
     sub = int(p_init / npts * 48)  # 10 points per period
     ppd = 48. / sub
@@ -59,11 +61,11 @@ def recover_injections(id):
     plt.savefig("simulations/{0}_sub".format(id))
 
     # prep MCMC
-    plims = np.log([.1*p_init, 1.9*p_init])
+    plims = np.log([.8*p_init, 1.2*p_init])
     print("total number of points = ", len(xb))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                         p_init])
-    burnin, run, nwalkers = 2000, 5000, 12
+    burnin, run, nwalkers = 2000, 10000, 12
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (xb, yb, yerrb, plims)
@@ -79,6 +81,7 @@ def recover_injections(id):
     print("total = ", (tm * nwalkers * run + tm * nwalkers * burnin)/60,
           "mins")
 
+
     # run MCMC
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
     print("burning in...")
@@ -88,7 +91,7 @@ def recover_injections(id):
     print("production run...")
     p0, _, state = sampler.run_mcmc(p0, run)
     end = time.time()
-    print("actual time = ", end - start)
+    print("actual time = ", (end - start)/60, "minutes")
 
     # save samples
     f = h5py.File("simulations/%s_samples.h5" % (id), "w")
