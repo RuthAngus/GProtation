@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import h5py
 import triangle
 import george
-from george.kernels import ExpSquaredKernel, ExpSine2Kernel
+from george.kernels import ExpSquaredKernel, ExpSine2Kernel, WhiteKernel
 from plotstuff import colours
 cols = colours()
 from kepler_data import load_kepler_data
 import glob
 
-plotpar = {'axes.labelsize': 24,
+plotpar = {'axes.labelsize': 20,
            'xtick.labelsize': 16,
            'ytick.labelsize': 16,
            'text.usetex': True}
@@ -61,24 +61,41 @@ def find_periodic(kid):
     fnames = glob.glob("{0}/{1}/*llc.fits".format(path, kid))
     x, y, yerr = load_kepler_data(fnames)
     x -= min(x)
-    m = x < 100
-    x, y, yerr = x[m], y[m], yerr[m]
+    m = (x < 30) * (12 < x)
+    x, y, yerr = x[m]-x[m][0], y[m], yerr[m]
 
-    theta = [np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), 10]
+    xs = np.linspace(min(x), max(x), 1000)
+    theta = [1e-2, .1, np.exp(.6), 5, 1e-5**2]
     k = theta[0] * ExpSquaredKernel(theta[1]) * ExpSine2Kernel(theta[2], \
-            theta[4])
+            theta[3]) + WhiteKernel(theta[4])
     gp = george.GP(k, solver=george.HODLRSolver)
     gp.compute(x, yerr)
-#     gp.optimize(x, y, yerr)
-    xs = np.linspace(x[0], x[-1], 1000)
     mu, cov = gp.predict(y, xs)
+    std = np.diag(cov**.5)
 
     plt.clf()
-    plt.plot(x, y, "k.")
-    plt.plot(xs, mu)
+    plt.errorbar(x, y, yerr=yerr, fmt="k.", ecolor=".7", capsize=0)
+    plt.plot(xs, mu, color="CornflowerBlue", lw=3,
+             label="$\mathrm{QP~kernel}$")
+#     plt.fill_between(xs, mu-std, mu+std, color="CornflowerBlue", alpha=.5)
+
+    theta = [1e-2, .1, 1e-5]
+    k = theta[0] * ExpSquaredKernel(theta[1]) + WhiteKernel(theta[2])
+    gp = george.GP(k, solver=george.HODLRSolver)
+    gp.compute(x, yerr)
+    semu, secov = gp.predict(y, xs)
+
+    plt.plot(xs, semu, "--", color="DeepPink", lw=2,
+             label="$\mathrm{SE~kernel}$")
+
+    plt.xlabel("$\mathrm{Time~(Days)}$")
+    plt.ylabel("$\mathrm{Normalised~(Flux)}$")
+    plt.legend()
+    plt.subplots_adjust(left=.18, bottom=.12)
     plt.savefig("klcs/{0}.pdf".format(kid))
 
 if __name__ == "__main__":
     kids = np.genfromtxt("kids.txt")
-    for kid in kids:
-        find_periodic(kid)
+    find_periodic(kids[1])
+#     for kid in kids:
+#         find_periodic(kid)
