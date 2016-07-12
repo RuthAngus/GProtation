@@ -16,23 +16,25 @@ plotpar = {'axes.labelsize': 20,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def GP_demos(id):
+def GP_demos(id, path):
 
-    with h5py.File("sine/000{0}_samples.h5".format(id), "r") as f:
+    id = str(int(id)).zfill(4)
+    with h5py.File("{0}/{1}_samples.h5".format(path, id), "r") as f:
         samples = f["samples"][...]
     nwalkers, nsteps, ndims = np.shape(samples)
     flat = np.reshape(samples, (nwalkers*nsteps, ndims))
     fig_labels = ["$\log(A)$", "$\log(l)$", "$\log(\Gamma)$", "$\log(\sigma)$",
                   "$P_{\mathrm{rot}}$"]
-    # flat[:, -1] = np.exp(flat[:, -1])
-    # fig = triangle.corner(flat, labels=fig_labels)
-    # plt.savefig("demo_triangle.pdf")
+    flat[:, -1] = np.exp(flat[:, -1])
+    fig = triangle.corner(flat, labels=fig_labels)
+    plt.savefig("demo_triangle_{0}.pdf".format(id))
+    flat[:, -1] = np.log(flat[:, -1])
 
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     theta = np.exp(np.array([mcmc_result[i][0] for i in range(ndims)]))
 
-    x, y = np.genfromtxt("simulations/000{0}.txt".format(id)).T
+    x, y = np.genfromtxt("{0}/lightcurve_{1}.txt".format(path, id)).T
     m = x < 300
     x, y = x[m], y[m]
     yerr = np.ones_like(y) * 1e-5
@@ -52,7 +54,7 @@ def GP_demos(id):
     plt.ylabel("$\mathrm{Normalised~Flux}$")
     plt.subplots_adjust(left=.18, bottom=.12)
     plt.legend()
-    plt.savefig("demo_lc.pdf")
+    plt.savefig("demo_lc_{0}.pdf".format(id))
 
 def find_periodic(kid):
 
@@ -95,7 +97,11 @@ def find_periodic(kid):
     plt.savefig("klcs/{0}.pdf".format(kid))
 
 if __name__ == "__main__":
-    kids = np.genfromtxt("kids.txt")
-    find_periodic(kids[1])
+    path = "../ruth/simulations"
+    id = 97
+    GP_demos(id, path)
+
+#     kids = np.genfromtxt("kids.txt")
+#     find_periodic(kids[1])
 #     for kid in kids:
 #         find_periodic(kid)
