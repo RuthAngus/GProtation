@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import emcee
+import sys
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -26,7 +27,11 @@ def recover_injections(id):
 
     # load simulated data
     x, y = np.genfromtxt("simulations/lightcurve_{0}.txt".format(id)).T
-    yerr = np.ones_like(y) * 1e-5
+    yerr = np.ones_like(y) * 1e-4
+
+    # add some noise
+#     y = np.sin(x*2*np.pi*(1./2.5)) * .0005
+#     y += np.random.randn(len(y)) * yerr
 
     # initialise with acf
     fname = "simulations/{0}_acf_result.txt".format(id)
@@ -37,6 +42,7 @@ def recover_injections(id):
         np.savetxt("simulations/{0}_acf_result.txt".format(id),
                    np.array([p_init, err]).T)
     print("acf period, err = ", p_init, err)
+#     p_init = 10
 
     # Format data
     npts = 10
@@ -45,15 +51,24 @@ def recover_injections(id):
     ppp = ppd * p_init
     print("sub = ", sub, "points per day =", ppd, "points per period =",
           ppp)
-    xb, yb, yerrb = x[::sub], y[::sub], yerr[::sub]
+    xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
+    c = 20 * p_init  # cutoff
+    m = xsub < (xsub[0] + c)
+    xb, yb, yerrb = xsub[m], ysub[m], yerrsub[m]
+
+    # plot data
+    plt.clf()
+    m = x < (xsub[0] + c)
+    plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
+    plt.errorbar(xb, yb, yerr=yerrb, fmt="r.", capsize=0)
+    plt.savefig("simulations/{0}_sub".format(id))
 
     # prep MCMC
-    plims = np.log([p_init*.7, p_init*1.5])
-    npts = int(p_init / 20. * 48)  # 10 points per period
-    cutoff = 10 * p_init
+    plims = np.log([.8*p_init, 1.2*p_init])
+    print("total number of points = ", len(xb))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                         p_init])
-    burnin, run, nwalkers = 50, 100, 12
+    burnin, run, nwalkers = 5000, 10000, 20
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (xb, yb, yerrb, plims)
@@ -69,6 +84,7 @@ def recover_injections(id):
     print("total = ", (tm * nwalkers * run + tm * nwalkers * burnin)/60,
           "mins")
 
+
     # run MCMC
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
     print("burning in...")
@@ -78,7 +94,7 @@ def recover_injections(id):
     print("production run...")
     p0, _, state = sampler.run_mcmc(p0, run)
     end = time.time()
-    print("actual time = ", end - start)
+    print("actual time = ", (end - start)/60, "minutes")
 
     # save samples
     f = h5py.File("simulations/%s_samples.h5" % (id), "w")
@@ -94,5 +110,6 @@ def recover_injections(id):
 
 if __name__ == "__main__":
 
-    # run full MCMC recovery
-    recover_injections(2)
+    id = sys.argv[1]
+    # run full MCMC recovery 24, 38, 50, 97
+    recover_injections(id)

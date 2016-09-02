@@ -56,7 +56,7 @@ def lnprob(theta, x, y, yerr, plims):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
     gp = george.GP(k, solver=george.HODLRSolver)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
@@ -79,6 +79,9 @@ def neglnlike(theta, x, y, yerr):
 # make various plots
 def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
               prediction=True):
+    plt.clf()
+    plt.plot(x, y, "k.")
+    plt.savefig("test")
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
@@ -113,7 +116,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         print("plotting prediction")
         theta = np.exp(np.array(mcmc_result))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
-                * ExpSine2Kernel(theta[2], theta[4])
+                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
         gp.compute(x, yerr)
         xs = np.linspace(x[0], x[-1], 1000)

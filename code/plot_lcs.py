@@ -27,10 +27,10 @@ red = '#CC0000'
 lilac = '#CC99FF'
 
 ids, ps, amps = np.genfromtxt("simulations/noise-free/true_periods_amps.txt").T
-
-x, y = np.genfromtxt("simulations/noise-free/0000.txt").T
+id = "0006"
+x, y = np.genfromtxt("simulations/noise-free/{}.txt".format(id)).T
 plt.clf()
-plt.plot(x, y, "k-", label = "$\mathrm{Period} = %.1f~\mathrm{days}$" % ps[0])
+plt.plot(x, y, "k-", label = "$\mathrm{Period} = %.1f~\mathrm{days}$" % ps[int(id)])
 plt.xlabel("$\mathrm{Time~(days)}$")
 plt.ylabel("$\mathrm{Normalised~flux}$")
 plt.xlim(0, 200)
@@ -51,7 +51,7 @@ _, true_periods, _ = np.genfromtxt("simulations/true_periods.txt").T
 # plt.title("$\mathrm{P}_{\mathrm{rot}} = {0}\mathrm{days}$".format(true_periods[0]))
 plt.savefig("../figures/noise-free_acf.pdf")
 
-x2, y2, yerr = np.genfromtxt("simulations/kepler_injections/0000.txt").T
+x2, y2, yerr = np.genfromtxt("simulations/kepler_injections/{}.txt".format(id)).T
 plt.clf()
 plt.plot(x2, y2, "k.", label = "$\mathrm{Period} = %.1f~\mathrm{days}$"
          % ps[0])
