@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from plotstuff import params, colours
 cols = colours()
 reb = params()
-from simple_acf import dan_acf
+from simple_acf import dan_acf, simple_acf
 
 plotpar = {'axes.labelsize': 20,
            'text.fontsize': 20,
@@ -29,8 +29,9 @@ lilac = '#CC99FF'
 ids, ps, amps = np.genfromtxt("simulations/noise-free/true_periods_amps.txt").T
 id = "0006"
 x, y = np.genfromtxt("simulations/noise-free/{}.txt".format(id)).T
+period, _, _ = simple_acf(x, y)
 plt.clf()
-plt.plot(x, y, "k-", label = "$\mathrm{Period} = %.1f~\mathrm{days}$" % ps[int(id)])
+plt.plot(x, y, "k-", label = "$\mathrm{Period} = %.1f~\mathrm{days}$" % period)
 plt.xlabel("$\mathrm{Time~(days)}$")
 plt.ylabel("$\mathrm{Normalised~flux}$")
 plt.xlim(0, 200)
