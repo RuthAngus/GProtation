@@ -3,11 +3,11 @@ from colours import plot_colours
 ocols = plot_colours()
 
 def params():
-    plotpar = {'axes.labelsize': 12,
+    plotpar = {'axes.labelsize': 18,
                'text.fontsize': 10,
                'legend.fontsize': 15,
-               'xtick.labelsize': 12,
-               'ytick.labelsize': 12,
+               'xtick.labelsize': 18,
+               'ytick.labelsize': 18,
                'text.usetex': True}
     plt.rcParams.update(plotpar)
     return {'capsize':0, 'fmt':'k.', 'ecolor':'.8'}
