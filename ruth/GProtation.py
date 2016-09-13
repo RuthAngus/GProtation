@@ -130,7 +130,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         plt.savefig("%s/%s_prediction" % (DIR, ID))
         print("%s/%s_prediction.png" % (DIR, ID))
 
-# take x, y, yerr and initial guess and do MCMC
+
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
          logsamp=True, plot_inits=False):
 
@@ -138,16 +138,16 @@ def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
     quarters = False
     if len(x) < 20:
         quarters = True
-	print("Quarter splits detected")
+        print("Quarter splits detected")
 
     print("\n", "log(theta_init) = ", theta_init)
     print("theta_init = ", np.exp(theta_init), "\n")
 
-    if plot_inits:  # plot initial guess and the result of minimize
-	if quarters:
-		xl = [i for j in x for i in j]
-		yl = [i for j in y for i in j]
-		yerrl = [i for j in yerr for i in j]
+    # if plot_inits:  # plot initial guess and the result of minimise
+    if quarters:
+        xl = [i for j in x for i in j]
+        yl = [i for j in y for i in j]
+        yerrl = [i for j in yerr for i in j]
         print("plotting inits")
         print(np.exp(theta_init))
         t = np.exp(theta_init)
