@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 from GProtation import make_plot, lnprob
 from Kepler_ACF import corr_run
 import h5py
-import sys
 import os
 import time
 import emcee
 from kepler_data import load_kepler_data
 import glob
+from gatspy.periodic import LombScargle
 
 plotpar = {'axes.labelsize': 22,
            'font.size': 22,
@@ -56,7 +56,6 @@ def recover_injections(id, DATA_DIR, RESULTS_DIR, npts=10, cutoff=20,
     # load lightcurve
     fnames = glob.glob(os.path.join(DATA_DIR,
                                     "{0}/kplr{0}-*_llc.fits".format(id)))
-    print(fnames)
     x, y, yerr = load_kepler_data(fnames)
 
     # initialise with acf
@@ -65,7 +64,7 @@ def recover_injections(id, DATA_DIR, RESULTS_DIR, npts=10, cutoff=20,
         p_init, err = np.genfromtxt(fname)
     else:
         p_init, err = corr_run(x, y, yerr, id, RESULTS_DIR)
-        np.savetxt(os.path.join("{0}_acf_result.txt".format(id)),
+        np.savetxt(os.path.join(RESULTS_DIR, "{0}_acf_result.txt".format(id)),
                    np.array([p_init, err]).T)
     print("acf period, err = ", p_init, err)
 
@@ -73,12 +72,25 @@ def recover_injections(id, DATA_DIR, RESULTS_DIR, npts=10, cutoff=20,
     sub = int(p_init / npts * 48)  # 10 points per period
     ppd = 48. / sub
     ppp = ppd * p_init
-    print("sub = ", sub, "points per day =", ppd, "points per period =",
+    print("sub = ", sub, "| points per day =", ppd, "| points per period =",
           ppp)
     xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
     c = cutoff * p_init  # cutoff
     m = xsub < (xsub[0] + c)
     xb, yb, yerrb = xsub[m], ysub[m], yerrsub[m]
+
+    # compute periodogram for original and subsampled light curve
+    ps = np.arange(lower_lim*p_init, upper_lim*p_init, .001)
+    ps = np.arange(0, 100, .1)
+    model1 = LombScargle().fit(x, y, yerr)
+    pgram1 = model1.periodogram(ps)
+    model2 = LombScargle().fit(xb, yb, yerrb)
+    pgram2 = model2.periodogram(ps)
+    plt.clf()
+    plt.plot(ps, pgram1)
+    plt.plot(ps, pgram2)
+    plt.xlabel("period (days)")
+    plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
 
     # plot data
     if plot_data:
@@ -136,5 +148,5 @@ if __name__ == "__main__":
     DATA_DIR = "/Users/ruthangus/.kplr/data/lightcurves"
     RESULTS_DIR = "results"
     id = 4760478
-    recover_injections(id, DATA_DIR, RESULTS_DIR, plot_data=True, burnin=2,
-                       run=50, nwalkers=8)
+    recover_injections(id, DATA_DIR, RESULTS_DIR, npts=100, cutoff=10000,
+                       plot_data=True, burnin=500, run=5000, nwalkers=12)
