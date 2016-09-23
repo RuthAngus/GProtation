@@ -20,14 +20,16 @@ def generate_GP(theta, x, yerr):
 
 
 if __name__ == "__main__":
-    x = np.arange(0, 20, .1)
+
+    gap_days = 0.02043365  # assume for long cadence
+    x = np.arange(0, 150) * gap_days
     yerr = np.ones_like(x) * 1e-5
 
-    theta = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), 4])
+    theta = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16), 1])
     ys = generate_GP(theta, x, yerr)
 
     data = np.vstack((x, ys))
-    np.savetxt("simulations/0000_gp.txt", data.T)
+    np.savetxt("simulations/lightcurve_0000.txt", data.T)
 
     plt.clf()
     plt.errorbar(x, ys, yerr=yerr, fmt="k.")

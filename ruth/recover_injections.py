@@ -19,19 +19,14 @@ plotpar = {'axes.labelsize': 22,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-def recover_injections(id):
+def recover_injections(id, subsample=True):
     """
     run MCMC on each star, initialising with the ACF period.
     """
-    id = str(int(id)).zfill(4)
 
     # load simulated data
     x, y = np.genfromtxt("simulations/lightcurve_{0}.txt".format(id)).T
     yerr = np.ones_like(y) * 1e-4
-
-    # add some noise
-#     y = np.sin(x*2*np.pi*(1./2.5)) * .0005
-#     y += np.random.randn(len(y)) * yerr
 
     # initialise with acf
     fname = "simulations/{0}_acf_result.txt".format(id)
@@ -42,33 +37,43 @@ def recover_injections(id):
         np.savetxt("simulations/{0}_acf_result.txt".format(id),
                    np.array([p_init, err]).T)
     print("acf period, err = ", p_init, err)
-#     p_init = 10
+    assert 0
 
-    # Format data
-    npts = 10
-    sub = int(p_init / npts * 48)  # 10 points per period
-    ppd = 48. / sub
-    ppp = ppd * p_init
-    print("sub = ", sub, "points per day =", ppd, "points per period =",
-          ppp)
-    xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
-    c = 20 * p_init  # cutoff
-    m = xsub < (xsub[0] + c)
-    xb, yb, yerrb = xsub[m], ysub[m], yerrsub[m]
+    if subsample:
+        # Format data
+        npts = 10
+        sub = int(p_init / npts * 48)  # 10 points per period
+        ppd = 48. / sub
+        ppp = ppd * p_init
+        print("sub = ", sub, "points per day =", ppd, "points per period =",
+              ppp)
+        xsub, ysub, yerrsub = x[::sub], y[::sub], yerr[::sub]
+        c = 20 * p_init  # cutoff
+        m = xsub < (xsub[0] + c)
+        xb, yb, yerrb = xsub[m], ysub[m], yerrsub[m]
 
-    # plot data
-    plt.clf()
-    m = x < (xsub[0] + c)
-    plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
-    plt.errorbar(xb, yb, yerr=yerrb, fmt="r.", capsize=0)
-    plt.savefig("simulations/{0}_sub".format(id))
+        # plot data
+        plt.clf()
+        m = x < (xsub[0] + c)
+        plt.errorbar(x[m], y[m], yerr=yerr[m], fmt="k.", capsize=0)
+        plt.errorbar(xb, yb, yerr=yerrb, fmt="r.", capsize=0)
+        plt.savefig("simulations/{0}_sub".format(id))
+
+    else:
+        xb, yb, yerrb = x, y, yerr
+        xsub, ysub, yerrsub = x, y, yerr
+
+        # plot data
+        plt.clf()
+        plt.errorbar(x, y, yerr=yerr, fmt="r.", capsize=0)
+        plt.savefig("simulations/{0}_lc".format(id))
 
     # prep MCMC
     plims = np.log([.8*p_init, 1.2*p_init])
     print("total number of points = ", len(xb))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                         p_init])
-    burnin, run, nwalkers = 5000, 10000, 20
+    burnin, run, nwalkers = 10, 50, 12
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (xb, yb, yerrb, plims)
@@ -110,6 +115,6 @@ def recover_injections(id):
 
 if __name__ == "__main__":
 
-    id = sys.argv[1]
+    id = str(int(sys.argv[1])).zfill(4)
     # run full MCMC recovery 24, 38, 50, 97
-    recover_injections(id)
+    recover_injections(id, subsample=False)
