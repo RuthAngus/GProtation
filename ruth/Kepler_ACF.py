@@ -69,7 +69,6 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
     pylab.figure(1,(12, 9))
     pylab.clf()
     pylab.subplot(4,1,1)
-    pylab.xlim(period[x] * 10)
     pylab.title('ID: %s' %(id_list[0]), fontsize = 16)
     for j in scipy.arange(tablen):
         if j % 2 == 0:
@@ -125,7 +124,6 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
 
     pylab.figure(1)
     pylab.subplot(4,1,4)
-    pylab.xlim(period[x] * 10)
     pylab.plot(acf_tab.lags_days, acf_tab.acf_smooth, 'k-')
     pylab.axhline(0, ls = '--', c = 'k')
     for i in scipy.arange(len(acf_per_pos)):
@@ -164,7 +162,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
             pylab.axvspan(med_dlag_per[x]-dlag_per_err[x], \
                           med_dlag_per[x]+dlag_per_err[x],\
                 facecolor = 'k', alpha=0.2)
-        pylab.xlim(period[x] * 10)
+        # pylab.xlim(period[x] * 10)
 
         # variability stats
         print('calculating var for P_med...')
@@ -182,7 +180,6 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         pylab.text(0.415, -0.15, 'Time (days)', transform = ax.transAxes)
         pylab.text(0.415, -1.4, 'Period (days)', transform = ax.transAxes)
         pylab.ylabel('Amplitudes')
-        pylab.xlim(period[x] * 10)
 
         if saveplot:
             print("saving figure", "%s/%s_full.png" % (savedir, id_list[0]))
@@ -233,7 +230,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
     t.add_column('harmonic_det', harmonic_det)
     t.add_column('amp_all', amp_all)
     t.add_column('amp_per', amp_per)
-    return period, dlag_per_err
+    return period, dlag_per_err, acf_tab.lags_days, acf_tab.acf_smooth
 
 def acf_calc(time, flux, interval, kid, max_psearch_len):
 
@@ -347,9 +344,9 @@ def acf_calc(time, flux, interval, kid, max_psearch_len):
         pylab.axvline(t_acf.lags_days[max_ind_us[j]], ls = '--', c = 'k', lw=1)
     for i in scipy.arange(len(acf_per_pos)):
         pylab.axvline(acf_per_pos[i], ls = '--', c = 'r', lw = 2)
-    if t_acf.lags_days.max() > 10 * acf_per_pos[0]:
-        pylab.xlim(0,10 * acf_per_pos[0])
-    else: pylab.xlim(0,max(t_acf.lags_days))
+    # if t_acf.lags_days.max() > 10 * acf_per_pos[0]:
+    #     pylab.xlim(0,10 * acf_per_pos[0])
+    # else: pylab.xlim(0,max(t_acf.lags_days))
     pylab.xlabel('Period (days)')
     pylab.ylabel('ACF')
     pylab.title('ID: %s, Smoothed \& Unsmoothed ACF' %(kid))
