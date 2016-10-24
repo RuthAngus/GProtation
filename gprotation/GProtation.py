@@ -1,18 +1,21 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
-import time
-import os
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
-from gatspy.periodic import LombScargle
+import glob
 import emcee
 try:
     import corner
 except:
     import triangle
 import h5py
-from simple_acf import simple_acf
+import subprocess
+from plotstuff import params, colours
+reb = params()
+cols = colours()
+import scipy.optimize as spo
+import time
 
 plotpar = {'axes.labelsize': 20,
            'text.fontsize': 20,
@@ -22,145 +25,60 @@ plotpar = {'axes.labelsize': 20,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-
-def calc_p_init(x, y, yerr, id, RESULTS_DIR, which_period="acf"):
-
-    print("Calculating ACF")
-    acf_period, acf, lags = simple_acf(x, y)
-    err = acf_period * .1
-    print("acf period, err = ", acf_period, err)
-
-    print("Calculating periodogram")
-    ps = np.arange(.1, 100, .1)
-    model = LombScargle().fit(x, y, yerr)
-    pgram = model.periodogram(ps)
-
-    plt.clf()
-    plt.plot(ps, pgram)
-    plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
-    print("saving figure ", os.path.join(RESULTS_DIR,
-                                         "{0}_pgram".format(id)))
-
-    peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                      pgram[i] and pgram[i+1] < pgram[i]])
-    pgram_period = ps[pgram == max(pgram[peaks])][0]
-    print("pgram period = ", pgram_period, "days")
-
-    if which_period == "acf":
-        p_init, perr = acf_period, err
-    elif which_period == "pgram":
-        p_init, perr = pgram_period, pgram_period * .1
-    else:
-        print("which_period must equal 'acf' or 'pgram'")
-    return p_init, perr
-
-
-def fit(x, y, yerr, id, p_init, RESULTS_DIR, burnin=500, nwalkers=12,
-        nruns=10):
-
-    theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
-                         p_init])
-
-    # Set up MCMC parameters
-    plims = np.log([.1*p_init, 5*p_init])
-    print(theta_init, plims)
-    assert 0
-    print("total number of points = ", len(x))
-    runs = np.zeros(nruns) + 500
-    ndim = len(theta_init)
-    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
-    args = (x, y, yerr, plims)
-
-    # time the lhf call
-    start = time.time()
-    print("lnprob = ", lnprob(x, y, yerr, theta_init, plims))
-    end = time.time()
-    tm = end - start
-    print("1 lhf call takes ", tm, "seconds")
-    print("burn in will take", tm * nwalkers * burnin, "s")
-    print("each run will take", tm * nwalkers * runs[0]/60, "mins")
-    print("total = ", (tm * nwalkers * np.sum(runs) + tm * nwalkers *
-                       burnin)/60, "mins")
-
-    # Run the MCMC
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                    args=args)
-    print("burning in...")
-    p0, _, state = sampler.run_mcmc(p0, burnin)
-
-    sample_array = np.zeros((nwalkers, sum(runs), ndim))
-    for i, run in enumerate(runs):
-        sampler.reset()
-        print("production run, {0} steps".format(int(run)))
-        start = time.time()
-        p0, _, state = sampler.run_mcmc(p0, run)
-        end = time.time()
-        print("time taken = ", (end - start)/60, "minutes")
-
-        # save samples
-        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :] \
-            = np.array(sampler.chain)
-        f = h5py.File(os.path.join(RESULTS_DIR,
-                                   "{0}.h5".format(id)), "w")
-        data = f.create_dataset("samples",
-                                np.shape(
-                                    sample_array[:, :sum(runs[:(i+1)]), :]))
-        data[:, :] = sample_array[:, :sum(runs[:(i+1)]), :]
-        f.close()
-
-        # make various plots
-        with h5py.File(os.path.join(RESULTS_DIR,
-                                    "{0}.h5".format(id)), "r") as f:
-            samples = f["samples"][...]
-        mcmc_result = make_plot(x, y, yerr, id, samples, RESULTS_DIR,
-                                traces=True, tri=True, prediction=True)
-    return mcmc_result
-
-
 def lnprior(theta, plims):
     """
-    plims is a tuple, list or array containing the lower and upper limits
-    for the rotation period. These are logarithmic!
+    plims is a tuple, list or array containing the lower and upper limits for
+    the rotation period. These are logarithmic!
     theta = A, l, Gamma, s, P
     """
-    if -20 < theta[0] < 20 and theta[4] < theta[1] \
-            and -20 < theta[2] < 20 and -20 < theta[3] < 20 \
-            and plims[0] < theta[4] < plims[1]:
+    if -20 < theta[0] < 20 and theta[4] < theta[1] and -20 < theta[2] < 20 \
+    and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1]:
         return 0.
     return -np.inf
 
 
-def lnprob(x, y, yerr, theta, plims):
-    return lnlike(x, y, yerr, theta) + lnprior(theta, plims)
+def Glnprior(theta, plims):
+    """
+    plims is a tuple, list or array containing the lower and upper limits for
+    the rotation period. These are not logarithmic!
+    """
+    if -20 < theta[0] < 16 and -10 < theta[1] < 1 and -20 < theta[2] < 20 \
+    and -20 < theta[3] < 20 and np.log(plims[0]) < theta[4] < np.log(plims[1]):
+        return -.5 * ((theta[4] - np.log(plims[2]))/(.5*np.log(plims[2])))**2 \
+                - .5 * ((theta[1] - .1*np.log(plims[2]))/(.1*plims[2]))**2
+    return -np.inf
 
+# lnprob
+def lnprob(theta, x, y, yerr, plims):
+    return lnlike(theta, x, y, yerr) + lnprior(theta, plims)
 
+# lnlike
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-        * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3]**2)
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
     gp = george.GP(k, solver=george.HODLRSolver)
     try:
-        gp.compute(x, np.sqrt(theta[3]**2+yerr**2))
+        gp.compute(x, np.sqrt(theta[3]+yerr**2))
     except (ValueError, np.linalg.LinAlgError):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
 
-
-def neglnlike(x, y, yerr, theta):
+# lnlike
+def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-        * ExpSine2Kernel(theta[2], theta[4])
+            * ExpSine2Kernel(theta[2], theta[4])
     gp = george.GP(k)
     try:
-        gp.compute(x, np.sqrt(theta[3] + yerr**2))
+        gp.compute(x, np.sqrt(theta[3]+yerr**2))
     except (ValueError, np.linalg.LinAlgError):
         return 10e25
     return -gp.lnlikelihood(y, quiet=True)
 
-
-def make_plot(x, y, yerr, id, sampler, RESULTS_DIR, traces=False, tri=False,
+# make various plots
+def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
               prediction=True):
-
     plt.clf()
     plt.plot(x, y, "k.")
     plt.savefig("test")
@@ -172,10 +90,9 @@ def make_plot(x, y, yerr, id, sampler, RESULTS_DIR, traces=False, tri=False,
     mcmc_result = np.array([i[0] for i in mcmc_result])
     print("\n", np.exp(np.array(mcmc_result[-1])), "period (days)", "\n")
     print(mcmc_result)
-    np.savetxt(os.path.join(RESULTS_DIR, "{0}_result.txt".format(id)),
-               mcmc_result)
+    np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)"]
+    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "P"]
 
     if traces:
         print("Plotting traces")
@@ -183,56 +100,103 @@ def make_plot(x, y, yerr, id, sampler, RESULTS_DIR, traces=False, tri=False,
             plt.clf()
             plt.plot(sampler[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
-            plt.savefig(os.path.join(RESULTS_DIR, "{0}_{1}.png".format(id,
-                        fig_labels[i])))
+            plt.savefig("%s/%s_%s.png" % (DIR, ID, fig_labels[i]))
 
     if tri:
         print("Making triangle plot")
+        flat[:, -1] = np.exp(flat[:, -1])
         try:
             fig = corner.corner(flat, labels=fig_labels)
         except:
             fig = triangle.corner(flat, labels=fig_labels)
-        fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(id)))
-        print(os.path.join(RESULTS_DIR, "{0}_triangle.png".format(id)))
+        fig.savefig("%s/%s_triangle" % (DIR, ID))
+        print("%s/%s_triangle.png" % (DIR, ID))
 
     if prediction:
         print("plotting prediction")
         theta = np.exp(np.array(mcmc_result))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
+                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
-        gp.compute(x-x[0], (yerr**2 + theta[3]**2)**.5)
-        xs = np.linspace((x - x[0])[0], (x - x[0])[-1], 1000)
+        gp.compute(x-x[0], yerr)
+        xs = np.linspace((x-x[0])[0], (x-x[0])[-1], 1000)
         mu, cov = gp.predict(y, xs)
         plt.clf()
-        plt.errorbar(x - x[0], y, yerr=yerr, fmt="k.",
-                     capsize=0)
+        plt.errorbar(x-x[0], y, yerr=yerr, fmt="k.", capsize=0)
         plt.xlabel("$\mathrm{Time~(days)}$")
         plt.ylabel("$\mathrm{Normalised~Flux}$")
-        plt.plot(xs, mu, color='#66CCCC')
-        plt.xlim(min(x - x[0]), max(x - x[0]))
-        plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(id)))
-        print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(id)))
+        plt.plot(xs, mu, color=cols.lightblue)
+        plt.xlim(min(x-x[0]), max(x-x[0]))
+        plt.savefig("%s/%s_prediction" % (DIR, ID))
+        print("%s/%s_prediction.png" % (DIR, ID))
 
 
-if __name__ == "__main__":
+def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
+         logsamp=True, plot_inits=False):
 
-    DATA_DIR = "data/"
-    RESULTS_DIR = "results/"
+    # figure out whether x, y and yerr are arrays or lists of lists
+    quarters = False
+    if len(x) < 20:
+        quarters = True
+        print("Quarter splits detected")
 
-    import pyfits
-    epic_id = 211000411
-    fname = "hlsp_everest_k2_llc_{0}-c04_kepler_v1.0_lc.fits".format(epic_id)
-    hdulist = pyfits.open(fname)
-    t, flux = hdulist[1].data["TIME"], hdulist[1].data["FLUX"]
-    out = hdulist[1].data["OUTLIER"]
-    m = np.isfinite(t) * np.isfinite(flux) * (out < 1)
-    med = np.median(flux[m])
-    x, y = t[m], flux[m]/med - 1
-    yerr = np.ones_like(y) * 1e-5
+    print("\n", "log(theta_init) = ", theta_init)
+    print("theta_init = ", np.exp(theta_init), "\n")
 
-    xb, yb, yerrb = x[::10], y[::10], yerr[::10]
+    # if plot_inits:  # plot initial guess and the result of minimise
+    if quarters:
+        xl = [i for j in x for i in j]
+        yl = [i for j in y for i in j]
+        yerrl = [i for j in yerr for i in j]
+        print("plotting inits")
+        print(np.exp(theta_init))
+        t = np.exp(theta_init)
+        k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
+        gp = george.GP(k)
+        gp.compute(xl, yerrl)
+        xs = np.linspace(xl[0], xl[-1], 1000)
+        mu, cov = gp.predict(yl, xs)
 
-    p_init, perr = calc_p_init(xb, yb, yerrb, epic_id, "results",
-                               which_period="pgram")
-    mcmc_result = fit(xb, yb, yerrb, epic_id, p_init, "results")
+        plt.clf()
+        plt.errorbar(xl, yl, yerr=yerrl, **reb)
+        plt.plot(xs, mu, color=cols.blue)
+
+        args = (xl, yl, yerrl)
+        results = spo.minimize(neglnlike, theta_init, args=args)
+        print("optimisation results = ", results.x)
+
+        r = np.exp(results.x)
+        k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
+        gp = george.GP(k)
+        gp.compute(xl, yerrl)
+
+        mu, cov = gp.predict(yl, xs)
+        plt.plot(xs, mu, color=cols.pink, alpha=.5)
+        plt.savefig("%s/%s_init" % (DIR, ID))
+        print("%s/%s_init.png" % (DIR, ID))
+
+    ndim, nwalkers = len(theta_init), nwalkers
+    p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
+    args = (x, y, yerr, plims)
+
+    lp = lnprob
+    if quarters:  # if fitting each quarter separately, use a different lnprob
+        lp = lnprob_split
+
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lp, args=args)
+    print(np.shape(sampler))
+    assert 0
+
+    print("burning in...")
+    p0, lp, state = sampler.run_mcmc(p0, burnin)
+    sampler.reset()
+    print("production run...")
+    p0, lp, state = sampler.run_mcmc(p0, run)
+
+    # save samples
+    f = h5py.File("%s/%s_samples.h5" % (DIR, ID), "w")
+    data = f.create_dataset("samples", np.shape(sampler.chain))
+    data[:, :] = np.array(sampler.chain)
+    f.close()
+    print(np.shape(np.array(sampler.chain)))
+    return sampler
