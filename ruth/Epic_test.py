@@ -8,6 +8,7 @@ import os
 import time
 import emcee
 import pyfits
+import matplotlib.pyplot as plt
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
@@ -26,14 +27,36 @@ def load_k2_data(epic_id, DATA_DIR):
     return time[m], flux[m]/med - 1
 
 
-def calc_p_init(x, y, yerr):
-    p_init, err, lags, acf = corr_run(x, y, yerr, epic_id, RESULTS_DIR)
-    print("acf period, err = ", p_init, err)
+def calc_p_init(x, y, yerr, init_type="acf"):
 
+    print("Calculating ACF")
+    acf_period, err, lags, acf = corr_run(x, y, yerr, epic_id, RESULTS_DIR)
+    print("acf period, err = ", acf_period, err)
+
+    print("Calculating periodogram")
     ps = np.arange(.1, 100, .1)
     print(type(x), type(y), type(yerr))
     model = LombScargle().fit(x, y, yerr)
     pgram = model.periodogram(ps)
+
+    plt.clf()
+    plt.plot(ps, pgram)
+    plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
+    print("saving figure ", os.path.join(RESULTS_DIR,
+                                         "{0}_pgram".format(id)))
+
+    peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                      pgram[i] and pgram[i+1] < pgram[i]])
+    pgram_period = ps[pgram == max(pgram[peaks])][0]
+    print("pgram period = ", pgram_period, "days")
+
+    if init_type == "acf":
+        p_init, perr = acf_period, err
+    elif init_type == "pgram":
+        p_init, perr = pgram_period, pgram_period * .1
+    else:
+        print("which_period must equal 'acf' or 'pgram'")
+
     return p_init, err
 
 
@@ -97,6 +120,6 @@ if __name__ == "__main__":
     epic_id = 211000411
     x, y = load_k2_data(epic_id, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
-    p_init = calc_p_init(x, y, yerr)
+    p_init, p_err = calc_p_init(x, y, yerr)
     xb, yb, yerrb = x[::10], y[::10], yerr[::10]
     fit(xb, yb, yerrb, p_init)
