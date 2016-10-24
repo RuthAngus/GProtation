@@ -27,10 +27,10 @@ def load_k2_data(epic_id, DATA_DIR):
     return time[m], flux[m]/med - 1
 
 
-def calc_p_init(x, y, yerr, init_type="acf"):
+def calc_p_init(x, y, yerr, id):
 
     print("Calculating ACF")
-    acf_period, err, lags, acf = corr_run(x, y, yerr, epic_id, RESULTS_DIR)
+    acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
     print("acf period, err = ", acf_period, err)
 
     print("Calculating periodogram")
@@ -50,27 +50,20 @@ def calc_p_init(x, y, yerr, init_type="acf"):
     pgram_period = ps[pgram == max(pgram[peaks])][0]
     print("pgram period = ", pgram_period, "days")
 
-    if init_type == "acf":
-        p_init, perr = acf_period, err
-    elif init_type == "pgram":
-        p_init, perr = pgram_period, pgram_period * .1
-    else:
-        print("which_period must equal 'acf' or 'pgram'")
-
-    return p_init, perr
+    return acf_period, err, pgram_period, pgram_period * .1
 
 
-def fit(x, y, yerr, p_init):
+def fit(x, y, yerr, p_init, id):
 
     plims = np.log([.1*p_init, 5*p_init])
-    print("total number of points = ", len(xb))
+    print("total number of points = ", len(x))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                          p_init])
     burnin, nwalkers = 500, 12
     runs = np.zeros(10) + 500
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
-    args = (xb, yb, yerrb, plims)
+    args = (x, y, yerr, plims)
 
     # Time the LHF call.
     start = time.time()
@@ -100,7 +93,7 @@ def fit(x, y, yerr, p_init):
         # save samples
         sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :] = \
             np.array(sampler.chain)
-        f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(epic_id)), "w")
+        f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)), "w")
         data = f.create_dataset("samples",
                                 np.shape(sample_array[:, :sum(runs[:(i+1)]),
                                                       :]))
@@ -108,17 +101,17 @@ def fit(x, y, yerr, p_init):
         f.close()
 
         # make various plots
-        with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(epic_id)),
+        with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        mcmc_result = make_plot(samples, x, y, yerr, epic_id, RESULTS_DIR,
+        mcmc_result = make_plot(samples, x, y, yerr, id, RESULTS_DIR,
                                 traces=True, tri=True, prediction=True)
         return mcmc_result
 
 
 if __name__ == "__main__":
-    epic_id = 211000411
-    x, y = load_k2_data(epic_id, DATA_DIR)
+    id = 211000411
+    x, y = load_k2_data(id, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
     p_init, p_err = calc_p_init(x, y, yerr)
     xb, yb, yerrb = x[::10], y[::10], yerr[::10]
