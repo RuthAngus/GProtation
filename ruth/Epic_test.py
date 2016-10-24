@@ -57,7 +57,7 @@ def calc_p_init(x, y, yerr, init_type="acf"):
     else:
         print("which_period must equal 'acf' or 'pgram'")
 
-    return p_init, err
+    return p_init, perr
 
 
 def fit(x, y, yerr, p_init):
