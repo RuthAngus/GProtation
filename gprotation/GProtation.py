@@ -12,7 +12,6 @@ try:
 except:
     import triangle
 import h5py
-from Kepler_ACF import corr_run
 from simple_acf import simple_acf
 
 plotpar = {'axes.labelsize': 20,
@@ -64,6 +63,8 @@ def fit(x, y, yerr, id, p_init, RESULTS_DIR, burnin=500, nwalkers=12,
 
     # Set up MCMC parameters
     plims = np.log([.1*p_init, 5*p_init])
+    print(theta_init, plims)
+    assert 0
     print("total number of points = ", len(x))
     runs = np.zeros(nruns) + 500
     ndim = len(theta_init)
@@ -136,10 +137,10 @@ def lnprob(x, y, yerr, theta, plims):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+        * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3]**2)
     gp = george.GP(k, solver=george.HODLRSolver)
     try:
-        gp.compute(x, np.sqrt(theta[3]+yerr**2))
+        gp.compute(x, np.sqrt(theta[3]**2+yerr**2))
     except (ValueError, np.linalg.LinAlgError):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
@@ -234,5 +235,4 @@ if __name__ == "__main__":
 
     p_init, perr = calc_p_init(xb, yb, yerrb, epic_id, "results",
                                which_period="pgram")
-
     mcmc_result = fit(xb, yb, yerrb, epic_id, p_init, "results")
