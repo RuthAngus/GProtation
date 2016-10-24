@@ -30,27 +30,37 @@ def load_k2_data(epic_id, DATA_DIR):
 def calc_p_init(x, y, yerr, id):
 
     print("Calculating ACF")
-    acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_result.txt".format(id))
+    if os.path.exists(fname):
+        acf_period, err = np.genfromtxt(fname).T
+    else:
+        acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
     print("acf period, err = ", acf_period, err)
 
-    print("Calculating periodogram")
-    ps = np.arange(.1, 100, .1)
-    print(type(x), type(y), type(yerr))
-    model = LombScargle().fit(x, y, yerr)
-    pgram = model.periodogram(ps)
+    fname = os.path.join(RESULTS_DIR, "{0}_pgram_result.txt".format(id))
+    if os.path.exists(fname):
+        pgram_period, pgram_period_err = np.genfromtxt(fname).T
+    else:
+        print("Calculating periodogram")
+        ps = np.arange(.1, 100, .1)
+        print(type(x), type(y), type(yerr))
+        model = LombScargle().fit(x, y, yerr)
+        pgram = model.periodogram(ps)
 
-    plt.clf()
-    plt.plot(ps, pgram)
-    plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
-    print("saving figure ", os.path.join(RESULTS_DIR,
-                                         "{0}_pgram".format(id)))
+        plt.clf()
+        plt.plot(ps, pgram)
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
+        print("saving figure ", os.path.join(RESULTS_DIR,
+                                             "{0}_pgram".format(id)))
 
-    peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                      pgram[i] and pgram[i+1] < pgram[i]])
-    pgram_period = ps[pgram == max(pgram[peaks])][0]
-    print("pgram period = ", pgram_period, "days")
+        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                          pgram[i] and pgram[i+1] < pgram[i]])
+        pgram_period = ps[pgram == max(pgram[peaks])][0]
+        print("pgram period = ", pgram_period, "days")
+        pgram_period_err = pgram_period * .1
+        np.savetxt(fname, np.transpose((pgram_period, pgram_period_err)))
 
-    return acf_period, err, pgram_period, pgram_period * .1
+    return acf_period, err, pgram_period, pgram_period_err
 
 
 def fit(x, y, yerr, p_init, id):

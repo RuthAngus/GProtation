@@ -21,16 +21,16 @@ if __name__ == "__main__":
 
     for i, id in enumerate(truths.N.values[m]):  # zero diffrot
         print(id, i, "of", len(truths.N.values[m]))
-        x, y = load_suzanne_lcs(str(int(id)).zfill(2))
+        x, y = load_suzanne_lcs(str(int(id)).zfill(4))
         yerr = np.ones_like(y) * 1e-5
         acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                              str(int(id))
-                                                             .zfill(2))
+                                                             .zfill(4))
         p_init = acf_period
         if acf_period == 0:
             p_init = pgram_period
 
-        c = 200  # cut off at 200 days
-        m = x < 200
-        xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
-        fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
+        # c = 200  # cut off at 200 days
+        # m = x < 200
+        # xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
+        # fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
