@@ -30,7 +30,7 @@ if __name__ == "__main__":
         if acf_period == 0:
             p_init = pgram_period
 
-        # c = 200  # cut off at 200 days
-        # m = x < 200
-        # xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
-        # fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
+        c = 200  # cut off at 200 days
+        m = x < 200
+        xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
+        fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))

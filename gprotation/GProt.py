@@ -31,14 +31,18 @@ def calc_p_init(x, y, yerr, id):
 
     print("Calculating ACF")
     fname = os.path.join(RESULTS_DIR, "{0}_acf_result.txt".format(id))
+    print(fname)
     if os.path.exists(fname):
+        print("Previous ACF result found")
         acf_period, err = np.genfromtxt(fname).T
     else:
         acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
     print("acf period, err = ", acf_period, err)
 
     fname = os.path.join(RESULTS_DIR, "{0}_pgram_result.txt".format(id))
+    print(fname)
     if os.path.exists(fname):
+        print("Previous pgram result found")
         pgram_period, pgram_period_err = np.genfromtxt(fname).T
     else:
         print("Calculating periodogram")
