@@ -24,9 +24,13 @@ def comparison_plot(truths):
     pgram_errs, acf_errs = [np.zeros_like(truths.N.values[m]) for i in
                             range(2)]
     for i, id in enumerate(truths.N.values[m]):
-        acf_fname = os.path.join(RESULTS_DIR, "{0}_acf_result.txt".format(id))
+        acf_fname = os.path.join(RESULTS_DIR,
+                                 "{0}_acf_result.txt".format(str(int(id))
+                                                             .zfill(4)))
         acfs[i], acf_errs[i] = np.genfromtxt(acf_fname).T
-        p_fname = os.path.join(RESULTS_DIR, "{0}_pgram_result.txt".format(id))
+        p_fname = os.path.join(RESULTS_DIR,
+                               "{0}_pgram_result.txt".format(str(int(id))
+                                                             .zfill(4)))
         pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
 
     plt.clf()
