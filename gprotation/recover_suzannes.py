@@ -44,6 +44,11 @@ def comparison_plot(truths):
     plt.plot(truths.P_MIN.values[m], pgrams, "r.")
     plt.savefig("compare")
 
+def sigma_clip(x, y, yerr, nsigma):
+    med = np.median(y)
+    std = (sum((med - y)**2)/float(len(y)))**.5
+    m = np.abs(y - med) > nsigma * std
+    return x[m], y[m], yerr[m]
 
 def recover(i):
 
@@ -55,6 +60,21 @@ def recover(i):
     print(id, i, "of", len(truths.N.values[m]))
     x, y = load_suzanne_lcs(str(int(id)).zfill(4))
     yerr = np.ones_like(y) * 1e-5
+
+    # sigma clip
+    x = np.arange(0, 100, .1)
+    y = np.random.randn(len(x)) + 10
+    for i in range(10):
+        my = np.random.choice(np.arange(len(y)))
+        y[my] += 7
+    plt.clf()
+    plt.plot(x, y, "k.")
+    x, y, yerr = sigma_clip(x, y, yerr, 5)
+    plt.plot(x, y, "r.")
+    plt.savefig("test")
+    assert 0
+    x, y, yerr = sigma_clip(x, y, yerr, 4)
+
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                          str(int(id))
                                                          .zfill(4))
@@ -75,6 +95,7 @@ if __name__ == "__main__":
 
     for i in range(len(truths.N.values[m])):
         recover(i)
+
 #     pool = Pool()
 #     results = pool.map(recover, range(len(truths.N.values[m])))
 #     results = pool.map(recover, range(len(truths.N.values[m])))
