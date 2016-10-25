@@ -37,6 +37,8 @@ def calc_p_init(x, y, yerr, id):
         acf_period, err = np.genfromtxt(fname).T
     else:
         acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
+        if not os.path.exists(fname):
+            np.savetxt(fname, np.transpose((acf_period, err)))
     print("acf period, err = ", acf_period, err)
 
     fname = os.path.join(RESULTS_DIR, "{0}_pgram_result.txt".format(id))
