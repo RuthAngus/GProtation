@@ -34,9 +34,13 @@ def comparison_plot(truths):
         pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
 
     plt.clf()
-    plt.errobar(truths.P_MIN.values[m], acfs, yerr=acf_errs, fmt="k.",
+    plt.errorbar(truths.P_MIN.values[m], acfs, yerr=acf_errs, fmt="k.",
                 capsize=0)
+    plt.ylim(0, 100)
+    xs = np.arange(0, 100, 1)
+    plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(truths.P_MIN.values[m], pgrams, "r.")
+    plt.savefig("compare")
 
 
 if __name__ == "__main__":
@@ -46,7 +50,6 @@ if __name__ == "__main__":
     m = truths.DELTA_OMEGA.values == 0
 
     comparison_plot(truths)
-    assert 0
 
     for i, id in enumerate(truths.N.values[m]):  # zero diffrot
         print(id, i, "of", len(truths.N.values[m]))
@@ -55,10 +58,7 @@ if __name__ == "__main__":
         acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                              str(int(id))
                                                              .zfill(4))
-        p_init = acf_period
-        if acf_period == 0:
-            p_init = pgram_period
-
+        p_init = pgram_period
         c = 200  # cut off at 200 days
         m = x < 200
         xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
