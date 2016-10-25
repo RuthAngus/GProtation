@@ -62,18 +62,7 @@ def recover(i):
     yerr = np.ones_like(y) * 1e-5
 
     # sigma clip
-    x = np.arange(0, 100, .1)
-    y = np.random.randn(len(x)) + 10
-    for i in range(10):
-        my = np.random.choice(np.arange(len(y)))
-        y[my] += 7
-    plt.clf()
-    plt.plot(x, y, "k.")
     x, y, yerr = sigma_clip(x, y, yerr, 5)
-    plt.plot(x, y, "r.")
-    plt.savefig("test")
-    assert 0
-    x, y, yerr = sigma_clip(x, y, yerr, 4)
 
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                          str(int(id))
