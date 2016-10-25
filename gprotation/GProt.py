@@ -1,4 +1,7 @@
+# This script contains a function for running the MCMC.
+
 # coding: utf-8
+from __future__ import print_function
 import numpy as np
 from GProtation import make_plot, lnprob
 from Kepler_ACF import corr_run
@@ -69,14 +72,17 @@ def calc_p_init(x, y, yerr, id):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def fit(x, y, yerr, p_init, id):
+def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
+        full_run=500):
+    """
+    Run the MCMC
+    """
 
     plims = np.log([.1*p_init, 5*p_init])
     print("total number of points = ", len(x))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                          p_init])
-    burnin, nwalkers = 500, 12
-    runs = np.zeros(10) + 500
+    runs = np.zeros(nruns) + full_run
     ndim = len(theta_init)
     p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
     args = (x, y, yerr, plims)
@@ -95,14 +101,15 @@ def fit(x, y, yerr, p_init, id):
     # Run MCMC.
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
     print("burning in...")
-    p0, _, state = sampler.run_mcmc(p0, burnin)
+    p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 
     sample_array = np.zeros((nwalkers, sum(runs), ndim))
     for i, run in enumerate(runs):
+        print("run {0} of {1}".format(i, len(runs)))
         sampler.reset()
         print("production run, {0} steps".format(int(run)))
         start = time.time()
-        p0, _, state = sampler.run_mcmc(p0, run)
+        p0, _, state, prob = sampler.run_mcmc(p0, run)
         end = time.time()
         print("time taken = ", (end - start)/60, "minutes")
 
@@ -122,7 +129,7 @@ def fit(x, y, yerr, p_init, id):
             samples = f["samples"][...]
         mcmc_result = make_plot(samples, x, y, yerr, id, RESULTS_DIR,
                                 traces=True, tri=True, prediction=True)
-        return mcmc_result
+    return mcmc_result
 
 
 if __name__ == "__main__":
@@ -130,5 +137,6 @@ if __name__ == "__main__":
     x, y = load_k2_data(id, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
     p_init, p_err = calc_p_init(x, y, yerr)
-    xb, yb, yerrb = x[::10], y[::10], yerr[::10]
+    sub = 10
+    xb, yb, yerrb = x[::sub], y[::sub], yerr[::sub]
     fit(xb, yb, yerrb, p_init)
