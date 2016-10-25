@@ -1,8 +1,10 @@
+from __future__ import print_function
 import numpy as np
 from GProt import calc_p_init, fit
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
 DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 RESULTS_DIR = "results/"
@@ -43,6 +45,26 @@ def comparison_plot(truths):
     plt.savefig("compare")
 
 
+def recover(i):
+
+    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
+    m = truths.DELTA_OMEGA.values == 0
+
+    id = truths.N.values[m][i]
+    print(id, i, "of", len(truths.N.values[m]))
+    x, y = load_suzanne_lcs(str(int(id)).zfill(4))
+    yerr = np.ones_like(y) * 1e-5
+    acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
+                                                         str(int(id))
+                                                         .zfill(4))
+    p_init = pgram_period
+    c, sub = 100, 100  # cut off at 200 days
+    mc = x < c
+    xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
+    fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
+
+
 if __name__ == "__main__":
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -51,15 +73,8 @@ if __name__ == "__main__":
 
     comparison_plot(truths)
 
-    for i, id in enumerate(truths.N.values[m]):  # zero diffrot
-        print(id, i, "of", len(truths.N.values[m]))
-        x, y = load_suzanne_lcs(str(int(id)).zfill(4))
-        yerr = np.ones_like(y) * 1e-5
-        acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
-                                                             str(int(id))
-                                                             .zfill(4))
-        p_init = pgram_period
-        c = 200  # cut off at 200 days
-        m = x < 200
-        xb, yb, yerrb = x[m][::10], y[m][::10], yerr[m][::10]
-        fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
+    for i in range(len(truths.N.values[m])):
+        recover(i)
+#     pool = Pool()
+#     results = pool.map(recover, range(len(truths.N.values[m])))
+#     results = pool.map(recover, range(len(truths.N.values[m])))

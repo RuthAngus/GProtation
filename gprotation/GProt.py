@@ -89,7 +89,7 @@ def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", lnprob(theta_init, x, y, yerr, plims))
+    print("lnprob = ", lnprob(theta_init, x, y, yerr, plims)[0])
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -103,7 +103,7 @@ def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
     print("burning in...")
     p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 
-    sample_array = np.zeros((nwalkers, sum(runs), ndim))
+    sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
     for i, run in enumerate(runs):
         print("run {0} of {1}".format(i, len(runs)))
         sampler.reset()
@@ -114,8 +114,10 @@ def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
         print("time taken = ", (end - start)/60, "minutes")
 
         # save samples
-        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :] = \
+        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :-1] = \
             np.array(sampler.chain)
+        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), -1] = \
+                np.array(sampler.blobs).T
         f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)), "w")
         data = f.create_dataset("samples",
                                 np.shape(sample_array[:, :sum(runs[:(i+1)]),

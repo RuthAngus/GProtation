@@ -16,6 +16,7 @@ reb = params()
 cols = colours()
 import scipy.optimize as spo
 import time
+import os
 
 plotpar = {'axes.labelsize': 20,
            'text.fontsize': 20,
@@ -89,14 +90,16 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     mcmc_result = np.array([i[0] for i in mcmc_result])
-    print("\n", np.exp(np.array(mcmc_result[-1])), "period (days)", "\n")
-    print(mcmc_result)
+    print("median values = ", mcmc_result)
 
     print(np.shape(flat))
     logprob = flat[:, -1]
     ml = logprob == max(logprob)
     maxlike = flat[np.where(ml)[0][0], :][:-1]
     np.savetxt(os.path.join(DIR, "%s_result.txt".format(ID)), maxlike)
+    print("max like = ", maxlike)
+
+    print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
 
     fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
 
@@ -106,13 +109,14 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
             plt.clf()
             plt.plot(sampler[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
-            plt.savefig("%s/%s_%s.png" % (DIR, ID, fig_labels[i]))
+            plt.savefig(os.path.join(DIR, "{0}_{1}.png".format(ID,
+                        fig_labels[i])))
 
     if tri:
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
-        print("%s/%s_triangle.png" % (DIR, ID))
+        print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
         print("plotting prediction")
@@ -129,8 +133,8 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         plt.ylabel("$\mathrm{Normalised~Flux}$")
         plt.plot(xs, mu, color=cols.lightblue)
         plt.xlim(min(x-x[0]), max(x-x[0]))
-        plt.savefig("%s/%s_prediction" % (DIR, ID))
-        print("%s/%s_prediction.png" % (DIR, ID))
+        plt.savefig(os.path.join(DIR, "{0}_prediction".format(ID)))
+        print(os.path.join(DIR, "{0}_prediction.png"format(ID)))
 
 
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
