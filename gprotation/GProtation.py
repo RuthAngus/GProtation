@@ -91,9 +91,14 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     mcmc_result = np.array([i[0] for i in mcmc_result])
     print("\n", np.exp(np.array(mcmc_result[-1])), "period (days)", "\n")
     print(mcmc_result)
-    np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)"]
+    print(np.shape(flat))
+    logprob = flat[:, -1]
+    ml = logprob == max(logprob)
+    maxlike = flat[np.where(ml)[0][0], :][:-1]
+    np.savetxt(os.path.join(DIR, "%s_result.txt".format(ID)), maxlike)
+
+    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
 
     if traces:
         print("Plotting traces")
@@ -105,13 +110,13 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
 
     if tri:
         print("Making triangle plot")
-        fig = corner.corner(flat, labels=fig_labels)
+        fig = corner.corner(flat[:, :-1], labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
         print("%s/%s_triangle.png" % (DIR, ID))
 
     if prediction:
         print("plotting prediction")
-        theta = np.exp(np.array(mcmc_result))
+        theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
                 * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
