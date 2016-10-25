@@ -72,8 +72,8 @@ def calc_p_init(x, y, yerr, id):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
-        full_run=500):
+def mcmc_fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
+             full_run=500):
     """
     Run the MCMC
     """
@@ -89,7 +89,7 @@ def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", lnprob(theta_init, x, y, yerr, plims)[0])
+    print("lnprob = ", lnprob(theta_init, x, y, yerr, plims)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -129,10 +129,8 @@ def fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        mcmc_result = make_plot(samples, x, y, yerr, id, RESULTS_DIR,
-                                traces=True, tri=True, prediction=True)
-    return mcmc_result
-
+        make_plot(samples, x, y, yerr, id, RESULTS_DIR, traces=True, tri=True,
+                  prediction=True)
 
 if __name__ == "__main__":
     id = 211000411

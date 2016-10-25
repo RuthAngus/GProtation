@@ -1,6 +1,6 @@
 from __future__ import print_function
 import numpy as np
-from GProt import calc_p_init, fit
+from GProt import calc_p_init, mcmc_fit
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -22,18 +22,24 @@ def comparison_plot(truths):
     Plot the acf, pgram and GP results.
     """
     m = truths.DELTA_OMEGA.values == 0
-    pgrams, acfs = [np.zeros_like(truths.N.values[m]) for i in range(2)]
+    pgrams, acfs, mcmc = [np.zeros_like(truths.N.values[m]) for i in range(3)]
     pgram_errs, acf_errs = [np.zeros_like(truths.N.values[m]) for i in
                             range(2)]
     for i, id in enumerate(truths.N.values[m]):
-        acf_fname = os.path.join(RESULTS_DIR,
-                                 "{0}_acf_result.txt".format(str(int(id))
-                                                             .zfill(4)))
-        acfs[i], acf_errs[i] = np.genfromtxt(acf_fname).T
-        p_fname = os.path.join(RESULTS_DIR,
-                               "{0}_pgram_result.txt".format(str(int(id))
-                                                             .zfill(4)))
-        pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
+        mcmc_fname = os.path.join(RESULTS_DIR,
+                                  "{0}_result.txt".format(str(int(id))
+                                                          .zfill(4)))
+        if os.path.exists(mcmc_fname):
+            mcmc[i] = np.exp(np.genfromtxt(mcmc_fname).T[-1])
+            acf_fname = os.path.join(RESULTS_DIR,
+                                     "{0}_acf_result.txt".format(str(int(id))
+                                                                 .zfill(4)))
+            acfs[i], acf_errs[i] = np.genfromtxt(acf_fname).T
+            p_fname = os.path.join(RESULTS_DIR,
+                                   "{0}_pgram_result.txt".format(str(int(id))
+                                                                 .zfill(4)))
+            pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
+
 
     plt.clf()
     plt.errorbar(truths.P_MIN.values[m], acfs, yerr=acf_errs, fmt="k.",
@@ -42,13 +48,16 @@ def comparison_plot(truths):
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(truths.P_MIN.values[m], pgrams, "r.")
+    plt.plot(truths.P_MIN.values[m], mcmc, "b.")
+    plt.xlabel("Truth")
+    plt.xlabel("Recovered")
     plt.savefig("compare")
 
 def sigma_clip(x, y, yerr, nsigma):
     med = np.median(y)
     std = (sum((med - y)**2)/float(len(y)))**.5
-    m = np.abs(y - med) > nsigma * std
-    return x[m], y[m], yerr[m]
+    m = np.abs(y - med) > (nsigma * std)
+    return x[~m], y[~m], yerr[~m]
 
 def recover(i):
 
@@ -64,6 +73,7 @@ def recover(i):
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)
 
+    # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                          str(int(id))
                                                          .zfill(4))
@@ -71,8 +81,7 @@ def recover(i):
     c, sub = 100, 100  # cut off at 200 days
     mc = x < c
     xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
-    fit(xb, yb, yerrb, acf_period, str(int(id)).zfill(4))
-
+    mcmc_fit(xb, yb, yerrb, p_init, str(int(id)).zfill(4), nruns=2)
 
 if __name__ == "__main__":
 
@@ -80,11 +89,10 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-    comparison_plot(truths)
+#     comparison_plot(truths)
 
-    for i in range(len(truths.N.values[m])):
+    for i, _ in enumerate(truths.N.values[m]):
         recover(i)
 
 #     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
 #     results = pool.map(recover, range(len(truths.N.values[m])))

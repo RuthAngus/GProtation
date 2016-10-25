@@ -11,20 +11,9 @@ import emcee
 import corner
 import h5py
 import subprocess
-from plotstuff import params, colours
-reb = params()
-cols = colours()
 import scipy.optimize as spo
 import time
 import os
-
-plotpar = {'axes.labelsize': 20,
-           'text.fontsize': 20,
-           'legend.fontsize': 20,
-           'xtick.labelsize': 15,
-           'ytick.labelsize': 15,
-           'text.usetex': True}
-plt.rcParams.update(plotpar)
 
 def lnprior(theta, plims):
     """
@@ -81,22 +70,29 @@ def neglnlike(theta, x, y, yerr):
 # make various plots
 def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
               prediction=True):
-    plt.clf()
-    plt.plot(x, y, "k.")
-    plt.savefig("test")
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
     mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
+    print(mcmc_result)
+    print(np.shape(mcmc_result))
+    print(mcmc_result[0][2])
+    for i in mcmc_result:
+        print(i[1])
     mcmc_result = np.array([i[0] for i in mcmc_result])
+    errps = np.array([i[1] for i in mcmc_result])
+    errms = np.array([i[2] for i in mcmc_result])
+    assert 0
     print("median values = ", mcmc_result)
 
-    print(np.shape(flat))
     logprob = flat[:, -1]
     ml = logprob == max(logprob)
     maxlike = flat[np.where(ml)[0][0], :][:-1]
     np.savetxt(os.path.join(DIR, "{0}_result.txt".format(ID)), maxlike)
+    med_results = np.vstack((mcmc_result, errps, errms))
+    np.savetxt(os.path.join(DIR, "{0}_med_result.txt".format(ID)),
+               med_results.T)
     print("max like = ", maxlike)
 
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
@@ -129,9 +125,9 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         mu, cov = gp.predict(y, xs)
         plt.clf()
         plt.errorbar(x-x[0], y, yerr=yerr, fmt="k.", capsize=0)
-        plt.xlabel("$\mathrm{Time~(days)}$")
-        plt.ylabel("$\mathrm{Normalised~Flux}$")
-        plt.plot(xs, mu, color=cols.lightblue)
+        plt.xlabel("Time (days)")
+        plt.ylabel("Normalised Flux")
+        plt.plot(xs, mu, color='#66CCCC')
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(DIR, "{0}_prediction".format(ID)))
         print(os.path.join(DIR, "{0}_prediction.png".format(ID)))
@@ -164,8 +160,8 @@ def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
         mu, cov = gp.predict(yl, xs)
 
         plt.clf()
-        plt.errorbar(xl, yl, yerr=yerrl, **reb)
-        plt.plot(xs, mu, color=cols.blue)
+        plt.errorbar(xl, yl, yerr=yerrl)
+        plt.plot(xs, mu, color='#0066CC')
 
         args = (xl, yl, yerrl)
         results = spo.minimize(neglnlike, theta_init, args=args)
@@ -177,7 +173,7 @@ def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
         gp.compute(xl, yerrl)
 
         mu, cov = gp.predict(yl, xs)
-        plt.plot(xs, mu, color=cols.pink, alpha=.5)
+        plt.plot(xs, mu, color="#FF33CC", alpha=.5)
         plt.savefig("%s/%s_init" % (DIR, ID))
         print("%s/%s_init.png" % (DIR, ID))
 
