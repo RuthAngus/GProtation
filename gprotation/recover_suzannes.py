@@ -19,7 +19,7 @@ def comparison_plot(truths):
     """
     Plot the acf, pgram and GP results.
     """
-    m = truths.DELTA_OMEGA.values == 0
+    m = (truths.DELTA_OMEGA.values == 0) * (truths.N.values < 150)
     pgrams, acfs = [np.zeros_like(truths.N.values[m]) for i in range(2)]
     pgram_errs, acf_errs = [np.zeros_like(truths.N.values[m]) for i in
                             range(2)]
