@@ -1,3 +1,6 @@
+# This script contains the prior, lhf and logprob functions, plus plotting
+# routines.
+
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,10 +8,7 @@ import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import glob
 import emcee
-try:
-    import corner
-except:
-    import triangle
+import corner
 import h5py
 import subprocess
 from plotstuff import params, colours
@@ -50,7 +50,8 @@ def Glnprior(theta, plims):
 
 # lnprob
 def lnprob(theta, x, y, yerr, plims):
-    return lnlike(theta, x, y, yerr) + lnprior(theta, plims)
+    prob = lnlike(theta, x, y, yerr) + lnprior(theta, plims)
+    return prob, prob
 
 # lnlike
 def lnlike(theta, x, y, yerr):
@@ -92,7 +93,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     print(mcmc_result)
     np.savetxt("%s/%s_result.txt" % (DIR, ID), mcmc_result)
 
-    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "P"]
+    fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)"]
 
     if traces:
         print("Plotting traces")
@@ -104,11 +105,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
 
     if tri:
         print("Making triangle plot")
-        flat[:, -1] = np.exp(flat[:, -1])
-        try:
-            fig = corner.corner(flat, labels=fig_labels)
-        except:
-            fig = triangle.corner(flat, labels=fig_labels)
+        fig = corner.corner(flat, labels=fig_labels)
         fig.savefig("%s/%s_triangle" % (DIR, ID))
         print("%s/%s_triangle.png" % (DIR, ID))
 
