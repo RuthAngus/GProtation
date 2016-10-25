@@ -96,7 +96,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     logprob = flat[:, -1]
     ml = logprob == max(logprob)
     maxlike = flat[np.where(ml)[0][0], :][:-1]
-    np.savetxt(os.path.join(DIR, "%s_result.txt".format(ID)), maxlike)
+    np.savetxt(os.path.join(DIR, "{0}_result.txt".format(ID)), maxlike)
     print("max like = ", maxlike)
 
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
@@ -115,7 +115,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     if tri:
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels)
-        fig.savefig("%s/%s_triangle" % (DIR, ID))
+        fig.savefig(os.path.join(DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
@@ -134,7 +134,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         plt.plot(xs, mu, color=cols.lightblue)
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(DIR, "{0}_prediction".format(ID)))
-        print(os.path.join(DIR, "{0}_prediction.png"format(ID)))
+        print(os.path.join(DIR, "{0}_prediction.png".format(ID)))
 
 
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
