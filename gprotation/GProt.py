@@ -72,13 +72,12 @@ def calc_p_init(x, y, yerr, id):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
-             full_run=500):
+def mcmc_fit(x, y, yerr, p_init, plims, id, burnin=500, nwalkers=12, nruns=10,
+             full_run=500, RESULTS_DIR):
     """
     Run the MCMC
     """
 
-    plims = np.log([.1*p_init, 5*p_init])
     print("total number of points = ", len(x))
     theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
                          p_init])
@@ -129,8 +128,9 @@ def mcmc_fit(x, y, yerr, p_init, id, burnin=500, nwalkers=12, nruns=10,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        make_plot(samples, x, y, yerr, id, RESULTS_DIR, traces=True, tri=True,
-                  prediction=True)
+        median_results, maxlike_results = make_plot(samples, x, y, yerr, id,
+                RESULTS_DIR, traces=True, tri=True, prediction=True)
+        return samples, median_results, maxlike_results
 
 if __name__ == "__main__":
     id = 211000411
