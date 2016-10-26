@@ -68,7 +68,7 @@ def load_samples(id):
     nwalkers, nsteps, ndims = np.shape(samples)
     return np.reshape(samples[:, :, 4], nwalkers * nsteps)
 
-def comparison_plot(truths):
+def comparison_plot(truths, SAVE_DIR):
     """
     Plot the acf, pgram and GP results.
     """
@@ -112,9 +112,10 @@ def comparison_plot(truths):
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Variance)}$")
     plt.ylim(0, 100)
+    plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig("compare_mcmc")
+    plt.savefig(os.path.join(SAVE_DIR, "compare_mcmc"))
 
     # acf plot
     plt.clf()
@@ -123,9 +124,10 @@ def comparison_plot(truths):
     plt.errorbar(true, acfs, yerr=acf_errs, fmt="k.", capsize=0, ecolor=".7",
                  alpha=.5)
     plt.ylim(0, 100)
+    plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig("compare_acf")
+    plt.savefig(os.path.join(SAVE_DIR, "compare_acf"))
 
     # pgram plot
     plt.clf()
@@ -133,9 +135,10 @@ def comparison_plot(truths):
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(true, pgram, "r.", alpha=.5)
     plt.ylim(0, 100)
+    plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig("compare_pgram")
+    plt.savefig(os.path.join(SAVE_DIR, "compare_pgram"))
 
 def sigma_clip(x, y, yerr, nsigma):
     med = np.median(y)
@@ -145,12 +148,12 @@ def sigma_clip(x, y, yerr, nsigma):
 
 def recover(i):
 
+#     RESULTS_DIR = "results"
+    RESULTS_DIR = "results_prior"
+
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
-
-#     RESULTS_DIR = "results"
-    RESULTS_DIR = "results_prior"
 
     id = truths.N.values[m][i]
     print(id, i, "of", len(truths.N.values[m]))
@@ -162,34 +165,37 @@ def recover(i):
 
     # calculate the variance
     var = np.var(y)
-    nruns = 10
+    burnin, nwalkers, nruns, full_run = 1000, 12, 10, 500
     if np.log(var) < -13:
-        nruns = 20
+        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
 
     # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                          str(int(id))
                                                          .zfill(4))
+    # set priors
     p_init = pgram_period
+    plims = np.log([.5*p_init, 1.5*p_init])
+    if p_init > 40:
+        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
+
     c, sub = 200, 10  # cut off at 200 days
     mc = x < c
     xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
-    mcmc_fit(xb, yb, yerrb, p_init, str(int(id)).zfill(4), plims, nruns=nruns)
+    mcmc_fit(xb, yb, yerrb, p_init, plims, str(int(id)).zfill(4), RESULTS_DIR,
+	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
 
 if __name__ == "__main__":
 
 #     DIR = "../code/simulations/kepler_diffrot_full/par/"
 #     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
+
     truths = pd.read_csv("truths.csv")
     m = truths.DELTA_OMEGA.values == 0
+    comparison_plot(truths, "results_prior")
 
-    comparison_plot(truths)
+#     for i in range(len(truths.N.values[m])):
+# 	    recover(i)
 
-#     var = np.zeros(len(truths.N.values[m]))
-#     for i, N in enumerate(truths.N.values[m]):
-#         var[N] = recover(i)
-#     truths["variance"] = var
-#     truths.to_csv("truths.csv")
-
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m])))
