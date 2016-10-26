@@ -78,10 +78,10 @@ def recover(i):
                                                          str(int(id))
                                                          .zfill(4))
     p_init = pgram_period
-    c, sub = 100, 100  # cut off at 200 days
+    c, sub = 200, 10  # cut off at 200 days
     mc = x < c
     xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
-    mcmc_fit(xb, yb, yerrb, p_init, str(int(id)).zfill(4), nruns=2)
+    mcmc_fit(xb, yb, yerrb, p_init, str(int(id)).zfill(4))
 
 if __name__ == "__main__":
 
@@ -91,8 +91,8 @@ if __name__ == "__main__":
 
 #     comparison_plot(truths)
 
-    for i, _ in enumerate(truths.N.values[m]):
-        recover(i)
+#     for i, _ in enumerate(truths.N.values[m]):
+#         recover(i)
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m])))
