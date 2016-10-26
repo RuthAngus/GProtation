@@ -72,8 +72,8 @@ def calc_p_init(x, y, yerr, id):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, plims, id, burnin=500, nwalkers=12, nruns=10,
-             full_run=500, RESULTS_DIR):
+def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500, nwalkers=12, nruns=10,
+             full_run=500):
     """
     Run the MCMC
     """

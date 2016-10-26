@@ -75,6 +75,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
     mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
+    mcmc_result, errps, errms = [np.zeros(ndims) for i in range(3)]
     for i, res in enumerate(mcmc_res):
         mcmc_result[i] = res[0]
         errps[i] = res[1]
@@ -126,6 +127,7 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(DIR, "{0}_prediction".format(ID)))
         print(os.path.join(DIR, "{0}_prediction.png".format(ID)))
+    return med_results, maxlike
 
 
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
