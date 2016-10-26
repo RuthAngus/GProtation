@@ -18,7 +18,7 @@ def load_suzanne_lcs(id):
     return x - x[0], y - 1
 
 
-def make_new_df(truths):
+def make_new_df(truths, RESULTS_DIR):
     m = truths.DELTA_OMEGA.values == 0
     pgrams, acfs, mcmc = [np.zeros_like(truths.N.values[m]) for i in range(3)]
     pgram_errs, acf_errs = [np.zeros_like(truths.N.values[m]) for i in
@@ -68,7 +68,7 @@ def load_samples(id):
     nwalkers, nsteps, ndims = np.shape(samples)
     return np.reshape(samples[:, :, 4], nwalkers * nsteps)
 
-def comparison_plot(truths, SAVE_DIR):
+def comparison_plot(truths, DIR):
     """
     Plot the acf, pgram and GP results.
     """
@@ -81,7 +81,7 @@ def comparison_plot(truths, SAVE_DIR):
                'text.usetex': True}
     plt.rcParams.update(plotpar)
 
-    truths_e = make_new_df(truths)
+    truths_e = make_new_df(truths, DIR)
     m = (truths_e.DELTA_OMEGA.values == 0) \
             * (truths_e.acf_period.values > 0)
 
@@ -115,7 +115,7 @@ def comparison_plot(truths, SAVE_DIR):
     plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig(os.path.join(SAVE_DIR, "compare_mcmc"))
+    plt.savefig(os.path.join(DIR, "compare_mcmc"))
 
     # acf plot
     plt.clf()
@@ -127,7 +127,7 @@ def comparison_plot(truths, SAVE_DIR):
     plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig(os.path.join(SAVE_DIR, "compare_acf"))
+    plt.savefig(os.path.join(DIR, "compare_acf"))
 
     # pgram plot
     plt.clf()
@@ -138,7 +138,7 @@ def comparison_plot(truths, SAVE_DIR):
     plt.xlim(0, 100)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig(os.path.join(SAVE_DIR, "compare_pgram"))
+    plt.savefig(os.path.join(DIR, "compare_pgram"))
 
 def sigma_clip(x, y, yerr, nsigma):
     med = np.median(y)
@@ -197,5 +197,5 @@ if __name__ == "__main__":
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
 
-    pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m])))
+#     pool = Pool()
+#     results = pool.map(recover, range(len(truths.N.values[m])))
