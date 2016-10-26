@@ -73,17 +73,12 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
-    mcmc_result = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+    mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
-    print(mcmc_result)
-    print(np.shape(mcmc_result))
-    print(mcmc_result[0][2])
-    for i in mcmc_result:
-        print(i[1])
-    mcmc_result = np.array([i[0] for i in mcmc_result])
-    errps = np.array([i[1] for i in mcmc_result])
-    errms = np.array([i[2] for i in mcmc_result])
-    assert 0
+    for i, res in enumerate(mcmc_res):
+        mcmc_result[i] = res[0]
+        errps[i] = res[1]
+        errms[i] = res[2]
     print("median values = ", mcmc_result)
 
     logprob = flat[:, -1]
