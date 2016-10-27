@@ -18,10 +18,10 @@ def load_suzanne_lcs(id):
     return x - x[0], y - 1
 
 
-def make_new_df(truths, RESULTS_DIR):
+def make_new_df(truths, RESULTS_DIR, P_DIR="results"):
     m = truths.DELTA_OMEGA.values == 0
-    pgrams, acfs, mcmc = [np.zeros_like(truths.N.values[m]) for i in range(3)]
-    pgram_errs, acf_errs = [np.zeros_like(truths.N.values[m]) for i in
+    pgrams, acfs, mcmc = [np.zeros(len(truths.N.values[m])) for i in range(3)]
+    pgram_errs, acf_errs = [np.zeros(len(truths.N.values[m])) for i in
                             range(2)]
     med_mcmc_period, med_mcmc_errp, med_mcmc_errm = [np.zeros(len(truths.N
                                                      .values[m]))
@@ -41,11 +41,11 @@ def make_new_df(truths, RESULTS_DIR):
             med_mcmc_period[i] = med_mcmc[4][0]
             med_mcmc_errp[i] = med_mcmc[4][1]
             med_mcmc_errm[i] = med_mcmc[4][2]
-            acf_fname = os.path.join(RESULTS_DIR,
+            acf_fname = os.path.join(P_DIR,
                                      "{0}_acf_result.txt".format(str(int(id))
                                                                  .zfill(4)))
             acfs[i], acf_errs[i] = np.genfromtxt(acf_fname).T
-            p_fname = os.path.join(RESULTS_DIR,
+            p_fname = os.path.join(P_DIR,
                                    "{0}_pgram_result.txt".format(str(int(id))
                                                                  .zfill(4)))
             pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
@@ -101,21 +101,34 @@ def comparison_plot(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, 2*xs, "k--", alpha=.5)
+    plt.ylim(0, 100)
+    plt.xlim(0, 55)
+    plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
+    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
     plt.errorbar(true, maxlike, yerr=[med_errp, med_errm], fmt="k.", zorder=0,
                  capsize=0)
     plt.scatter(true, maxlike, c=np.log(var), edgecolor="", cmap="GnBu",
                 vmin=min(np.log(var)), vmax=max(np.log(var)), s=50, zorder=1)
-    for i, n in enumerate(N):
-        samples = load_samples(n)
-        plt.plot(np.ones(100) * true[i], np.exp(np.random.choice(samples, 100)),
-                 "k.", ms=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Variance)}$")
+    plt.savefig(os.path.join(DIR, "compare_mcmc"))
+
+    # mcmc plot with samples
+    plt.clf()
+    xs = np.arange(0, 100, 1)
+    plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, 2*xs, "k--", alpha=.5)
     plt.ylim(0, 100)
-    plt.xlim(0, 100)
+    plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.savefig(os.path.join(DIR, "compare_mcmc"))
+    for i, n in enumerate(N):
+        samples = load_samples(n)
+        plt.plot(np.ones(100) * true[i], np.exp(np.random.choice(samples,
+                                                                 100)),
+                 "k.", ms=1)
+    plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
 
     # acf plot
     plt.clf()
@@ -124,7 +137,7 @@ def comparison_plot(truths, DIR):
     plt.errorbar(true, acfs, yerr=acf_errs, fmt="k.", capsize=0, ecolor=".7",
                  alpha=.5)
     plt.ylim(0, 100)
-    plt.xlim(0, 100)
+    plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
     plt.savefig(os.path.join(DIR, "compare_acf"))
@@ -135,7 +148,7 @@ def comparison_plot(truths, DIR):
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(true, pgram, "r.", alpha=.5)
     plt.ylim(0, 100)
-    plt.xlim(0, 100)
+    plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
     plt.savefig(os.path.join(DIR, "compare_pgram"))
@@ -148,8 +161,8 @@ def sigma_clip(x, y, yerr, nsigma):
 
 def recover(i):
 
-#     RESULTS_DIR = "results"
-    RESULTS_DIR = "results_prior"
+    RESULTS_DIR = "results"
+#     RESULTS_DIR = "results_prior"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -173,11 +186,16 @@ def recover(i):
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
                                                          str(int(id))
                                                          .zfill(4))
-    # set priors
-    p_init = pgram_period
-    plims = np.log([.5*p_init, 1.5*p_init])
+    # set initial period
+    p_init = acf_period
+    if p_init > 100 or p_init < 0:
+        p_init = 10
     if p_init > 40:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
+
+    # set prior bounds
+#     plims = np.log([.5*p_init, 1.5*p_init])
+    plims = np.log([.1*p_init, 5*p_init])
 
     c, sub = 200, 10  # cut off at 200 days
     mc = x < c
@@ -192,7 +210,9 @@ if __name__ == "__main__":
 
     truths = pd.read_csv("truths.csv")
     m = truths.DELTA_OMEGA.values == 0
+
     comparison_plot(truths, "results_prior")
+    comparison_plot(truths, "results")
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
