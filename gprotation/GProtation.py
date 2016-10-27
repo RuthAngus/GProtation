@@ -70,7 +70,7 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
+def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, traces=False, tri=False,
               prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
@@ -85,16 +85,19 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     maxlike = flat[np.where(ml)[0][0], :][:-1]
     print("max like = ", maxlike)
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
-    results = np.concatenate((maxlike, med))
+    r = np.concatenate((maxlike, med))
 
     # save data
-    cols=["A_max", "l_max", "gamma_max", "period_max", "sigma_max", "A",
-          "A_errp", "A_errm", "l", "l_errp", "l_errm", "gamma", "gamma_errp",
-          "gamma_errm", "period", "period_errp", "period_errm", "sigma",
-          "sigma_errp", "sigma_errm"]
-    df = pd.DataFrame(results, cols=cols)
-    df["N"] = ID
-    df.to_csv("{0}_mcmc_results.csv".format(ID))
+    df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
+                       "gamma_max": [r[2]], "period_max": [r[3]],
+                       "sigma_max": [r[4]], "A": [r[5]], "A_errp": [r[6]],
+                       "A_errm": [r[7]], "l": [r[8]], "l_errp": [r[9]],
+                       "l_errm": [r[10]], "gamma": [r[11]],
+                       "gamma_errp": [r[12]], "gamma_errm": [r[13]],
+                       "period": [r[14]], "period_errp": [r[15]],
+                       "period_errm": [r[16]], "sigma": [r[17]],
+                       "sigma_errp": [r[18]], "sigma_errm": [r[19]]})
+    df.to_csv(os.path.join(RESULTS_DIR, "{0}_mcmc_results.csv".format(ID)))
 
     fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
 
@@ -104,13 +107,13 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
             plt.clf()
             plt.plot(sampler[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
-            plt.savefig(os.path.join(DIR, "{0}_{1}.png".format(ID,
+            plt.savefig(os.path.join(RESULTS_DIR, "{0}_{1}.png".format(ID,
                         fig_labels[i])))
 
     if tri:
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels)
-        fig.savefig(os.path.join(DIR, "{0}_triangle".format(ID)))
+        fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
@@ -128,9 +131,9 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
         plt.ylabel("Normalised Flux")
         plt.plot(xs, mu, color='#66CCCC')
         plt.xlim(min(x-x[0]), max(x-x[0]))
-        plt.savefig(os.path.join(DIR, "{0}_prediction".format(ID)))
-        print(os.path.join(DIR, "{0}_prediction.png".format(ID)))
-    return med_results, maxlike
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(ID)))
+        print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(ID)))
+    return r
 
 
 def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,

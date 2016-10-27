@@ -12,6 +12,7 @@ import time
 import emcee
 import pyfits
 import matplotlib.pyplot as plt
+import pandas as pd
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
@@ -30,7 +31,7 @@ def load_k2_data(epic_id, DATA_DIR):
     return time[m], flux[m]/med - 1
 
 
-def calc_p_init(x, y, yerr, id):
+def calc_p_init(x, y, yerr, id, RESULTS_DIR):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
     if os.path.exists(fname):
         print("Previous ACF pgram result found")
@@ -61,10 +62,10 @@ def calc_p_init(x, y, yerr, id):
         print("pgram period = ", pgram_period, "days")
         pgram_period_err = pgram_period * .1
 
-        df = pd.DataFrame([id, acf_period, err, pgram_period, pgram_period,
-                          err],
-                          cols=["N", "acf_period", "acf_period_err",
-                                "pgram_period", "pgram_period_err"])
+        df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
+                           "acf_period_err": [err],
+                           "pgram_period": [pgram_period],
+                           "pgram_period_err": [pgram_period_err]})
         df.to_csv(fname)
     return acf_period, err, pgram_period, pgram_period_err
 
@@ -126,9 +127,9 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        median_results, maxlike_results = make_plot(samples, x, y, yerr, id,
-                RESULTS_DIR, traces=True, tri=True, prediction=True)
-        return samples, median_results, maxlike_results
+        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, traces=True,
+                            tri=True, prediction=True)
+        return samples, results
 
 if __name__ == "__main__":
     id = 211000411

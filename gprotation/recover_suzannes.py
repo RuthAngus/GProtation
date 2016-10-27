@@ -12,53 +12,29 @@ RESULTS_DIR = "results/"
 
 
 def load_suzanne_lcs(id):
-    id = str(int(id)).zfill(4)
+    sid = str(int(id)).zfill(4)
     x, y = np.genfromtxt(os.path.join(DATA_DIR,
-                                      "lightcurve_{0}.txt".format(id))).T
+                                      "lightcurve_{0}.txt".format(sid))).T
     return x - x[0], y - 1
 
 
-def make_new_df(truths, RESULTS_DIR, P_DIR="results"):
+def make_new_df(truths, RESULTS_DIR):
     m = truths.DELTA_OMEGA.values == 0
-    pgrams, acfs, mcmc = [np.zeros(len(truths.N.values[m])) for i in range(3)]
-    pgram_errs, acf_errs = [np.zeros(len(truths.N.values[m])) for i in
-                            range(2)]
-    med_mcmc_period, med_mcmc_errp, med_mcmc_errm = [np.zeros(len(truths.N
-                                                     .values[m]))
-                                                     for i in range(3)]
+    mcmc, acf_pgram = [pd.DataFrame() for i in range(2)]
     for i, id in enumerate(truths.N.values[m]):
+        sid = str(int(id)).format(4)
         mcmc_fname = os.path.join(RESULTS_DIR,
-                                  "{0}_result.txt".format(str(int(id))
-                                                          .zfill(4)))
-        med_mcmc_fname = os.path.join(RESULTS_DIR,
-                                  "{0}_med_result.txt".format(str(int(id))
-                                                          .zfill(4)))
-        if os.path.exists(mcmc_fname) and os.path.exists(med_mcmc_fname):
-            mcmc[i] = np.exp(np.genfromtxt(mcmc_fname).T[-1])
-            med_mcmc = np.exp(np.genfromtxt(os.path.join(RESULTS_DIR,
-                              "{0}_med_result.txt".format(str(int(id)).zfill(4)
-                              ))))
-            med_mcmc_period[i] = med_mcmc[4][0]
-            med_mcmc_errp[i] = med_mcmc[4][1]
-            med_mcmc_errm[i] = med_mcmc[4][2]
-            acf_fname = os.path.join(P_DIR,
-                                     "{0}_acf_result.txt".format(str(int(id))
-                                                                 .zfill(4)))
-            acfs[i], acf_errs[i] = np.genfromtxt(acf_fname).T
-            p_fname = os.path.join(P_DIR,
-                                   "{0}_pgram_result.txt".format(str(int(id))
-                                                                 .zfill(4)))
-            pgrams[i], pgram_errs[i] = np.genfromtxt(p_fname).T
-    truths["pgram_period"] = pgrams
-    truths["pgram_period_err"] = pgram_errs
-    truths["acf_period"] = acfs
-    truths["acf_period_err"] = acf_errs
-    truths["med_mcmc_period"] = med_mcmc_period
-    truths["med_mcmc_period_errp"] = med_mcmc_errp
-    truths["med_mcmc_period_errm"] = med_mcmc_errm
-    truths["maxlike_mcmc_period"] = mcmc
-    truths.to_csv("truths_extended.csv")
-    return truths
+                                  "{0}_mcmc_result.csv".format(sid))
+        acf_pgram_fname = os.path.join(RESULTS_DIR,
+                                       "{0}_acf_pgram_result.csv".format(sid))
+        if os.path.exists(mcmc_fname):
+
+            mcmc.append(pd.read_csv(mcmc_fname))
+            acf_pgram.append(pd.read_csv(acf_pgram_fname))
+    truths_s = pd.merge(truths[m], mcmc, acf_pgram, on="N")
+    truths_s.to_csv("truths_extended.csv")
+    return truths_s
+
 
 def load_samples(id):
     fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
@@ -134,6 +110,7 @@ def comparison_plot(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, 2*xs, "k--", alpha=.5)
     plt.errorbar(true, acfs, yerr=acf_errs, fmt="k.", capsize=0, ecolor=".7",
                  alpha=.5)
     plt.ylim(0, 100)
@@ -146,6 +123,7 @@ def comparison_plot(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, 2*xs, "k--", alpha=.5)
     plt.plot(true, pgram, "r.", alpha=.5)
     plt.ylim(0, 100)
     plt.xlim(0, 55)
@@ -160,6 +138,7 @@ def sigma_clip(x, y, yerr, nsigma):
     return x[~m], y[~m], yerr[~m]
 
 def recover(i):
+    sid = str(int(i)).zfill(4)
 
     RESULTS_DIR = "results"
 #     RESULTS_DIR = "results_prior"
@@ -170,7 +149,7 @@ def recover(i):
 
     id = truths.N.values[m][i]
     print(id, i, "of", len(truths.N.values[m]))
-    x, y = load_suzanne_lcs(str(int(id)).zfill(4))
+    x, y = load_suzanne_lcs(sid)
     yerr = np.ones_like(y) * 1e-5
 
     # sigma clip
@@ -183,9 +162,8 @@ def recover(i):
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
 
     # find p_init
-    acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr,
-                                                         str(int(id))
-                                                         .zfill(4))
+    acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
+                                                         RESULTS_DIR)
     # set initial period
     p_init = acf_period
     if p_init > 100 or p_init < 0:
@@ -197,23 +175,23 @@ def recover(i):
 #     plims = np.log([.5*p_init, 1.5*p_init])
     plims = np.log([.1*p_init, 5*p_init])
 
-    c, sub = 200, 10  # cut off at 200 days
+    c, sub = 100, 100  # cut off at 200 days
+    burnin, full_run, nruns = 2, 50, 2
     mc = x < c
     xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
-    mcmc_fit(xb, yb, yerrb, p_init, plims, str(int(id)).zfill(4), RESULTS_DIR,
+    mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
 
 if __name__ == "__main__":
 
-#     DIR = "../code/simulations/kepler_diffrot_full/par/"
-#     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
-
-    truths = pd.read_csv("truths.csv")
+    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-    comparison_plot(truths, "results_prior")
-    comparison_plot(truths, "results")
+#     comparison_plot(truths, "results_prior")
+#     comparison_plot(truths, "results")
 
+    recover(2)
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
 
