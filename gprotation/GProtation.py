@@ -23,7 +23,7 @@ def lnprior(theta, plims):
     """
     if -20 < theta[0] < 20 and theta[4] < theta[1] and -20 < theta[2] < 20 \
     and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1] \
-    and theta[4] < 100:
+    and theta[4] < 4.61:
         return 0.
     return -np.inf
 
