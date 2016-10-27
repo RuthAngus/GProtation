@@ -201,8 +201,8 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
 
         print('PERIOD = ', period[x], '+/-', error)
         print('saving as', '%s/%s_result.txt'%(savedir, id_list[0]))
-        np.savetxt('%s/%s_acf_result.txt'%(savedir, id_list[0]),
-                   np.transpose((period[x], error)))
+#         np.savetxt('%s/%s_acf_result.txt'%(savedir, id_list[0]),
+#                    np.transpose((period[x], error)))
     else:
         blank = np.array([0,0])
 #         np.savetxt('%s/%s_result.txt' %(savedir, id_list[0]), blank)
