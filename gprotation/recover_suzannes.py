@@ -140,8 +140,8 @@ def sigma_clip(x, y, yerr, nsigma):
 def recover(i):
     sid = str(int(i)).zfill(4)
 
-    RESULTS_DIR = "results"
-#     RESULTS_DIR = "results_prior"
+#     RESULTS_DIR = "results"
+    RESULTS_DIR = "results_prior"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -172,11 +172,10 @@ def recover(i):
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
 
     # set prior bounds
-#     plims = np.log([.5*p_init, 1.5*p_init])
-    plims = np.log([.1*p_init, 5*p_init])
+    plims = np.log([.5*p_init, 1.5*p_init])
+#     plims = np.log([.1*p_init, 5*p_init])
 
-    c, sub = 100, 100  # cut off at 200 days
-    burnin, full_run, nruns = 2, 50, 2
+    c, sub = 200, 10  # cut off at 200 days
     mc = x < c
     xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
     mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR,
@@ -187,13 +186,13 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m])))
 
 #     comparison_plot(truths, "results_prior")
 #     comparison_plot(truths, "results")
 
-    recover(2)
+#     recover(2)
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
