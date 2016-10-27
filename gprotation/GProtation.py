@@ -14,6 +14,7 @@ import subprocess
 import scipy.optimize as spo
 import time
 import os
+import pandas as pd
 
 def lnprior(theta, plims):
     """
@@ -76,23 +77,26 @@ def make_plot(sampler, x, y, yerr, ID, DIR, traces=False, tri=False,
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
     mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                       zip(*np.percentile(flat, [16, 50, 84], axis=0)))
-    mcmc_result, errps, errms = [np.zeros(ndims) for i in range(3)]
-    for i, res in enumerate(mcmc_res):
-        mcmc_result[i] = res[0]
-        errps[i] = res[1]
-        errms[i] = res[2]
-    print("median values = ", mcmc_result)
+    med = np.concatenate([np.array(mcmc_res[i]) for i in
+                           range(len(mcmc_res))])
+    print("median values = ", med[::3])
 
     logprob = flat[:, -1]
     ml = logprob == max(logprob)
     maxlike = flat[np.where(ml)[0][0], :][:-1]
-    np.savetxt(os.path.join(DIR, "{0}_result.txt".format(ID)), maxlike)
-    med_results = np.vstack((mcmc_result, errps, errms))
-    np.savetxt(os.path.join(DIR, "{0}_med_result.txt".format(ID)),
-               med_results.T)
     print("max like = ", maxlike)
 
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
+
+    # save data
+    dfmax = pd.DataFrame(maxlike, cols=["A", "l", "gamma", "period", "sigma"])
+    dfmax.to_csv("{0}_results.csv".format(ID))
+
+    dfmed = pd.DataFrame(med, cols=["A", "A_errp", "A_errm", "l", "l_errp",
+                         "l_errm", "gamma", "gamma_errp", "gamma_errm",
+                         "period", "period_errp", "period_errm", "sigma",
+                         "sigma_errp", "sigma_errm"])
+    dfmax.to_csv("{0}_med_results.csv".format(ID))
 
     fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
 
