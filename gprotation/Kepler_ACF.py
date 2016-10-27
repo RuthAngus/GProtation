@@ -2,6 +2,7 @@
 # It is also totally stripped down and only saves the information that I actually use.
 # the corr_run function takes
 
+from __future__ import print_function
 import scipy
 from numpy.random import normal
 import matplotlib.image as mpimg
@@ -200,7 +201,6 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         else: error = dlag_per_err[x]
 
         print('PERIOD = ', period[x], '+/-', error)
-        print('saving as', '%s/%s_result.txt'%(savedir, id_list[0]))
 #         np.savetxt('%s/%s_acf_result.txt'%(savedir, id_list[0]),
 #                    np.transpose((period[x], error)))
     else:
@@ -225,7 +225,7 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
     t.add_column('harmonic_det', harmonic_det)
     t.add_column('amp_all', amp_all)
     t.add_column('amp_per', amp_per)
-    return period, dlag_per_err, acf_tab.lags_days, acf_tab.acf_smooth
+    return period[0], dlag_per_err[0], acf_tab.lags_days, acf_tab.acf_smooth
 
 def acf_calc(time, flux, interval, kid, max_psearch_len):
 
