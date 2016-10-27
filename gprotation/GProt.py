@@ -31,28 +31,21 @@ def load_k2_data(epic_id, DATA_DIR):
 
 
 def calc_p_init(x, y, yerr, id):
-
-    print("Calculating ACF")
-    fname = os.path.join(RESULTS_DIR, "{0}_acf_result.txt".format(id))
-    print(fname)
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
     if os.path.exists(fname):
-        print("Previous ACF result found")
-        acf_period, err = np.genfromtxt(fname).T
+        print("Previous ACF pgram result found")
+        df = pd.read_csv(fname)
+        m = df.N.values == int(id)
+        acf_period = df.acf_period.values[m]
+        err = df.acf_period_err.values[m]
+        pgram_period = df.pgram_period.values[m]
+        pgram_period_err = df.pgram_period_err.values[m]
     else:
+        print("Calculating ACF")
         acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
-        if not os.path.exists(fname):
-            np.savetxt(fname, np.transpose((acf_period, err)))
-    print("acf period, err = ", acf_period, err)
 
-    fname = os.path.join(RESULTS_DIR, "{0}_pgram_result.txt".format(id))
-    print(fname)
-    if os.path.exists(fname):
-        print("Previous pgram result found")
-        pgram_period, pgram_period_err = np.genfromtxt(fname).T
-    else:
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
-        print(type(x), type(y), type(yerr))
         model = LombScargle().fit(x, y, yerr)
         pgram = model.periodogram(ps)
 
@@ -67,13 +60,17 @@ def calc_p_init(x, y, yerr, id):
         pgram_period = ps[pgram == max(pgram[peaks])][0]
         print("pgram period = ", pgram_period, "days")
         pgram_period_err = pgram_period * .1
-        np.savetxt(fname, np.transpose((pgram_period, pgram_period_err)))
 
+        df = pd.DataFrame([id, acf_period, err, pgram_period, pgram_period,
+                          err],
+                          cols=["N", "acf_period", "acf_period_err",
+                                "pgram_period", "pgram_period_err"])
+        df.to_csv(fname)
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500, nwalkers=12, nruns=10,
-             full_run=500):
+def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
+             nwalkers=12, nruns=10, full_run=500):
     """
     Run the MCMC
     """
@@ -96,6 +93,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500, nwalkers=12
     print("each run will take", tm * nwalkers * runs[0]/60, "mins")
     print("total = ", (tm * nwalkers * np.sum(runs) + tm * nwalkers *
                        burnin)/60, "mins")
+
 
     # Run MCMC.
     sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
