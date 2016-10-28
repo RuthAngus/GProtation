@@ -27,8 +27,9 @@ def sigma_clip(x, y, yerr, nsigma):
 def recover(i):
     sid = str(int(i)).zfill(4)
 
-#     RESULTS_DIR = "results"
-    RESULTS_DIR = "results_prior"
+    RESULTS_DIR = "results"
+#     RESULTS_DIR = "results_prior"
+#     RESULTS_DIR = "results_subsampled"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -48,9 +49,16 @@ def recover(i):
     if np.log(var) < -13:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
 
+    c, sub = 200, 10  # cut off at 200 days
+    mc = x < c
+    xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
+
     # find p_init
+#     acf_period, a_err, pgram_period, p_err = calc_p_init(xb, yb, yerrb, sid,
+#                                                          RESULTS_DIR)
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
                                                          RESULTS_DIR)
+
     # set initial period
     p_init = acf_period
     if p_init > 100 or p_init < 0:
@@ -62,9 +70,6 @@ def recover(i):
     plims = np.log([.5*p_init, 1.5*p_init])
 #     plims = np.log([.1*p_init, 5*p_init])
 
-    c, sub = 200, 10  # cut off at 200 days
-    mc = x < c
-    xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
     mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
 
