@@ -18,13 +18,16 @@ truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 m = truths.DELTA_OMEGA.values == 0
 
 DIR = "results"
-As, gammas, ls = [np.zeros(len(truths.N.values[m])) for i in range(3)]
+As, gammas, ls, ss, ps = [np.zeros(len(truths.N.values[m])) for i in range(5)]
 for i, N in enumerate(truths.N.values[m]):
     sN = str(int(N)).zfill(4)
     fname = os.path.join(DIR, "{0}_med_result.txt".format(sN))
-    As[i] = np.genfromtxt(fname)[0][0]
-    ls[i] = np.genfromtxt(fname)[1][0]
-    gammas[i] = np.genfromtxt(fname)[2][0]
+    data = np.genfromtxt(fname)
+    As[i] = data[0][0]
+    ls[i] = data[1][0]
+    gammas[i] = data[2][0]
+    ss[i] = data[3][0]
+    ps[i] = data[4][0]
 
 print("median ln gamma = ", np.median(gammas), "std = ", np.std(gammas))
 print("median gamma = ", np.exp(np.median(gammas)), "std = ",
@@ -49,3 +52,19 @@ plt.clf()
 plt.hist(ls, 30, histtype="stepfilled", color="w")
 plt.xlabel("$\ln(l)$")
 plt.savefig("l_hist")
+
+print("median ln sigma = ", np.median(ss), "std = ", np.std(ss))
+print("median sigma = ", np.exp(np.median(ss)), "std = ",
+      np.exp(np.std(ss)))
+plt.clf()
+plt.hist(ss, 30, histtype="stepfilled", color="w")
+plt.xlabel("$\ln(\sigma)$")
+plt.savefig("sigma_hist")
+
+print("median ln period = ", np.median(ps), "std = ", np.std(ps))
+print("median period = ", np.exp(np.median(ps)), "std = ",
+      np.exp(np.std(ps)))
+plt.clf()
+plt.hist(ps, 30, histtype="stepfilled", color="w")
+plt.xlabel("$\ln(Period)$")
+plt.savefig("period_hist")
