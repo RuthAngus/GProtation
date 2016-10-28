@@ -77,7 +77,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
     """
 
     print("total number of points = ", len(x))
-    theta_init = np.log([np.exp(-5), np.exp(7), np.exp(.6), np.exp(-16),
+    theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
     ndim = len(theta_init)
