@@ -18,31 +18,6 @@ def load_suzanne_lcs(id):
     return x - x[0], y - 1
 
 
-def make_new_df(truths, RESULTS_DIR):
-    m = truths.DELTA_OMEGA.values == 0
-    mcmc, acf_pgram = [pd.DataFrame() for i in range(2)]
-    for i, id in enumerate(truths.N.values[m]):
-        sid = str(int(id)).format(4)
-        mcmc_fname = os.path.join(RESULTS_DIR,
-                                  "{0}_mcmc_result.csv".format(sid))
-        acf_pgram_fname = os.path.join(RESULTS_DIR,
-                                       "{0}_acf_pgram_result.csv".format(sid))
-        if os.path.exists(mcmc_fname):
-
-            mcmc.append(pd.read_csv(mcmc_fname))
-            acf_pgram.append(pd.read_csv(acf_pgram_fname))
-    truths_s = pd.merge(truths[m], mcmc, acf_pgram, on="N")
-    truths_s.to_csv("truths_extended.csv")
-    return truths_s
-
-def load_samples(id):
-    fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
-    if os.path.exists(fname):
-        with h5py.File(fname, "r") as f:
-            samples = f["samples"][...]
-    nwalkers, nsteps, ndims = np.shape(samples)
-    return np.reshape(samples[:, :, 4], nwalkers * nsteps)
-
 def sigma_clip(x, y, yerr, nsigma):
     med = np.median(y)
     std = (sum((med - y)**2)/float(len(y)))**.5
