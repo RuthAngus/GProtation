@@ -3,7 +3,7 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob
+from GProtation import make_plot, lnprob, Glnprob
 from Kepler_ACF import corr_run
 import h5py
 from gatspy.periodic import LombScargle
@@ -86,7 +86,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", lnprob(theta_init, x, y, yerr, plims)[0], "\n")
+    print("lnprob = ", Glnprob(theta_init, x, y, yerr, plims)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -97,7 +97,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
 
 
     # Run MCMC.
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=args)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args)
     print("burning in...")
     p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 

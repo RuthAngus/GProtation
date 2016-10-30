@@ -27,7 +27,8 @@ def sigma_clip(x, y, yerr, nsigma):
 def recover(i):
     sid = str(int(i)).zfill(4)
 
-    RESULTS_DIR = "results"
+#     RESULTS_DIR = "results"
+    RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_prior"
 #     RESULTS_DIR = "results_subsampled"
 
