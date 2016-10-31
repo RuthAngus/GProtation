@@ -122,17 +122,24 @@ def mcmc_plots(truths, DIR):
     maxlike = np.exp(truths_e.sigma_max[m])
     amp = truths_e.AMP.values[m]
 
+    plt.clf()
+    plt.plot(truths_e.NSPOT, np.exp(truths_e.gamma_max), "k.")
+    plt.xlabel("nspot")
+    plt.ylabel("gamma")
+    plt.ylim(0, 5)
+    plt.savefig("tau_gamma")
+
     # mcmc plot
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 200)
+#     plt.ylim(0, 100)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-    plt.errorbar(true, maxlike, yerr=[med_errp, med_errm], fmt="k.", zorder=0,
-                 capsize=0)
+#     plt.errorbar(true, maxlike, yerr=[med_errp, med_errm], fmt="k.", zorder=0,
+#                  capsize=0)
     plt.scatter(true, maxlike, c=np.log(amp), edgecolor="", cmap="GnBu",
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
@@ -144,7 +151,7 @@ def mcmc_plots(truths, DIR):
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 200)
+    plt.ylim(0, 100)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
@@ -154,6 +161,7 @@ def mcmc_plots(truths, DIR):
                                                                  100)),
                  "k.", ms=1)
     plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
+    return (np.median((maxlike - true)**2))**.5
 
 
 def acf_plot(truths, DIR):
@@ -181,11 +189,12 @@ def acf_plot(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    plt.ylim(0, 200)
+    plt.ylim(0, 100)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
     plt.savefig(os.path.join(DIR, "compare_acf"))
+    return (np.median((acfs - true)**2))**.5
 
 def pgram_plot(truths, DIR):
     """
@@ -215,15 +224,16 @@ def pgram_plot(truths, DIR):
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
     plt.savefig(os.path.join(DIR, "compare_pgram"))
+    return (np.median((pgram - true)**2))**.5
 
 if __name__ == "__main__":
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    mcmc_plots(truths, "results_Gprior")
-    mcmc_plots(truths, "results")
-    acf_plot(truths, "results")
+    print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
+    print("mcmc rms = ", mcmc_plots(truths, "results"))
+    print("acf rms = ", acf_plot(truths, "results"))
 #     acf_plot(truths, "results_subsampled")
 #     pgram_plot(truths, "results_subsampled")
 #     pgram_plot(truths, "results")
