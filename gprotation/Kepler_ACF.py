@@ -35,7 +35,7 @@ jump_arr = scipy.array([131.51139, 169.51883, 169.75000, 182.00000, 200.31000,
                        1032.50000, 1063.50000 ,1071.00000, 1093.60000])
 
 def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
-
+    gap_days = scipy.stats.mode(np.diff(time))[0][0]
     id_list = [id]
     # Create empty arrays
     acf_peak_per = scipy.ones(len(id_list)) * -9999.0
