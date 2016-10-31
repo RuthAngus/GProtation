@@ -38,8 +38,8 @@ def Glnprior(theta, plims):
     theta = A, l, G, sigma, period
     """
     p_init = plims[1] / 1.5
-    mu = np.array([-12, 7, -1, -17, p_init])
-    sigma = np.array([5.4, 10, 3.8, 1.7, p_init * .2])
+    mu = np.array([-12, 7, -1, -17, np.exp(p_init)])
+    sigma = np.array([5.4, 10, 3.8, 1.7, np.exp(p_init * .2)])
     return sum(lnGauss(np.array(theta), mu, sigma))
 
 # lnprob
@@ -48,7 +48,7 @@ def lnprob(theta, x, y, yerr, plims):
     return prob, prob
 
 # lnprob
-def Glnprob(theta, x, y, yerr, p_init, plims):
+def Glnprob(theta, x, y, yerr, plims):
     prob = lnlike(theta, x, y, yerr) + Glnprior(theta, plims)
     return prob, prob
 

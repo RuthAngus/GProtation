@@ -19,6 +19,45 @@ DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 RESULTS_DIR = "results/"
 
 
+def calc_p_init(x, y, yerr, id, RESULTS_DIR):
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
+    if os.path.exists(fname):
+        print("Previous ACF pgram result found")
+        df = pd.read_csv(fname)
+        m = df.N.values == int(id)
+        acf_period = df.acf_period.values[m]
+        err = df.acf_period_err.values[m]
+        pgram_period = df.pgram_period.values[m]
+        pgram_period_err = df.pgram_period_err.values[m]
+    else:
+        print("Calculating ACF")
+        acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
+
+        print("Calculating periodogram")
+        ps = np.arange(.1, 100, .1)
+        model = LombScargle().fit(x, y, yerr)
+        pgram = model.periodogram(ps)
+
+        plt.clf()
+        plt.plot(ps, pgram)
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
+        print("saving figure ", os.path.join(RESULTS_DIR,
+                                             "{0}_pgram".format(id)))
+
+        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                          pgram[i] and pgram[i+1] < pgram[i]])
+        pgram_period = ps[pgram == max(pgram[peaks])][0]
+        print("pgram period = ", pgram_period, "days")
+        pgram_period_err = pgram_period * .1
+
+        df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
+                           "acf_period_err": [err],
+                           "pgram_period": [pgram_period],
+                           "pgram_period_err": [pgram_period_err]})
+        df.to_csv(fname)
+    return acf_period, err, pgram_period, pgram_period_err
+
+
 def load_samples(id):
     fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
     if os.path.exists(fname):
@@ -34,6 +73,11 @@ def make_new_df(truths, R_DIR):
     dataframe.
     """
     m = truths.DELTA_OMEGA.values == 0
+
+#     for i, id in enumerate(truths.N.values[m]):
+#         sid = str(int(i)).zfill(4)
+#         acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
+#                                                              RESULTS_DIR)
 
     # get column names
     mfname2 = os.path.join(R_DIR, "0002_mcmc_results.csv")
@@ -83,7 +127,7 @@ def mcmc_plots(truths, DIR):
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 100)
+    plt.ylim(0, 200)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
@@ -100,7 +144,7 @@ def mcmc_plots(truths, DIR):
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 100)
+    plt.ylim(0, 200)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
@@ -137,7 +181,7 @@ def acf_plot(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    plt.ylim(0, 100)
+    plt.ylim(0, 200)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
@@ -177,7 +221,9 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    mcmc_plots(truths, "results_prior")
+    mcmc_plots(truths, "results_Gprior")
     mcmc_plots(truths, "results")
     acf_plot(truths, "results")
-    pgram_plot(truths, "results")
+#     acf_plot(truths, "results_subsampled")
+#     pgram_plot(truths, "results_subsampled")
+#     pgram_plot(truths, "results")
