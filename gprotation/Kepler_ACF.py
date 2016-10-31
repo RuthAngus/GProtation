@@ -173,7 +173,10 @@ def corr_run(time, flux, flux_err, id, savedir, saveplot=True):
         pylab.plot(per_cent, var_arr_real, 'k.')
         pylab.axhline(amp_per[x], ls = '--', c = 'b')
         pylab.xlim(lc_tab.time.min(),lc_tab.time.max())
-        pylab.ylim(var_arr_real.min(), var_arr_real.max())
+	try:
+	    pylab.ylim(var_arr_real.min(), var_arr_real.max())
+	except ValueError:
+	    pass
         ax = pylab.gca()
         pylab.text(0.415, -0.15, 'Time (days)', transform = ax.transAxes)
         pylab.text(0.415, -1.4, 'Period (days)', transform = ax.transAxes)
