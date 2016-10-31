@@ -25,15 +25,23 @@ def sigma_clip(x, y, yerr, nsigma):
 def recover(i):
     sid = str(int(i)).zfill(4)
 
-    RESULTS_DIR = "results_periodic_gp"
-    DATA_DIR = "periodic_gp_simulations"
-#     RESULTS_DIR = "results_aperiodic_gp"
-#     DATA_DIR = "aperiodic_gp_simulations"
-
     truths = pd.read_csv("gp_truths.csv")
 
+    # select either periodic or non-periodic
+    RESULTS_DIR = "results_periodic_gp"
+#     RESULTS_DIR = "results_aperiodic_gp"
+
+    DATA_DIR = "periodic_gp_simulations"
+    trths = [truths.lnA.values[i], truths.lnl_p.values[i],
+             truths.lngamma.values[i], truths.lnsigma.values[i],
+             truths.lnperiod.values[i]]
+    if RESULTS_DIR == "results_aperiodic_gp":
+        DATA_DIR = "aperiodic_gp_simulations"
+        trths = [truths.lnA.values[i], truths.lnl_p.values[i], None,
+                   truths.lnsigma.values[i], None]
+
     sid = str(int(i)).zfill(4)
-    print(sid, "of", 45)
+    print(sid, "of", 160)
     x, y = np.genfromtxt(os.path.join(DATA_DIR, "{0}.txt".format(sid))).T
     yerr = np.ones_like(y) * 1e-5
     x_n, y_n = np.genfromtxt(os.path.join(DATA_DIR,
@@ -76,21 +84,16 @@ def recover(i):
     plims_n = np.log([.5*p_init_n, 1.5*p_init_n])
 
     # run on noisy and noise free
-    trths_p = [truths.lnA.values[i], truths.lnl_p.values[i],
-             truths.lngamma.values[i], truths.lnsigma.values[i],
-             truths.lnperiod.values[i]]
-    trths_a = [truths.lnA.values[i], truths.lnl_p.values[i], None,
-  	       truths.lnsigma.values[i], None]
-    mcmc_fit(x, y, yerr, p_init, plims, sid, RESULTS_DIR, trths_p,
+    mcmc_fit(x, y, yerr, p_init, plims, sid, RESULTS_DIR, trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
-    mcmc_fit(x_n, y_n, yerr_n, p_init_n, plims_n, "{0}_n".format(sid), trths_p,
+    mcmc_fit(x_n, y_n, yerr_n, p_init_n, plims_n, "{0}_n".format(sid), trths,
              RESULTS_DIR, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run)
 
 if __name__ == "__main__":
 
     pool = Pool()
-    results = pool.map(recover, range(45))
+    results = pool.map(recover, range(160))
 
 #     for i in range(29):
 # 	    recover(i)

@@ -31,12 +31,12 @@ def load_k2_data(epic_id, DATA_DIR):
     return time[m], flux[m]/med - 1
 
 
-def calc_p_init(x, y, yerr, id, RESULTS_DIR):
+def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
-    if os.path.exists(fname):
+    if not clobber and os.path.exists(fname):
         print("Previous ACF pgram result found")
         df = pd.read_csv(fname)
-        m = df.N.values == int(id)
+        m = df.N.values == id
         acf_period = df.acf_period.values[m]
         err = df.acf_period_err.values[m]
         pgram_period = df.pgram_period.values[m]
@@ -70,13 +70,14 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
+def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
              nwalkers=12, nruns=10, full_run=500):
     """
     Run the MCMC
     """
 
     print("total number of points = ", len(x))
+    print(p_init)
     theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
@@ -127,7 +128,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, traces=True,
+        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths, traces=True,
                             tri=True, prediction=True)
         return samples, results
 
