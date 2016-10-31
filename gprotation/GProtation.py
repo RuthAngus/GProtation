@@ -39,8 +39,10 @@ def Glnprior(theta, plims):
     """
     p_init = plims[1] / 1.5
     mu = np.array([-12, 7, -1, -17, np.exp(p_init)])
-    sigma = np.array([5.4, 10, 3.8, 1.7, np.exp(p_init * .2)])
-    return sum(lnGauss(np.array(theta), mu, sigma))
+    sigma = np.array([2, 2, 2, 2, np.exp(p_init * .1)])
+#     sigma = np.array([5.4, 10, 3.8, 1.7, np.exp(p_init * .2)])
+#     return np.logaddexp.reduce(lnGauss(np.array(theta), mu, sigma), axis=0)
+    return lnGauss(theta[-1], p_init, p_init*.1)
 
 # lnprob
 def lnprob(theta, x, y, yerr, plims):
@@ -118,8 +120,14 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, traces=False, tri=False,
                         fig_labels[i])))
 
     if tri:
+        DIR = "../code/simulations/kepler_diffrot_full/par/"
+        truths = pd.read_csv(os.path.join(DIR, "final_table.txt"),
+                             delimiter=" ")
+        true_p = truths.PMIN.values[truths.N.values == int(ID)]
         print("Making triangle plot")
-        fig = corner.corner(flat[:, :-1], labels=fig_labels)
+        fig = corner.corner(flat[:, :-1], labels=fig_labels,
+                            quantiles=[.16, .5, .84], show_titles=True,
+                            truths=[None, None, None, None, true_p])
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
