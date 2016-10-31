@@ -28,8 +28,8 @@ def recover(i):
     sid = str(int(i)).zfill(4)
 
 #     RESULTS_DIR = "results"
-    RESULTS_DIR = "results_Gprior"
-#     RESULTS_DIR = "results_prior"
+#     RESULTS_DIR = "results_Gprior"
+    RESULTS_DIR = "results_prior"
 #     RESULTS_DIR = "results_subsampled"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -46,9 +46,9 @@ def recover(i):
 
     # calculate the variance
     var = np.var(y)
-    burnin, nwalkers, nruns, full_run = 1000, 12, 10, 500
+    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
     if np.log(var) < -13:
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
+        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     c, sub = 200, 10  # cut off at 200 days
     mc = x < c
@@ -64,8 +64,9 @@ def recover(i):
     p_init = acf_period
     if p_init > 100 or p_init < 0:
         p_init = 10
+        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     if p_init > 40:
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
+        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
