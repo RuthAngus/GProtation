@@ -1,6 +1,5 @@
 \documentclass[useAMS, usenatbib, preprint, 12pt]{aastex}
 \usepackage{cite, natbib}
-% \documentclass[onecolumn, 12pt, usenatbib, preprint]{emulateapj}
 \usepackage{float}
 \usepackage{epsfig}
 \usepackage{cases}
@@ -8,32 +7,45 @@
 \usepackage{graphicx, subfigure}
 \usepackage{color}
 
-\newcommand{\article}{article}
-\newcommand{\oxford}{1}
-\newcommand{\uw}{2}
-\newcommand{\sagan}{3}
-\newcommand{\ktwo}{{\it K2}}
-\newcommand{\eg}{{\it e.g.}}
-\newcommand{\ie}{{\it i.e.}}
-\newcommand{\nlightcurves}{300}
+\newcommand{\columbia}{1}
+\newcommand{\oxford}{2}
+\newcommand{\uw}{3}
+\newcommand{\nlightcurves}{333}
 \newcommand{\Kepler}{{\it Kepler}}
 \newcommand{\kepler}{\Kepler}
+\newcommand{\corot}{{\it CoRoT}}
+\newcommand{\Ktwo}{{\it K2}}
+\newcommand{\ktwo}{\Ktwo}
+\newcommand{\TESS}{{\it TESS}}
+\newcommand{\LSST}{{\it LSST}}
+\newcommand{\SDSS}{{\it SDSS}}
+\newcommand{\PLATO}{{\it PLATO}}
+\newcommand{\Teff}{$T_{\mathrm{eff}}$}
+\newcommand{\teff}{$T_{\mathrm{eff}}$}
+\newcommand{\FeH}{[Fe/H]}
+\newcommand{\feh}{[Fe/H]}
+\newcommand{\ie}{{\it i.e.}}
+\newcommand{\eg}{{\it e.g.}}
+\newcommand{\logg}{log \emph{g}}
+\newcommand{\dnu}{$\Delta \nu$}
+\newcommand{\numax}{$\nu_{\mathrm{max}}$}
 
 \begin{document}
 
-\title{Stellar rotation period inference with Gaussian processes}
+\title{Inferring stellar rotation periods with Gaussian processes}
 
 \author{%
-   Ruth Angus\altaffilmark{\oxford}
+   Ruth Angus\altaffilmark{\columbia}
    Suzanne Aigrain\altaffilmark{\oxford}
-   \& Daniel Foreman-Mackey\altaffilmark{\uw}\altaffilmark{\sagan}
+   \& Daniel Foreman-Mackey\altaffilmark{\uw}
 }
 
+\altaffiltext{\columbia}{Simons Fellow, Columbia University, NY, NY,
+ruthangus@gmail.com}
 \altaffiltext{\oxford}{Subdepartment of Astrophysics, University of Oxford,
 OX1 3RH, UK}
 \altaffiltext{\uw}{Department of Astronomy, University of Washington, Seattle,
-WA, USA}
-\altaffiltext{\sagan}{Sagan fellow}
+WA}
 
 \begin{abstract}
 The light curves of spotted, rotating stars are often non-sinusoidal and
@@ -247,17 +259,6 @@ many thousands of times that is necessary to fully explore the posteriors of
 the parameters.
 However, fully exploring the posterior PDF of $P$, allows for an accurate
 estimate of the uncertainty on the rotation period.
-
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=6in, clip=true]{figures/Kepler452b.pdf}
-% \caption[A light curve with a GP model.]
-% {Light curve of Kepler-452 b, a habitable-zone, Earth-sized planet
-% hosting G star \citep{Jenkins2015}. The orange line shows a fit to the data using
-% a Gaussian process model with a QP covariance kernel function.}
-% \label{fig:GP_example}
-% \end{center}
-% \end{figure}
 
 \begin{figure}
 \begin{center}
@@ -972,17 +973,8 @@ numbers of targets but not well suited to the entire \kepler\ catalogue.
 We continue to develop this method and remain hopeful that we can, eventually
 infer a probabilistic rotation period for thousands of \kepler\ stars.
 
-The data presented in this paper were obtained from the Mikulski Archive for
-Space Telescopes (MAST).
-STScI is operated by the Association of Universities for Research in Astronomy,
-Inc., under NASA contract NAS5-26555.
-Support for MAST for non-HST data is provided by the NASA Office of Space
-Science via grant NNX09AF08G and by other grants and contracts.
-This paper includes data collected by the Kepler mission.
-Funding for the Kepler mission is provided by the NASA Science Mission
-directorate.
+% acknowledgements
 
 \bibliographystyle{plainnat}
 \bibliography{GProtation}
-
 \end{document}
