@@ -28,8 +28,8 @@ def recover(i):
     truths = pd.read_csv("gp_truths.csv")
 
     # select either periodic or non-periodic
-    RESULTS_DIR = "results_periodic_gp"
-#     RESULTS_DIR = "results_aperiodic_gp"
+#     RESULTS_DIR = "results_periodic_gp"
+    RESULTS_DIR = "results_aperiodic_gp"
 
     DATA_DIR = "periodic_gp_simulations"
     trths = [truths.lnA.values[i], truths.lnl_p.values[i],
@@ -41,7 +41,7 @@ def recover(i):
                    truths.lnsigma.values[i], None]
 
     sid = str(int(i)).zfill(4)
-    print(sid, "of", 160)
+    print(sid, "of", 333)
     x, y = np.genfromtxt(os.path.join(DATA_DIR, "{0}.txt".format(sid))).T
     yerr = np.ones_like(y) * 1e-5
     x_n, y_n = np.genfromtxt(os.path.join(DATA_DIR,
@@ -75,9 +75,9 @@ def recover(i):
     print("p_init = ", p_init, "p_init_n = ", p_init_n)
 
     # fast settings:
-#     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
-#     x, y, yerr = x[::100], y[::100], yerr[::100]
-#     x_n, y_n, yerr_n = x_n[::100], y_n[::100], yerr_n[::100]
+    burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
+    x, y, yerr = x[::100], y[::100], yerr[::100]
+    x_n, y_n, yerr_n = x_n[::100], y_n[::100], yerr_n[::100]
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
@@ -86,14 +86,14 @@ def recover(i):
     # run on noisy and noise free
     mcmc_fit(x, y, yerr, p_init, plims, sid, RESULTS_DIR, trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
-    mcmc_fit(x_n, y_n, yerr_n, p_init_n, plims_n, "{0}_n".format(sid), trths,
-             RESULTS_DIR, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
+    mcmc_fit(x_n, y_n, yerr_n, p_init_n, plims_n, "{0}_n".format(sid),
+             RESULTS_DIR, trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run)
 
 if __name__ == "__main__":
 
     pool = Pool()
-    results = pool.map(recover, range(160))
+    results = pool.map(recover, range(333))
 
-#     for i in range(29):
+#     for i in range(333):
 # 	    recover(i)

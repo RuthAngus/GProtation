@@ -82,7 +82,7 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, truths, traces=False,
+def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
@@ -131,7 +131,7 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, truths, traces=False,
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
                             quantiles=[.16, .5, .84], show_titles=True,
-                            truths=truths,)
+                            truths=trths,)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
