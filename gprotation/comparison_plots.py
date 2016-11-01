@@ -105,22 +105,10 @@ def make_new_df(truths, R_DIR):
     return truths_s
 
 
-def mcmc_plots(truths, DIR):
+def mcmc_plots(N, true, med, med_errp, med_errm, maxlike, amp, DIR):
     """
     Plot the GP results.
     """
-
-    truths_e = make_new_df(truths, DIR)
-    m = (truths_e.DELTA_OMEGA.values == 0) \
-            * (truths_e.acf_period.values > 0)
-
-    N = truths_e.N.values[m]
-    true = truths_e.P_MIN.values[m]
-    med = np.exp(truths_e.sigma.values[m])  # period and sigma names swapped
-    med_errp = np.exp(truths_e.sigma_errp.values[m])
-    med_errm = np.exp(truths_e.sigma_errm.values[m])
-    maxlike = np.exp(truths_e.sigma_max[m])
-    amp = truths_e.AMP.values[m]
 
     plt.clf()
     plt.plot(truths_e.NSPOT, np.exp(truths_e.gamma_max), "k.")
@@ -165,20 +153,10 @@ def mcmc_plots(truths, DIR):
     return (np.median((maxlike - true)**2))**.5
 
 
-def acf_plot(truths, DIR):
+def acf_plot(truths, N, true, acfs, acf_errs, DIR):
     """
     Plot the acf results.
     """
-    truths_e = make_new_df(truths, DIR)
-    m = (truths_e.DELTA_OMEGA.values == 0) \
-            * (truths_e.acf_period.values > 0)
-
-    N = truths_e.N.values[m]
-    true = truths_e.P_MIN.values[m]
-    acfs = truths_e.acf_period.values[m]
-    acf_errs = truths_e.acf_period_err.values[m]
-    amp = truths_e.AMP.values[m]
-
     # acf plot
     plt.clf()
     xs = np.arange(0, 100, 1)
@@ -197,19 +175,10 @@ def acf_plot(truths, DIR):
     plt.savefig(os.path.join(DIR, "compare_acf"))
     return (np.median((acfs - true)**2))**.5
 
-def pgram_plot(truths, DIR):
+def pgram_plot(truths_e, N, true, pgram, DIR):
     """
     Plot the pgram results.
     """
-
-    truths_e = make_new_df(truths, DIR)
-    m = (truths_e.DELTA_OMEGA.values == 0) \
-            * (truths_e.acf_period.values > 0)
-
-    N = truths_e.N.values[m]
-    true = truths_e.P_MIN.values[m]
-    pgram = truths_e.pgram_period.values[m]
-    amp = truths_e.AMP.values[m]
 
     # pgram plot
     plt.clf()
@@ -229,10 +198,32 @@ def pgram_plot(truths, DIR):
 
 if __name__ == "__main__":
 
+#     gp_plots("periodic_gp_simulations")
+#     assert 0
+
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
-    print("mcmc prior rms = ", mcmc_plots(truths, "results_prior"))
-    print("mcmc rms = ", mcmc_plots(truths, "results"))
-    print("acf rms = ", acf_plot(truths, "results"))
+    truths_e = make_new_df(truths, DIR)
+    m = (truths_e.DELTA_OMEGA.values == 0) \
+            * (truths_e.acf_period.values > 0)
+    truths_e = truths_e[m]
+
+    N = truths_e.N.values[m]
+    true = truths_e.P_MIN.values[m]
+    med = np.exp(truths_e.sigma.values[m])  # period and sigma names swapped
+    med_errp = np.exp(truths_e.sigma_errp.values[m])
+    med_errm = np.exp(truths_e.sigma_errm.values[m])
+    maxlike = np.exp(truths_e.sigma_max[m])
+    pgram = truths_e.pgram_period.values[m]
+    amp = truths_e.AMP.values[m]
+    acfs = truths_e.acf_period.values[m]
+    acf_errs = truths_e.acf_period_err.values[m]
+
+    print("mcmc Gprior rms = ", mcmc_plots(truths_e, N, true, med, med_errp,
+          mcmc_errm, maxlike, amp, "results_Gprior"))
+    print("mcmc prior rms = ", mcmc_plots(truths_e, N, true, med, med_errp,
+          mcmc_errm, maxlike, amp, "results_prior"))
+    print("mcmc rms = ", mcmc_plots(truths_e, N, true, med, med_errp,
+          mcmc_errm, maxlike, amp, "results"))
+    print("acf rms = ", acf_plot(truths_e, N, true, acfs, acf_errs, "results"))
