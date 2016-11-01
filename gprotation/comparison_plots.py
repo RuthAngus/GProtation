@@ -254,7 +254,6 @@ if __name__ == "__main__":
 #           med_errm, maxlike, amp, "results_prior"))
 
     gp_truths = pd.read_csv("gp_truths.csv")
-    true = np.exp(gp_truths.lnperiod.values)
 
     truths_e_gp = make_new_df(gp_truths, "results_periodic_gp")
     N = truths_e_gp.N.values

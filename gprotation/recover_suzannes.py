@@ -25,7 +25,6 @@ def sigma_clip(x, y, yerr, nsigma):
     return x[~m], y[~m], yerr[~m]
 
 def recover(i):
-    sid = str(int(i)).zfill(4)
 
 #     RESULTS_DIR = "results"
     RESULTS_DIR = "results_Gprior"
@@ -36,6 +35,7 @@ def recover(i):
     m = truths.DELTA_OMEGA.values == 0
 
     id = truths.N.values[m][i]
+    sid = str(int(id)).zfill(4)
     print(id, i, "of", len(truths.N.values[m]))
     x, y = load_suzanne_lcs(sid)
     yerr = np.ones_like(y) * 1e-5
