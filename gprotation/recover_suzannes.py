@@ -27,8 +27,9 @@ def sigma_clip(x, y, yerr, nsigma):
 def recover(i):
 
 #     RESULTS_DIR = "results"
-    RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_prior"
+#     RESULTS_DIR = "results_Gprior"
+    RESULTS_DIR = "results_initialisation"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -79,6 +80,7 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
+
     pool = Pool()
     results = pool.map(recover, range(len(truths.N.values[m])))
 

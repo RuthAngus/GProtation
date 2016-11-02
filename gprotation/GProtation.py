@@ -107,9 +107,9 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
                        "A_errm": [r[7]], "l": [r[8]], "l_errp": [r[9]],
                        "l_errm": [r[10]], "gamma": [r[11]],
                        "gamma_errp": [r[12]], "gamma_errm": [r[13]],
-                       "period": [r[14]], "period_errp": [r[15]],
-                       "period_errm": [r[16]], "sigma": [r[17]],
-                       "sigma_errp": [r[18]], "sigma_errm": [r[19]]})
+                       "sigma": [r[14]], "sigma_errp": [r[15]],
+                       "sigma_errm": [r[16]], "period": [r[17]],
+                       "period_errp": [r[18]], "period_errm": [r[19]]})
     df.to_csv(os.path.join(RESULTS_DIR, "{0}_mcmc_results.csv".format(ID)))
 
     fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
@@ -156,8 +156,11 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
     return r
 
 
-def MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR, nwalkers=32,
-         logsamp=True, plot_inits=False):
+def quarter_MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR,
+                 nwalkers=32, logsamp=True, plot_inits=False):
+    """
+    Split quarters and run MCMC.
+    """
 
     # figure out whether x, y and yerr are arrays or lists of lists
     quarters = False
