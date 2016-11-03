@@ -100,6 +100,10 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
     r = np.concatenate((maxlike, med))
 
+    # calculate autocorrelation times
+    flat_time = np.vstack((np.arange(len(flat)), flat.T)).T
+    acorr_t = emcee.autocorr.integrated_time(flat_time)
+
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
                        "gamma_max": [r[2]], "period_max": [r[3]],
@@ -109,8 +113,11 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
                        "gamma_errp": [r[12]], "gamma_errm": [r[13]],
                        "sigma": [r[14]], "sigma_errp": [r[15]],
                        "sigma_errm": [r[16]], "period": [r[17]],
-                       "period_errp": [r[18]], "period_errm": [r[19]]})
-    df.to_csv(os.path.join(RESULTS_DIR, "{0}_mcmc_results.csv".format(ID)))
+                       "period_errp": [r[18]], "period_errm": [r[19]],
+                       "acorr_A": acorr_t[0], "acorr_l": acorr_t[1],
+                       "acorr_gamma": acorr_t[2], "acorr_sigma": acorr_t[3],
+                       "acorr_period": acorr_t[4]})
+    df.to_csv(os.path.join(RESULTS_DIR, "{0}_mcmc_results.txt".format(ID)))
 
     fig_labels = ["ln(A)", "ln(l)", "ln(G)", "ln(s)", "ln(P)", "lnprob"]
 
@@ -127,8 +134,8 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         DIR = "../code/simulations/kepler_diffrot_full/par/"
         truths = pd.read_csv(os.path.join(DIR, "final_table.txt"),
                              delimiter=" ")
-        true_p = truths.P_MIN.values[truths.N.values ==
-                                    int(filter(str.isdigit, ID))][0]
+        true_p = np.log(truths.P_MIN.values[truths.N.values ==
+                                    int(filter(str.isdigit, ID))][0])
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
                             quantiles=[.16, .5, .84], show_titles=True,

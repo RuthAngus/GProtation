@@ -28,8 +28,8 @@ def recover(i):
 
 #     RESULTS_DIR = "results"
 #     RESULTS_DIR = "results_prior"
-#     RESULTS_DIR = "results_Gprior"
-    RESULTS_DIR = "results_initialisation"
+    RESULTS_DIR = "results_Gprior"
+#     RESULTS_DIR = "results_initialisation"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -56,7 +56,7 @@ def recover(i):
 
     # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
-                                                         RESULTS_DIR)
+                                                         RESULTS_DIR, clobber=False)
 
     # set initial period
     p_init = acf_period
@@ -65,11 +65,15 @@ def recover(i):
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     if p_init > 40:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
-    burnin, nwalkers, nruns, full_run = 500, 12, 10, 500
+    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
 #     plims = np.log([.1*p_init, 5*p_init])
+
+    # fast settings
+#     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
+#     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
     trths = [None, None, None, None, truths.P_MIN.values[m][i]]
     mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR, truths=trths,
@@ -80,6 +84,8 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
+
+#     recover(2)
 
     pool = Pool()
     results = pool.map(recover, range(len(truths.N.values[m])))

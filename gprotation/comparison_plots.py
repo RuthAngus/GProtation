@@ -89,14 +89,17 @@ def make_new_df(truths, R_DIR):
     mcmc = pd.DataFrame(data=np.zeros((0, len(mcols))), columns=mcols)
     acf_pgram = pd.DataFrame(data=np.zeros((0, len(acols))), columns=acols)
     Ns = []
+    n = 0
     for i, id in enumerate(truths.N.values[m]):
         sid = str(int(id)).zfill(4)
         mfname = os.path.join(R_DIR, "{0}_mcmc_results.csv".format(sid))
         afname = os.path.join(R_DIR, "{0}_acf_pgram_results.csv".format(sid))
         if os.path.exists(mfname) and os.path.exists(afname):
+            n += 1
             Ns.append(int(sid))
             mcmc = pd.concat([mcmc, pd.read_csv(mfname)], axis=0)
             acf_pgram = pd.concat([acf_pgram, pd.read_csv(afname)], axis=0)
+    print(n)
 
     mcmc["N"], acf_pgram["N"] = np.array(Ns), np.array(Ns)
     truths1 = mcmc.merge(acf_pgram, on="N")
@@ -123,8 +126,8 @@ def mcmc_plots(truths, DIR):
     amp = truths_e.AMP.values[m]
 
     plt.clf()
-    plt.plot(truths_e.NSPOT, np.exp(truths_e.gamma_max), "k.")
-    plt.xlabel("nspot")
+    plt.plot(truths_e.TAU / truths_e.P_MIN, np.exp(truths_e.gamma_max), "k.")
+    plt.xlabel("tau / period")
     plt.ylabel("gamma")
     plt.ylim(0, 5)
     plt.savefig("tau_gamma")
@@ -141,6 +144,7 @@ def mcmc_plots(truths, DIR):
     plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
 #     plt.errorbar(true, maxlike, yerr=[med_errp, med_errm], fmt="k.", zorder=0,
 #                  capsize=0)
+    print(len(maxlike))
     plt.scatter(true, maxlike, c=np.log(amp), edgecolor="", cmap="GnBu",
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
@@ -233,6 +237,7 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
     print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
+    print("mcmc initialisation rms = ", mcmc_plots(truths, "results_initialisation"))
     print("mcmc prior rms = ", mcmc_plots(truths, "results_prior"))
     print("mcmc rms = ", mcmc_plots(truths, "results"))
-    print("acf rms = ", acf_plot(truths, "results"))
+    print("acf rms = ", acf_plot(truths, "results_Gprior"))
