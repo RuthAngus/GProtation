@@ -72,7 +72,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
 
 
 def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
-             nwalkers=12, nruns=10, full_run=500):
+             nwalkers=12, nruns=10, full_run=500, parallel=False):
     """
     Run the MCMC
     """
@@ -103,7 +103,11 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
 
 
     # Run MCMC.
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args)
+    if parallel:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args,
+                                        threads=15)
+    else:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args)
     print("burning in...")
     p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 
