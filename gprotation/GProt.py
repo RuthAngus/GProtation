@@ -87,7 +87,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
 
     # comment this line for Tim's initialisation
-    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+#     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
     args = (x, y, yerr, plims)
 
     # Time the LHF call.
@@ -113,7 +113,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     theta_init = flat[np.where(ml)[0][0], :]  # maximum likelihood sample
 
     # uncomment this line for Tim's initialisation
-#     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
     sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
     for i, run in enumerate(runs):

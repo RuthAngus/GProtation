@@ -28,8 +28,8 @@ def recover(i):
 
 #     RESULTS_DIR = "results"
 #     RESULTS_DIR = "results_prior"
-    RESULTS_DIR = "results_Gprior"
-#     RESULTS_DIR = "results_initialisation"
+#     RESULTS_DIR = "results_Gprior"
+    RESULTS_DIR = "results_initialisation"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -65,7 +65,7 @@ def recover(i):
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     if p_init > 40:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
-    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
+    burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
