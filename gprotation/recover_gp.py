@@ -28,8 +28,8 @@ def recover(i):
     truths = pd.read_csv("gp_truths.csv")
 
     # select either periodic or non-periodic
-    RESULTS_DIR = "results_periodic_gp"
-#     RESULTS_DIR = "results_aperiodic_gp"
+#     RESULTS_DIR = "results_periodic_gp"
+    RESULTS_DIR = "results_aperiodic_gp"
 
     DATA_DIR = "periodic_gp_simulations"
     trths = [truths.lnA.values[i], truths.lnl_p.values[i],
@@ -71,7 +71,7 @@ def recover(i):
         p_init = 20.
     if p_init_n < .5:
         p_init_n = 20.
-    burnin, nwalkers, nruns, full_run = 500, 12, 10, 500
+    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     print("p_init = ", p_init, "p_init_n = ", p_init_n)
 
     # fast settings:
