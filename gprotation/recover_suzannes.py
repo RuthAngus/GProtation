@@ -28,8 +28,9 @@ def recover(i):
 
 #     RESULTS_DIR = "results"
 #     RESULTS_DIR = "results_prior"
-    RESULTS_DIR = "results_Gprior"
+#     RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_initialisation"
+    RESULTS_DIR = "results_sigma"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")

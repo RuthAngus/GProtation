@@ -38,12 +38,8 @@ def Glnprior(theta, plims):
     theta = A, l, G, sigma, period
     """
     p_init = plims[1] / 1.5
-    mu = np.array([-13, 6.2, -1.4, -17, np.exp(p_init)])
-#     sigma = np.array([2, 2, 2, 2, np.exp(p_init * .5)])
-#     sigma = np.array([5.4, 10, 3.8, 1.7, np.exp(p_init * .5)])
-    sigma = np.array([2.7, 1.5, 1.5, 1.7, np.exp(p_init * .5)])
-#     if plims[0] < theta[4] < plims[1] and theta[1] > theta[4] \
-#             and np.log(.5) < theta[4]:
+    mu = np.array([-13, 6.2, -1.4, 2.9, np.exp(p_init)])
+    sigma = np.array([2.7, 1.5, 1.5, .73, np.exp(p_init * .5)])
     if theta[1] > theta[4] and np.log(.5) < theta[4] and theta[4] < 100:
 #         return np.logaddexp.reduce(lnGauss(np.array(theta), mu, sigma), axis=0)
         return np.sum(lnGauss(np.array(theta), mu, sigma))
