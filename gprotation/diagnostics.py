@@ -66,6 +66,10 @@ def plots(truths, DIR):
     amp = truths_e.AMP.values[m]
     acfs = truths_e.acf_period.values[m]
     acf_errs = truths_e.acf_period_err.values[m]
+    gammas = truths_e.gamma_max.values[m]
+    ss = truths_e.sigma_max.values[m]
+    As = truths_e.A_max.values[m]
+    ls = truths_e.l_max.values[m]
 
     mgp = (np.abs(true - maxlike) / true) < .1
     mgpf = (np.abs(true - maxlike) / true) > .2
@@ -77,6 +81,7 @@ def plots(truths, DIR):
     xs = np.arange(0, 100, 1)
     plt.plot(xs, xs, "k--", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
+    plt.plot(xs, .5*xs, "k--", alpha=.5)
     plt.ylim(0, 100)
     plt.xlim(0, 55)
     plt.title("$\mathrm{MCMC~results~for~ACF~successes}$")
@@ -87,6 +92,12 @@ def plots(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
+    m = ((true[ma] / maxlike[ma]) < .5)
+    print(N[ma][m])
+    num = 1
+    plt.plot(true[ma][m][num], maxlike[ma][m][num], "r.")
+    print(N[ma][m][num])
+    print(true[ma][m][num], acfs[ma][m][num], maxlike[ma][m][num])
     plt.savefig(os.path.join(DIR, "mcmc_acf"))
 
     # plot mcmc results for acf failures
@@ -204,10 +215,72 @@ def plots(truths, DIR):
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.savefig(os.path.join(DIR, "mcmc_fail"))
 
+    plt.clf()
+    plt.hist(gammas[mgpf], color="w", alpha=.5, histtype="stepfilled",
+            ls="--",
+            label="${0:.2} \pm {1:.2}$".format(np.median(gammas[mgpf]),
+                                        np.std(gammas[mgpf])))
+    plt.hist(gammas[mgp], color="w", alpha=.5, histtype="stepfilled",
+            label="${0:.2} \pm {1:.2}$".format(np.median(gammas[mgp]),
+                                        np.std(gammas[mgp])))
+    plt.legend()
+    plt.xlabel("$\ln(\Gamma)$")
+    plt.savefig("gamma_comp")
+
+    plt.clf()
+    plt.hist(ls[mgpf], color="w", alpha=.5, histtype="stepfilled",
+            ls="--",
+            label="${0:.2} \pm {1:.2}$".format(np.median(ls[mgpf]),
+                                        np.std(ls[mgpf])))
+    plt.hist(ls[mgp], color="w", alpha=.5, histtype="stepfilled",
+            label="${0:.2} \pm {1:.2}$".format(np.median(ls[mgp]),
+                                        np.std(ls[mgp])))
+    plt.legend()
+    plt.xlabel("$\ln(l)$")
+    plt.savefig("l_comp")
+
+    plt.clf()
+    plt.hist(As[mgpf], color="w", alpha=.5, histtype="stepfilled",
+            ls="--",
+            label="${0:.2} \pm {1:.2}$".format(np.median(As[mgpf]),
+                                        np.std(As[mgpf])))
+    plt.hist(As[mgp], color="w", alpha=.5, histtype="stepfilled",
+            label="${0:.2} \pm {1:.2}$".format(np.median(As[mgp]),
+                                        np.std(As[mgp])))
+    plt.legend()
+    plt.xlabel("$\ln(A)$")
+    plt.savefig("A_comp")
+
+    plt.clf()
+    plt.hist(ss[mgpf], color="w", alpha=.5, histtype="stepfilled",
+            ls="--",
+            label="${0:.2} \pm {1:.2}$".format(np.median(ss[mgpf]),
+                                        np.std(ss[mgpf])))
+    plt.hist(ss[mgp], color="w", alpha=.5, histtype="stepfilled",
+            label="${0:.2} \pm {1:.2}$".format(np.median(ss[mgp]),
+                                        np.std(ss[mgp])))
+    plt.legend()
+    plt.xlabel("$\ln(\sigma)$")
+    plt.savefig("s_comp")
+
+    plt.clf()
+    m = maxlike[mgpf] < 1000
+    plt.hist(maxlike[mgpf][m], color="w", alpha=.5, histtype="stepfilled",
+            ls="--",
+            label="${0:.2} \pm {1:.2}$".format(np.median(maxlike[mgpf][m]),
+                                        np.std(maxlike[mgpf][m])))
+    plt.hist(maxlike[mgp], color="w", alpha=.5, histtype="stepfilled",
+            label="${0:.2} \pm {1:.2}$".format(np.median(maxlike[mgp]),
+                                        np.std(maxlike[mgp])))
+    plt.legend()
+    plt.xlabel("$\ln(\mathrm{Period})$")
+    plt.savefig("period_comp")
+
 
 if __name__ == "__main__":
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    print("mcmc Gprior rms = ", plots(truths, "results_initialisation"))
+    print("mcmc Gprior rms = ", plots(truths, "results_Gprior"))
+#     print("mcmc Gprior rms = ", plots(truths, "results_initialisation"))
