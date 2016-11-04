@@ -33,7 +33,7 @@ def load_k2_data(epic_id, DATA_DIR):
 
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
-    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
     if not clobber and os.path.exists(fname):
         print("Previous ACF pgram result found")
         df = pd.read_csv(fname)
@@ -86,13 +86,16 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     inits = [1, 1, 1, 1, np.log(.5*p_init)]
     p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
 
+    pmax = np.log((x[-1] - x[0]) / 2.)
+
     # comment this line for Tim's initialisation
 #     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
-    args = (x, y, yerr, plims)
+    args = (x, y, yerr, np.log(p_init), p_max)
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", Glnprob(theta_init, x, y, yerr, plims)[0], "\n")
+    print("lnprob = ", Glnprob(theta_init, x, y, yerr, np.log(p_init),
+                               p_max)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")

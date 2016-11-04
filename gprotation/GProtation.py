@@ -31,16 +31,13 @@ def lnprior(theta, plims):
 def lnGauss(x, mu, sigma):
     return -.5 * ((x - mu)**2/(.5 * sigma**2))
 
-def Glnprior(theta, plims):
+def Glnprior(theta, p_init, p_max):
     """
-    plims is a tuple, list or array containing the lower and upper limits for
-    the rotation period.
     theta = A, l, G, sigma, period
     """
-    p_init = plims[1] / 1.5
     mu = np.array([-13, 6.2, -1.4, 2.9, np.exp(p_init)])
     sigma = np.array([2.7, 1.5, 1.5, .73, np.exp(p_init * .5)])
-    if theta[1] > theta[4] and np.log(.5) < theta[4] and theta[4] < 100:
+    if theta[1] > theta[4] and np.log(.5) < theta[4] and theta[4] < p_max:
 #         return np.logaddexp.reduce(lnGauss(np.array(theta), mu, sigma), axis=0)
         return np.sum(lnGauss(np.array(theta), mu, sigma))
     return -np.inf
@@ -51,8 +48,8 @@ def lnprob(theta, x, y, yerr, plims):
     return prob, prob
 
 # lnprob
-def Glnprob(theta, x, y, yerr, plims):
-    prob = lnlike(theta, x, y, yerr) + Glnprior(theta, plims)
+def Glnprob(theta, x, y, yerr, p_init, p_max):
+    prob = lnlike(theta, x, y, yerr) + Glnprior(theta, p_init, p_max)
     return prob, prob
 
 # lnlike
