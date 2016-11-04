@@ -23,7 +23,7 @@ def make_new_df(truths, R_DIR):
     m = truths.DELTA_OMEGA.values == 0
 
     # get column names
-    mfname2 = os.path.join(R_DIR, "0002_mcmc_results.csv")
+    mfname2 = os.path.join(R_DIR, "0002_mcmc_results.txt")
     apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.csv")
     mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
 
@@ -34,7 +34,7 @@ def make_new_df(truths, R_DIR):
     Ns = []
     for i, id in enumerate(truths.N.values[m]):
         sid = str(int(id)).zfill(4)
-        mfname = os.path.join(R_DIR, "{0}_mcmc_results.csv".format(sid))
+        mfname = os.path.join(R_DIR, "{0}_mcmc_results.txt".format(sid))
         afname = os.path.join(R_DIR, "{0}_acf_pgram_results.csv".format(sid))
         if os.path.exists(mfname) and os.path.exists(afname):
             Ns.append(int(sid))
@@ -92,12 +92,6 @@ def plots(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    m = ((true[ma] / maxlike[ma]) < .5)
-    print(N[ma][m])
-    num = 1
-    plt.plot(true[ma][m][num], maxlike[ma][m][num], "r.")
-    print(N[ma][m][num])
-    print(true[ma][m][num], acfs[ma][m][num], maxlike[ma][m][num])
     plt.savefig(os.path.join(DIR, "mcmc_acf"))
 
     # plot mcmc results for acf failures
@@ -181,6 +175,7 @@ def plots(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
+    plt.plot(true[N == 44], acfs[N == 44], "r.")
     plt.savefig(os.path.join(DIR, "acf_mcmc_fail"))
 
     plt.clf()
@@ -201,8 +196,9 @@ def plots(truths, DIR):
 
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, xs, "k-", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
+    plt.plot(xs, .5*xs, "k--", alpha=.5)
     plt.ylim(0, 100)
     plt.xlim(0, 55)
     plt.title("$\mathrm{MCMC~failures}$")
@@ -213,6 +209,14 @@ def plots(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
+    m = ((maxlike[mgpf] / true[mgpf]) > 1)
+#     * (maxlike[mgpf] > 40) \
+#             * (maxlike[mgpf] < 60)
+    print(N[mgpf][m])
+    num = 2
+    plt.plot(true[mgpf][m][num], maxlike[mgpf][m][num], "r.")
+    print(N[mgpf][m][num])
+    print(true[mgpf][m][num], maxlike[mgpf][m][num], acfs[mgpf][m][num])
     plt.savefig(os.path.join(DIR, "mcmc_fail"))
 
     plt.clf()
@@ -282,5 +286,6 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    print("mcmc Gprior rms = ", plots(truths, "results_Gprior"))
+#     print("mcmc Gprior rms = ", plots(truths, "results_Gprior"))
+    print("mcmc Gprior rms = ", plots(truths, "results_sigma"))
 #     print("mcmc Gprior rms = ", plots(truths, "results_initialisation"))
