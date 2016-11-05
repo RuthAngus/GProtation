@@ -134,9 +134,10 @@ def mcmc_plots(truths, DIR):
     # mcmc plot
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
+    plt.plot(xs, xs, "k-", alpha=.5)
     plt.plot(xs, 2*xs, "k--", alpha=.5)
-#     plt.ylim(0, 100)
+    plt.plot(xs, .5*xs, "k--", alpha=.5)
+    plt.ylim(0, 100)
 #     plt.ylim(0, 1)
     plt.xlim(0, 55)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
@@ -234,9 +235,9 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-#     print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
+    print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("mcmc initialisation rms = ", mcmc_plots(truths, "results_initialisation"))
 #     print("mcmc prior rms = ", mcmc_plots(truths, "results_prior"))
 #     print("mcmc rms = ", mcmc_plots(truths, "results"))
-#     print("acf rms = ", acf_plot(truths, "results_Gprior"))
+    print("acf rms = ", acf_plot(truths, "results_sigma"))

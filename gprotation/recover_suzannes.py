@@ -67,7 +67,6 @@ def recover(i):
     if p_init > 40:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
-    burnin, nwalkers, nruns, full_run = 500, 12, 10, 500
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
