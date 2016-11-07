@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os
 sys.path.append('..')
 from gprotation.aigrain import AigrainLightCurve
 from gprotation.model import GPRotModel
@@ -20,7 +20,7 @@ def fit_polychord(i, test=False):
                         prior=mod.polychord_prior,
                         file_root=basename)    
 
-def fit_mnest(i, test=False, **kwargs):
+def fit_mnest(i, test=False, verbose=False, **kwargs):
     import pymultinest
 
     lc = AigrainLightCurve(i)
@@ -30,7 +30,8 @@ def fit_mnest(i, test=False, **kwargs):
         print('Will run multinest on star {}...')
     else:
         _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
-                            outputfile_basename=basename, **kwargs)
+                            verbose=verbose, outputfile_basename=basename, 
+                            **kwargs)
 
 if __name__=='__main__':
     import argparse
@@ -40,6 +41,7 @@ if __name__=='__main__':
     parser.add_argument('stars', nargs='*', type=int)
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--polychord', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
 
     args = parser.parse_args()
 
@@ -47,5 +49,5 @@ if __name__=='__main__':
         if args.polychord:
             fit_polychord(i, test=args.test)
         else:
-            fit_mnest(i, test=args.test)
+            fit_mnest(i, test=args.test, verbose=args.verbose)
 
