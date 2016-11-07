@@ -30,7 +30,7 @@ def fit_mnest(i, test=False, verbose=False, **kwargs):
         print('Will run multinest on star {}...')
     else:
         _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
-                            verbose=verbose, outputfile_basename=basename, 
+                            verbose=verbose, outputfiles_basename=basename, 
                             **kwargs)
 
 if __name__=='__main__':
