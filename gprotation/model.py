@@ -22,10 +22,11 @@ def lnGauss(x, mu, sigma):
 class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
-    _bounds = ((-20, 20), 
-               (-20, 20), 
-               (-20, 20), 
-               (-20, 20), 
+    # log bounds
+    _bounds = ((-10., 0.), 
+               (-0.69, 20.), 
+               (-8., 8.), 
+               (-12., 5.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
     def __init__(self, lc, plims=None):
@@ -51,11 +52,11 @@ class GPRotModel(object):
         """
         if theta[4] < self.plims[0] or theta[4] > self.plims[1]:
             return -np.inf
-        if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
-            return -np.inf
+        # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
+        #     return -np.inf
 
-        # p_init = self.plims[1] / 1.5
-        # lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
+        p_init = self.plims[1] / 1.5
+        lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
 
         lnpr = np.sum(lnGauss(np.array(theta[:4]), 
                               self.gp_prior_mu, self.gp_prior_sigma))
@@ -63,7 +64,12 @@ class GPRotModel(object):
         return lnpr
 
     def lnlike(self, theta):
-        A, l, G, sigma, P = np.exp(theta)
+        A = np.exp(theta[0])
+        l = np.exp(theta[1])
+        G = np.exp(theta[2])
+        sigma = np.exp(theta[3])
+        P = np.exp(theta[4])
+
         k = A * ExpSquaredKernel(l) * ExpSine2Kernel(G, P) + WhiteKernel(sigma)
         gp = george.GP(k, solver=george.HODLRSolver)
         try:
@@ -85,4 +91,13 @@ class GPRotModel(object):
         phi = [0.0] * 0
         return self.lnpost(theta), phi
 
+    def mnest_prior(self, cube, ndim, nparams):
+        for i in range(5):
+            lo, hi = self.bounds[i]
+            cube[i] = (hi - lo)*cube[i] + lo
+
+    def mnest_loglike(self, cube, ndim, nparams):
+        """loglikelihood function for multinest
+        """
+        return self.lnpost(cube)
 
