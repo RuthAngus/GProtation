@@ -100,4 +100,3 @@ class GPRotModel(object):
         """loglikelihood function for multinest
         """
         return self.lnpost(cube)
-

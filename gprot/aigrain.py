@@ -21,6 +21,9 @@ class AigrainLightCurve(LightCurve):
     def sigma_clip(self, nsigma=5):
         super(AigrainLightCurve, self).sigma_clip(nsigma)
 
+class NoiseFreeAigrainLightCurve(AigrainLightCurve):
+    subdir = 'noise_free'
+
 class AigrainTruths(object):
     filename = os.path.join(AIGRAIN_DIR, 'par', 'final_table.txt')
 
