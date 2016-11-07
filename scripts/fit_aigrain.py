@@ -25,11 +25,12 @@ def fit_mnest(i, test=False, **kwargs):
 
     lc = AigrainLightCurve(i)
     mod = GPRotModel(lc)
-    basename = str(i)
+    basename = os.path.join('chains',str(i))
     if test:
         print('Will run multinest on star {}...')
     else:
-        _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, **kwargs)
+        _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
+                            outputfile_basename=basename, **kwargs)
 
 if __name__=='__main__':
     import argparse
