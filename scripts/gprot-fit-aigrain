@@ -22,7 +22,7 @@ def fit_polychord(i, test=False):
                         file_root=basename)    
 
 def fit_mnest(i, test=False, verbose=False, resultsdir='results', 
-              ndays=200, subsample=10, **kwargs):
+              ndays=600, subsample=20, **kwargs):
     import pymultinest
 
     lc = AigrainLightCurve(i, ndays, subsample)
@@ -58,8 +58,8 @@ if __name__=='__main__':
     parser.add_argument('--polychord', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--resultsdir', default='results')
-    parser.add_argument('-n', '--ndays', default=200, type=int)
-    parser.add_argument('--subsample', default=10, type=int)
+    parser.add_argument('-n', '--ndays', default=600, type=int)
+    parser.add_argument('--subsample', default=20, type=int)
 
     args = parser.parse_args()
 

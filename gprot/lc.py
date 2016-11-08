@@ -4,10 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class LightCurve(object):
-    def __init__(self, x, y, yerr):
+    def __init__(self, x, y, yerr, name=''):
         self.x = x.copy()
         self.y = y.copy()
         self.yerr = yerr.copy()
+        self.name = name
 
         self._x_raw = x.copy()
         self._y_raw = y.copy()
@@ -44,3 +45,4 @@ class LightCurve(object):
         ax.plot(self.x, self.y, **kwargs)
         ax.set_xlabel('Time [d]')
         ax.set_ylabel('Flux')
+        ax.set_title(self.name)

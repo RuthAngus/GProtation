@@ -18,7 +18,7 @@ class AigrainLightCurve(LightCurve):
         x, y = np.genfromtxt(os.path.join(AIGRAIN_DIR, self.subdir,
                              "lightcurve_{0}.txt".format(sid))).T
         yerr = np.ones(len(y)) * 1e-5
-        super(AigrainLightCurve, self).__init__(x - x[0], y - 1, yerr)
+        super(AigrainLightCurve, self).__init__(x - x[0], y - 1, yerr, name=str(i))
         self.restrict_range((0, ndays))
         self.subsample(sub)
 

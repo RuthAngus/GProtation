@@ -31,18 +31,39 @@ class GPRotModel(object):
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
-    def __init__(self, lc, plims=None):
-        self.x = lc.x
-        self.y = lc.y
-        self.yerr = lc.yerr
+    def __init__(self, lc, plims=None, name=None):
+
+        self.lc = lc
+        
         if plims is None:
             self.plims = self._bounds[4]
         else:
             self.plims = plims
 
+        self._name = name
+
         # Default gaussian for GP param priors
         self.gp_prior_mu = np.array([-12, 7, -1, -17])
         self.gp_prior_sigma = np.array([5.4, 10, 3.8, 1.7])
+
+    @property
+    def x(self):
+        return self.lc.x
+
+    @property
+    def y(self):
+        return self.lc.y
+
+    @property
+    def yerr(self):
+        return self.lc.yerr
+
+    @property
+    def name(self):
+        if self._name is None:
+            return self.lc.name
+        else:
+            return self._name
 
     @property
     def bounds(self):
