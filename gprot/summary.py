@@ -17,7 +17,7 @@ def corner_plot(basename, true_period=None, **kwargs):
                                             max(df['ln_period'].max(), P2)+0.01)]
         fig = corner.corner(df, labels=GPRotModel.param_names, range=rng, **kwargs)
         axes = fig.get_axes()
-        axes[-1].axvspan(true_period[0], true_period[1], color='g', alpha=0.3)
+        axes[-1].axvspan(P1, P2, color='g', alpha=0.3)
     else:
         rng = [0.999, 0.999, 0.999, 0.999, (min(df['ln_period'].min(), true_period)-0.01,
                                             max(df['ln_period'].max(), true_period)+0.01)]
