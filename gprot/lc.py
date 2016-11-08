@@ -29,9 +29,11 @@ class LightCurve(object):
         self.yerr = self.yerr[m]
 
     def subsample(self, sub):
-        self.x = self.x[::sub]
-        self.y = self.y[::sub]
-        self.yerr = self.yerr[::sub]
+        N = len(self.x)
+        inds = np.sort(np.random.choice(N, N//sub, replace=False))
+        self.x = self.x[inds]
+        self.y = self.y[inds]
+        self.yerr = self.yerr[inds]
 
     def plot(self, ax=None, **kwargs):
         if ax is None:

@@ -21,10 +21,11 @@ def fit_polychord(i, test=False):
                         prior=mod.polychord_prior,
                         file_root=basename)    
 
-def fit_mnest(i, test=False, verbose=False, resultsdir='results', **kwargs):
+def fit_mnest(i, test=False, verbose=False, resultsdir='results', 
+              ndays=200, subsample=10, **kwargs):
     import pymultinest
 
-    lc = AigrainLightCurve(i)
+    lc = AigrainLightCurve(i, ndays, subsample)
     mod = GPRotModel(lc)
     basename = os.path.join('chains',str(i))
     if test:
@@ -57,6 +58,8 @@ if __name__=='__main__':
     parser.add_argument('--polychord', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--resultsdir', default='results')
+    parser.add_argument('-n', '--ndays', default=200)
+    parser.add_argument('--subsample', default=10)
 
     args = parser.parse_args()
 
@@ -66,6 +69,7 @@ if __name__=='__main__':
                 fit_polychord(i, test=args.test)
             else:
                 fit_mnest(i, test=args.test, verbose=args.verbose, 
+                          ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir)
         except:
             import traceback
