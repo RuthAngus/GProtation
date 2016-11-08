@@ -58,8 +58,8 @@ if __name__=='__main__':
     parser.add_argument('--polychord', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--resultsdir', default='results')
-    parser.add_argument('-n', '--ndays', default=200)
-    parser.add_argument('--subsample', default=10)
+    parser.add_argument('-n', '--ndays', default=200, type=int)
+    parser.add_argument('--subsample', default=10, type=int)
 
     args = parser.parse_args()
 
