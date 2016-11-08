@@ -52,9 +52,13 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     for i in args.stars:
-        if args.polychord:
-            fit_polychord(i, test=args.test)
-        else:
-            fit_mnest(i, test=args.test, verbose=args.verbose, 
-                      resultsdir=args.resultsdir)
-
+        try:
+            if args.polychord:
+                fit_polychord(i, test=args.test)
+            else:
+                fit_mnest(i, test=args.test, verbose=args.verbose, 
+                          resultsdir=args.resultsdir)
+        except:
+            import traceback
+            traceback.print_exc()
+            logging.error('Error with {}; traceback above.'.format(i))
