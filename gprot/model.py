@@ -26,7 +26,7 @@ class GPRotModel(object):
     _bounds = ((-10., 0.), 
                (-0.69, 20.), 
                (-8., 8.), 
-               (-12., 5.), 
+               (-20., 5.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
