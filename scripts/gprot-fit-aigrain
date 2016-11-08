@@ -38,7 +38,7 @@ def fit_mnest(i, test=False, verbose=False, resultsdir='results', **kwargs):
             os.makedirs(resultsdir)
 
         df = GPRotModel.get_mnest_samples(basename)
-        df.to_hdf(os.path.join(resultsdir, '{}.h5'.format(i)))
+        df.to_hdf(os.path.join(resultsdir, '{}.h5'.format(i)), 'df')
         fig = lc.corner_plot()
         fig.savefig(os.path.join(resultsdir, '{}.png'.format(i)))
 
