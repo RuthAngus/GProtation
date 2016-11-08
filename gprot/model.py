@@ -29,6 +29,8 @@ class GPRotModel(object):
                (-12., 5.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
+    param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
+
     def __init__(self, lc, plims=None):
         self.x = lc.x
         self.y = lc.y
@@ -55,8 +57,8 @@ class GPRotModel(object):
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
 
-        p_init = self.plims[1] / 1.5
-        lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
+        # p_init = self.plims[1] / 1.5
+        # lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
 
         lnpr = np.sum(lnGauss(np.array(theta[:4]), 
                               self.gp_prior_mu, self.gp_prior_sigma))
@@ -100,3 +102,11 @@ class GPRotModel(object):
         """loglikelihood function for multinest
         """
         return self.lnpost(cube)
+
+    @classmethod
+    def get_mnest_samples(cls, basename):
+        """Returns pandas DataFrame of samples created by MultiNest
+        """
+        post_file = '{}post_equal_weights.dat'.format(basename)
+        data = np.loadtxt(post_file)
+        return pd.DataFrame(data[:,:-1], columns=cls.param_names)

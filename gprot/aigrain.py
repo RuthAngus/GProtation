@@ -7,9 +7,13 @@ import pandas as pd
 from .config import AIGRAIN_DIR
 from .lc import LightCurve
 
+from .summary import corner_plot
+
 class AigrainLightCurve(LightCurve):
     subdir = 'final'
     def __init__(self, i, ndays=200, sub=10):
+        self.i = i
+
         sid = str(int(i)).zfill(4)
         x, y = np.genfromtxt(os.path.join(AIGRAIN_DIR, self.subdir,
                              "lightcurve_{0}.txt".format(sid))).T
@@ -18,8 +22,21 @@ class AigrainLightCurve(LightCurve):
         self.restrict_range((0, ndays))
         self.subsample(sub)
 
+        self._sim_params = None
+
     def sigma_clip(self, nsigma=5):
         super(AigrainLightCurve, self).sigma_clip(nsigma)
+
+    @property
+    def sim_params(self):
+        if self._sim_params is None:
+            self._sim_params = AigrainTruths().df.ix[self.i]
+        return self._sim_params
+
+    def corner_plot(self, chainsdir='chains', **kwargs):
+        basename = os.path.join(chainsdir,str(self.i))
+        P1, P2 = self.sim_params.P_MIN, self.sim_params.P_MAX
+        return corner_plot(basename, true_period=(np.log(P1), np.log(P2)))
 
 class NoiseFreeAigrainLightCurve(AigrainLightCurve):
     subdir = 'noise_free'

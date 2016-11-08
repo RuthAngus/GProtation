@@ -3,8 +3,6 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .filter import sigma_clip
-
 class LightCurve(object):
     def __init__(self, x, y, yerr):
         self.x = x.copy()

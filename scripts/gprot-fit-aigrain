@@ -14,7 +14,7 @@ def fit_polychord(i, test=False):
     mod = GPRotModel(lc)
     basename = str(i)
     if test:
-        print('Will run polychord on star {}...')
+        print('Will run polychord on star {}...'.format(i))
     else:
         _ = PolyChord.run_nested_sampling(mod.polychord_lnpost, 5, 0,
                         prior=mod.polychord_prior,
@@ -27,7 +27,7 @@ def fit_mnest(i, test=False, verbose=False, **kwargs):
     mod = GPRotModel(lc)
     basename = os.path.join('chains',str(i))
     if test:
-        print('Will run multinest on star {}...')
+        print('Will run multinest on star {}...'.format(i))
     else:
         _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
                             verbose=verbose, outputfiles_basename=basename, 
