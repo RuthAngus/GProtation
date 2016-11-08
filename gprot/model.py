@@ -23,7 +23,7 @@ class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
     # log bounds
-    _bounds = ((-10., 0.), 
+    _bounds = ((-20., 5.), 
                (-0.69, 20.), 
                (-8., 8.), 
                (-20., 5.), 
@@ -34,7 +34,7 @@ class GPRotModel(object):
     def __init__(self, lc, plims=None, name=None):
 
         self.lc = lc
-        
+
         if plims is None:
             self.plims = self._bounds[4]
         else:
@@ -43,8 +43,8 @@ class GPRotModel(object):
         self._name = name
 
         # Default gaussian for GP param priors
-        self.gp_prior_mu = np.array([-12, 7, -1, -17])
-        self.gp_prior_sigma = np.array([5.4, 10, 3.8, 1.7])
+        self.gp_prior_mu = np.array([-5., 7., -1., -17.])
+        self.gp_prior_sigma = np.array([10., 10., 3.8, 1.7])
 
     @property
     def x(self):
