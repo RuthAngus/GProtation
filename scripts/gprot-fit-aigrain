@@ -20,7 +20,7 @@ def fit_polychord(i, test=False):
                         prior=mod.polychord_prior,
                         file_root=basename)    
 
-def fit_mnest(i, test=False, verbose=False, **kwargs):
+def fit_mnest(i, test=False, verbose=False, resultsdir='results', **kwargs):
     import pymultinest
 
     lc = AigrainLightCurve(i)
@@ -32,6 +32,11 @@ def fit_mnest(i, test=False, verbose=False, **kwargs):
         _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
                             verbose=verbose, outputfiles_basename=basename, 
                             **kwargs)
+        df = GPRotModel.get_mnest_samples(basename)
+        df.to_hdf(os.path.join(resultsdir, '{}.h5'.format(i)))
+        fig = lc.corner_plot()
+        fig.savefig(os.path.join(resultsdir, '{}.png'.format(i)))
+
 
 if __name__=='__main__':
     import argparse
@@ -42,6 +47,7 @@ if __name__=='__main__':
     parser.add_argument('--test', action='store_true')
     parser.add_argument('--polychord', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('--resultsdir', default='results')
 
     args = parser.parse_args()
 
@@ -49,5 +55,6 @@ if __name__=='__main__':
         if args.polychord:
             fit_polychord(i, test=args.test)
         else:
-            fit_mnest(i, test=args.test, verbose=args.verbose)
+            fit_mnest(i, test=args.test, verbose=args.verbose, 
+                      resultsdir=args.resultsdir)
 
