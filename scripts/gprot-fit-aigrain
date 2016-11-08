@@ -32,6 +32,10 @@ def fit_mnest(i, test=False, verbose=False, resultsdir='results', **kwargs):
         _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
                             verbose=verbose, outputfiles_basename=basename, 
                             **kwargs)
+
+        if not os.path.exists(resultsdir):
+            os.makedirs(resultsdir)
+
         df = GPRotModel.get_mnest_samples(basename)
         df.to_hdf(os.path.join(resultsdir, '{}.h5'.format(i)))
         fig = lc.corner_plot()
