@@ -23,7 +23,7 @@ class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
     # log bounds
-    _bounds = ((-20., 5.), 
+    _bounds = ((-20., 0.), 
                (-0.69, 20.), 
                (-8., 8.), 
                (-20., 5.), 
