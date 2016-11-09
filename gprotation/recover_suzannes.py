@@ -90,7 +90,7 @@ if __name__ == "__main__":
 #     recover(2)
 
     pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m])))
+    results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
