@@ -209,11 +209,11 @@ def plots(truths, DIR):
                 vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    m = ((maxlike[mgpf] / true[mgpf]) > 1)
+    m = ((maxlike[mgpf] / true[mgpf]) > 1.3)
 #     * (maxlike[mgpf] > 40) \
 #             * (maxlike[mgpf] < 60)
     print(N[mgpf][m])
-    num = 2
+    num = 3
     plt.plot(true[mgpf][m][num], maxlike[mgpf][m][num], "r.")
     print(N[mgpf][m][num])
     print(true[mgpf][m][num], maxlike[mgpf][m][num], acfs[mgpf][m][num])
