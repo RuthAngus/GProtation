@@ -43,8 +43,13 @@ class GPRotModel(object):
         self._name = name
 
         # Default gaussian for GP param priors
-        self.gp_prior_mu = np.array([-13, 6.2, -1.4, 2.9])
-        self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, .73])
+        # These are suggested by Ruth but fits didn't work...
+        # self.gp_prior_mu = np.array([-13, 6.2, -1.4, 2.9])
+        # self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, .73])
+
+        # These were old ones where fits worked...
+        self.gp_prior_mu = np.array([-12, 7, -1, -12])
+        self.gp_prior_sigma = np.array([5.4, 10, 3.8, 5])
 
     @property
     def x(self):
