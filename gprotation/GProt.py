@@ -86,7 +86,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     inits = [1, 1, 1, 1, np.log(.5*p_init)]
     p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
 
-    pmax = np.log((x[-1] - x[0]) / 2.)
+    p_max = np.log((x[-1] - x[0]) / 2.)
 
     # comment this line for Tim's initialisation
 #     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]

@@ -29,8 +29,8 @@ def recover(i):
 #     RESULTS_DIR = "results"
 #     RESULTS_DIR = "results_prior"
 #     RESULTS_DIR = "results_Gprior"
-    RESULTS_DIR = "results_initialisation"
-#     RESULTS_DIR = "results_sigma"
+#     RESULTS_DIR = "results_initialisation"
+    RESULTS_DIR = "results_sigma"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -57,7 +57,8 @@ def recover(i):
 
     # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
-                                                         RESULTS_DIR, clobber=False)
+                                                         RESULTS_DIR,
+                                                         clobber=False)
 
     # set initial period
     p_init = acf_period
@@ -89,7 +90,7 @@ if __name__ == "__main__":
 #     recover(2)
 
     pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m])))
+    results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
