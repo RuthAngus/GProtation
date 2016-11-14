@@ -74,17 +74,13 @@ def recover(i):
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
-    # set prior bounds
-    plims = np.log([.5*p_init, 1.5*p_init])
-#     plims = np.log([.1*p_init, 5*p_init])
-
     # fast settings
 #     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
 #     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
     print(p_init)
     trths = [None, None, None, None, truths.P_MIN.values[m][i]]
-    mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR, truths=trths,
+    mcmc_fit(xb, yb, yerrb, p_init, sid, RESULTS_DIR, truths=trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
 
 if __name__ == "__main__":

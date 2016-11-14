@@ -71,7 +71,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
+def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
              nwalkers=12, nruns=10, full_run=500, parallel=False):
     """
     Run the MCMC
