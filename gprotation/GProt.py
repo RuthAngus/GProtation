@@ -78,7 +78,6 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     """
 
     print("total number of points = ", len(x))
-    print(p_init)
     theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
@@ -90,6 +89,8 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
 
     # comment this line for Tim's initialisation
 #     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+
+    print("p_init = ", p_init, "days, log(p_init) = ", np.log(p_init), "p_max = ", p_max)
     args = (x, y, yerr, np.log(p_init), p_max)
 
     # Time the LHF call.

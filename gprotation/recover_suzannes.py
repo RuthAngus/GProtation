@@ -69,6 +69,8 @@ def recover(i):
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
 
+    assert p_init < 100, "p_init > 100"
+
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
 #     plims = np.log([.1*p_init, 5*p_init])
@@ -93,4 +95,5 @@ if __name__ == "__main__":
     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
 #     for i in range(len(truths.N.values[m])):
+#     for i in range(10):
 # 	    recover(i)

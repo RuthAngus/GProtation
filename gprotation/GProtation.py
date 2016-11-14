@@ -35,11 +35,10 @@ def Glnprior(theta, p_init, p_max):
     """
     theta = A, l, G, sigma, period
     """
-    mu = np.array([-13, 6.2, -1.4, p_init])
-    sigma = np.array([2.7, 1.5, 1.5, p_init * 2])
-    if theta[1] > theta[4] and np.log(.5) < theta[4] and theta[4] < p_max \
-            and -20 < theta[3] < 20:
-        return np.sum(lnGauss(np.array(theta), mu, sigma))
+    mu = np.array([-13, 6.2, -1.4, -17, p_init])
+    sigma = np.array([2.7, 1.5, 1.5, 10, p_init * 2])
+    if theta[1] > theta[4] and np.log(.5) < theta[4] and theta[4] < p_max:
+        return np.sum(lnGauss(theta, mu, sigma))
     return -np.inf
 
 # lnprob
