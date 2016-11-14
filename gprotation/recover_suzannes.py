@@ -82,6 +82,7 @@ def recover(i):
 #     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
 #     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
+    print(p_init)
     trths = [None, None, None, None, truths.P_MIN.values[m][i]]
     mcmc_fit(xb, yb, yerrb, p_init, plims, sid, RESULTS_DIR, truths=trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
