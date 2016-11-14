@@ -51,27 +51,27 @@ WA}
 The light curves of spotted, rotating stars are often non-sinusoidal and
 quasi-periodic---spots are not static on the stellar surface and have finite
 lifetimes causing stellar flux variations to slowly shift in phase.
-A strictly periodic sinusoid is therefore not a representative generative
-model for the light curve of star with a rotational signal.
+A strictly periodic sinusoid is therefore not a representative model for the
+light curve of star with a rotational signal.
 Ideally, a physical model of the stellar surface would be conditioned on the
 data, however the parameters of such models can be highly degenerate
 \citep[\eg][]{Russell1906, Jeffers2009}.
 Instead, we use an appropriate {\it effective} model: a Gaussian Process (GP)
 with a quasi-periodic covariance kernel function.
-By modelling the covariance matrix of the light curve with a GP, a highly
-flexible semi-parametric function, we avoid the necessity to choose a `best
-fitting' functional form, whilst sampling directly from the posterior
-probability distribution function of the periodic parameter and marginalising
-over the other kernel hyperparameters.
+By modelling the light curve with a GP, a highly flexible semi-parametric
+function, we avoid the necessity of choosing a `best fitting' functional form,
+whilst sampling directly from the posterior probability distribution function
+of the periodic parameter and marginalising over the other kernel
+hyperparameters.
 We used \nlightcurves\ simulated light curves with a range of rotation periods
 to test the GP model.
 We attempted to recover the rotation periods using three methods: our GP
 method, a sine-fitting periodogram method and an autocorrelation function
 method.
 The posterior probability distribution of the rotation period parameter was
-sampled using the affine invariant ensemble MCMC sampler {\tt emcee}
-\citep{Foreman-Mackey2013}, and the GP operations were performed using the
-{\tt george} python package \citep{George}.
+sampled using the affine invariant ensemble Markov Chain Monte Carlo (MCMC)
+sampler {\tt emcee} \citep{Foreman-Mackey2013}, and the GP operations were
+performed using the {\tt george} python package \citep{George}.
 Rotation periods inferred via this method are more precise and accurate than
 the periodogram and ACF methods.
 Furthermore, the improvement is expected to be even more dramatic when applied
@@ -94,9 +94,9 @@ A strictly periodic sinusoid is therefore not a good model for stellar light
 curves.
 In an ideal world, a physical model of the stellar surface would be
 conditioned on the data.
-A physically realistic, generative model would perfectly capture the
-complexity of shapes within stellar light curves as well as the quasi-periodic
-nature, allowing for extremely precise probabilistic period recovery.
+A physically realistic model would perfectly capture the complexity of shapes
+within stellar light curves as well as the quasi-periodic nature, allowing for
+extremely precise probabilistic period recovery.
 However, such physical models require many free parameters in order to
 accurately represent a stellar surface and some of these parameters are
 extremely degenerate \citep[\eg][]{Russell1906, Jeffers2009}.
@@ -104,8 +104,9 @@ In addition to global stellar parameters such as inclination and rotation
 period, each spot or active region should have (at minimum) a longitude,
 latitude, size, temperature and lifetime.
 Considering that many stars have on the order of hundreds of spots, the number
-of free parameters quickly becomes unwieldy, especially if the posterior PDFs
-of these parameters are explored with MCMC.
+of free parameters quickly becomes unwieldy, especially if the posterior
+Probability Density Functions (PDFs) of these parameters are explored with
+MCMC.
 Simplified spot models, such as the one described in \citet{Lanza2014} where
 only two spots are modelled, have produced successful results, however these
 simplified models sacrifice some precision due to lack of model flexibility.
@@ -116,7 +117,7 @@ interpreted} as physical ones.
 An ideal effective model for the light curve of a spotted, rotating star is
 one with a small number of non-degenerate parameters that is flexible enough
 to perfectly capture non-sinusoidal, QP behaviour.
-These requirements are perfectly fulfilled by a Gaussian process (GP) model.
+These requirements are fulfilled by a Gaussian process (GP) model.
 
 The standard methods used for measuring rotation periods include detecting
 peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS) periodogram
@@ -155,14 +156,13 @@ above.
 Secondly, in order to infer {\it probabilistic} periods, i.e. to estimate the
 posterior PDF of the rotation period and thereby measure a realistic and
 representative uncertainty.
-And thirdly, to allow for an additional correlated noise model to be included
+Thirdly, to allow for an additional correlated noise model to be included
 during regression, the parameters of which could be marginalised over.
 % And fourthly to provide some way of determining whether a periodic model is
 % supported by the data over a purely stochastic one.
 
 GPs are commonly used in the machine learning community and increasingly
-in other scientific fields, for example biology and geophysics (where GP
-regression is called `kriging').
+in other scientific fields, for example biology and geophysics.
 More recently, GPs have been used in the astronomy literature \citep[see
 \eg][]{Gibson2012, Haywood2014, Haywood2015, Evans2015, Rajpaul2015,
 Rajpaul2016, Aigrain2016}.
@@ -182,16 +182,16 @@ function provides the form of covariance matrix parameterisation.
 For example, take the time-series in figure \ref{fig:GP_example}.
 % This is a \kepler\ light curve of Earth-like planet host Kepler-452: a G-type
 % star that rotates once every $\sim$ 15 days.
-This is the \kepler\ light curve of KID 1430163, a relatively active star that
+This is the \kepler\ light curve of KIC 1430163, a relatively active star that
 rotates once every $\sim$ 4 days.
 The stochastic variability in this time-series is typical of \kepler\ FGK
 stars.
 Clearly, data points in this light curve are correlated.
 Points that are close together in time are tightly correlated and those that
-are far apart are loosely correlated.
-It is the way in which the covariance varies with the separation between data
-points that is modelled when using GP regression.
-It is not the data but the {\it covariance structure} that is modelled.
+are widely separated in time are loosely correlated.
+The way in which the covariance varies with the separation between data points
+is modelled when using GP regression; it is not the data but the {\it
+covariance structure} that is modelled.
 This fact is what gives GPs their flexibility---they can model any time
 series with a similar covariance structure.
 In addition, a very simple function can usually capture the covariance
@@ -199,15 +199,15 @@ structure of a light curve, whereas a much more complicated one may be
 required to model the time-series itself.
 % The light curve of \Kepler-452 has been modelled with a GP in figure
 % \ref{fig:GP_example}, shown in orange.
-The light curve of this star has been modelled with two different GP kernel
-functions in figure \ref{fig:GP_example}, shown in blue and pink.
-Both provide adequate fits to the data, however only the periodic kernel
-function, `QP' is a useful model because it has a periodic parameter.
-I return to this point shortly.
+In figure \ref{fig:GP_example} the light curve of KIC 1430163 has been
+modelled with a GP.
+% Both provide adequate fits to the data, however only the periodic kernel
+% function, `QP' is a useful model because it has a periodic parameter.
+% I return to this point shortly.
 
 A range of kernel functions could be used to describe stellar variability.
 For example, the simplest and most commonly used kernel function, the `Squared
-Exponential' (SE) produces an adequate fit to the KID 1430163 light curve.
+Exponential' (SE) produces an adequate fit to the KIC 1430163 light curve.
 The SE kernel function is defined as,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2} \right).
@@ -233,19 +233,19 @@ For this reason, we use the `Quasi-Periodic' kernel function.
 The QP kernel function is defined as
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2} -
-\frac{\sin^2(\frac{2\pi}{P})}{\Gamma^2} \right).
+\Gamma^2 \sin^2(\frac{2\pi}{P}) \right).
 \end{equation}
 \label{eq:QP}
 It is the product of the SE kernel function, which describes the overall
 covariance decay, and an exponentiated, squared, sinusoidal kernel function
 that describes the periodic covariance structure.
 $P$ can be interpreted as the rotation period of the star and $\Gamma$
-controls the number of zero crossings per period.
+controls the amplitude of the sinusoidal term.
 This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while points separated by half a
 period can be weakly correlated.
-Both the QP and SE kernel functions were used to produce the blue and pink
-models shown in figure ~\ref{fig:GP_example}.
+Both the QP kernel function was used to produce the
+model shown in figure ~\ref{fig:GP_example}.
 
 In order to infer a stellar rotation period from a light curve, we fit a GP
 model with a QP kernel function to the data.
@@ -264,7 +264,7 @@ estimate of the uncertainty on the rotation period.
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/001430163.pdf}
 \caption[A light curve with a GP model.]
-{Light curve of KID 1430163, an active star with a rotation period of $\sim$ 4
+{Light curve of KIC 1430163, an active star with a rotation period of $\sim$ 4
 days.
 The blue solid line shows a fit to the data using
 a Gaussian process model with a QP covariance kernel function and the pink
