@@ -7,11 +7,8 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import h5py
 
-DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
-RESULTS_DIR = "results/"
 
-
-def load_suzanne_lcs(id):
+def load_suzanne_lcs(id, DATA_DIR):
     sid = str(int(id)).zfill(4)
     x, y = np.genfromtxt(os.path.join(DATA_DIR,
                                       "lightcurve_{0}.txt".format(sid))).T
@@ -30,7 +27,12 @@ def recover(i):
 #     RESULTS_DIR = "results_prior"
 #     RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_initialisation"
+
     RESULTS_DIR = "results_sigma"
+    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+
+#     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
+#     RESULTS_DIR = "results_nf"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -39,7 +41,7 @@ def recover(i):
     id = truths.N.values[m][i]
     sid = str(int(id)).zfill(4)
     print(id, i, "of", len(truths.N.values[m]))
-    x, y = load_suzanne_lcs(sid)
+    x, y = load_suzanne_lcs(sid, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
 
     # sigma clip
@@ -62,14 +64,15 @@ def recover(i):
 
     # set initial period
     p_init = acf_period
-    if p_init > 100 or p_init < .5:
+    p_max = np.log((x[-1] - x[0]) / 2.)
+    if p_init > np.exp(p_max) or p_init < .5:
         p_init = 10
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     if p_init > 40:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
 
-    assert p_init < 100, "p_init > 100"
+    assert p_init < np.exp(p_max), "p_init > p_max"
 
     # set prior bounds
     plims = np.log([.5*p_init, 1.5*p_init])
