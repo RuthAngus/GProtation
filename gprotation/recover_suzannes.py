@@ -8,6 +8,16 @@ from multiprocessing import Pool
 import h5py
 
 
+def make_gaps(x, y, yerr, points_per_day):
+    nkeep = points_per_day * (x[-1] - x[0])
+    print(nkeep)
+    m = np.zeros(len(x), dtype=bool)
+    l = np.random.choice(np.arange(len(x)), nkeep)
+    for i in l:
+        m[i] = True
+    return x[m], y[m], yerr[m]
+
+
 def load_suzanne_lcs(id, DATA_DIR):
     sid = str(int(id)).zfill(4)
     x, y = np.genfromtxt(os.path.join(DATA_DIR,
@@ -55,9 +65,10 @@ def recover(i):
     if np.log(var) < -13:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
-    c, sub = 200, 10  # cut off at 200 days
-    mc = x < c
-    xb, yb, yerrb = x[mc][::sub], y[mc][::sub], yerr[mc][::sub]
+    c, ppd = 200, 4  # cut off at 200 days
+    xb, yb, yerrb = make_gaps(x, y, yerr, ppd)
+    mc = xb < c
+    xb, yb, yerrb = xb[mc], yb[mc], yerrb[mc]
 
     # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
@@ -89,10 +100,10 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-#     recover(2)
+    recover(2)
 
-    pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m][:100])))
+#     pool = Pool()
+#     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-    for i in range(len(truths.N.values[m])):
-	    recover(i)
+#     for i in range(len(truths.N.values[m])):
+# 	    recover(i)
