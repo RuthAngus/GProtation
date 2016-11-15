@@ -132,7 +132,7 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
                             quantiles=[.16, .5, .84], show_titles=True,
-                            truths=trths,)
+                            truths=trths)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
@@ -149,7 +149,7 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         plt.errorbar(x-x[0], y, yerr=yerr, fmt="k.", capsize=0)
         plt.xlabel("Time (days)")
         plt.ylabel("Normalised Flux")
-        plt.plot(xs, mu, color='#66CCCC')
+        plt.plot(xs, mu, color='#0066CC')
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(ID)))
         print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(ID)))

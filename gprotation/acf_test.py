@@ -11,7 +11,7 @@ def gen_data(period):
 
 def make_gaps(x, y):
     m = np.ones(len(x), dtype=bool)
-    l = np.random.choice(np.arange(len(x)), 20)
+    l = np.random.choice(np.arange(len(x)), 100)
     for i in l:
         m[i] = False
     return x[m], y[m]
@@ -19,7 +19,7 @@ def make_gaps(x, y):
 
 if __name__ == "__main__":
 
-    N = 10
+    N = 100
     periods = np.exp(np.random.uniform(-1, 4.6, N))
     p1, p2 = [np.zeros(N) for i in range(2)]
     for i, period in enumerate(periods):

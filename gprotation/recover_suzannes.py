@@ -28,11 +28,11 @@ def recover(i):
 #     RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_initialisation"
 
-    RESULTS_DIR = "results_sigma"
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+#     RESULTS_DIR = "results_sigma"
+#     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
-#     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
-#     RESULTS_DIR = "results_nf"
+    DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
+    RESULTS_DIR = "results_nf"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -43,6 +43,8 @@ def recover(i):
     print(id, i, "of", len(truths.N.values[m]))
     x, y = load_suzanne_lcs(sid, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
+    if RESULTS_DIR == "results_nf":
+        yerr *= 1e-15
 
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)

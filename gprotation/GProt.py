@@ -150,8 +150,8 @@ def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths, traces=True,
-                            tri=True, prediction=True)
+        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
+                            traces=True, tri=True, prediction=True)
         return samples, results
 
 if __name__ == "__main__":
