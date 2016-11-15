@@ -6,16 +6,29 @@ import os
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import h5py
+import math
+
+
+def make_lists(xb, yb, yerrb, l):
+    nlists = int(math.ceil((xb[-1] - xb[0]) / l))
+    xlist, ylist, yerrlist= [], [], []
+    masks = np.arange(nlists + 1) * l
+    for i in range(nlists):
+        m = (masks[i] < xb) * (xb < masks[i+1])
+        xlist.append(xb[m])
+        ylist.append(yb[m])
+        yerrlist.append(yb[m])
+    return xlist, ylist, yerrlist
 
 
 def make_gaps(x, y, yerr, points_per_day):
     nkeep = points_per_day * (x[-1] - x[0])
-    print(nkeep)
     m = np.zeros(len(x), dtype=bool)
     l = np.random.choice(np.arange(len(x)), nkeep)
     for i in l:
         m[i] = True
-    return x[m], y[m], yerr[m]
+    inds = np.argsort(x[m])
+    return x[m][inds], y[m][inds], yerr[m][inds]
 
 
 def load_suzanne_lcs(id, DATA_DIR):
@@ -65,10 +78,11 @@ def recover(i):
     if np.log(var) < -13:
         burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
-    c, ppd = 200, 4  # cut off at 200 days
+    ppd = 4  # cut off at 200 days, 4 points per day
     xb, yb, yerrb = make_gaps(x, y, yerr, ppd)
-    mc = xb < c
-    xb, yb, yerrb = xb[mc], yb[mc], yerrb[mc]
+
+    # make data into a list of lists, 200 days each
+    xb, yb, yerrb = make_lists(xb, yb, yerrb, 200)
 
     # find p_init
     acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
@@ -77,7 +91,7 @@ def recover(i):
 
     # set initial period
     p_init = acf_period
-    p_max = np.log((xb[-1] - xb[0]) / 2.)
+    p_max = np.log((xb[0][-1] - xb[0][0]) / 2.)
     if p_init > np.exp(p_max):
         p_init = 40
     elif p_init < .5:
@@ -90,8 +104,8 @@ def recover(i):
 #     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
 #     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
-    trths = [None, None, None, None, truths.P_MIN.values[m][i]]
-    mcmc_fit(xb, yb, yerrb, p_init, sid, RESULTS_DIR, truths=trths,
+    trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
+    mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR, truths=trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
 
 if __name__ == "__main__":

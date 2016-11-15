@@ -4,7 +4,7 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob, Glnprob
+from GProtation import make_plot, lnprob, Glnprob, Glnprob_split
 from Kepler_ACF import corr_run
 import h5py
 from gatspy.periodic import LombScargle
@@ -71,7 +71,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
+def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
              nwalkers=12, nruns=10, full_run=500, parallel=False):
     """
     Run the MCMC
@@ -85,8 +85,6 @@ def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
     inits = [1, 1, 1, 1, np.log(.5*p_init)]
     p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
 
-    p_max = np.log((x[-1] - x[0]) / 2.)
-
     # comment this line for Tim's initialisation
     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
@@ -96,8 +94,8 @@ def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", Glnprob(theta_init, x, y, yerr, np.log(p_init),
-                               p_max)[0], "\n")
+    print("lnprob = ", Glnprob_split(theta_init, x, y, yerr, np.log(p_init),
+                                     p_max)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -109,10 +107,11 @@ def mcmc_fit(x, y, yerr, p_init, id, RESULTS_DIR, truths, burnin=500,
 
     # Run MCMC.
     if parallel:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args,
-                                        threads=15)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
+                                        args=args, threads=15)
     else:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args)
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
+                                        args=args)
     print("burning in...")
     p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 

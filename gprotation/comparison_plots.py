@@ -147,7 +147,7 @@ def mcmc_plots(truths, DIR):
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
 
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
-                 fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.3, ms=.1)
+                 fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
     plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor="",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=15, zorder=2)
@@ -159,16 +159,17 @@ def mcmc_plots(truths, DIR):
     # mcmc plot with samples
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
-    plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 100)
-    plt.xlim(0, 55)
-    plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
-    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
+    plt.plot(np.log(xs), np.log(xs), "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.5)
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     for i, n in enumerate(N):
         samples = load_samples(n)
-        plt.plot(np.ones(100) * true[i], np.exp(np.random.choice(samples,
-                                                                 100)),
+        plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
+                                                                 100),
                  "k.", ms=1)
     plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
     return (np.median((maxlike - true)**2))**.5, \
@@ -201,7 +202,7 @@ def acf_plot(truths, DIR):
                  capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
     plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
-                s=10, zorder=2)
+                s=15, zorder=2)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)
@@ -246,7 +247,8 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-#     print("mcmc noise free rms = ", mcmc_plots(truths, "results_nf"))
+    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+    print("mcmc noise free rms = ", mcmc_plots(truths, "results_nf"))
 #     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
+    print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt

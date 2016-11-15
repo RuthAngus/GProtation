@@ -15,6 +15,8 @@ import scipy.optimize as spo
 import time
 import os
 import pandas as pd
+import time
+
 
 def lnprior(theta, plims):
     """
@@ -28,8 +30,10 @@ def lnprior(theta, plims):
         return 0.
     return -np.inf
 
+
 def lnGauss(x, mu, sigma):
     return -.5 * ((x - mu)**2/(.5 * sigma**2))
+
 
 def Glnprior(theta, p_init, p_max):
     """
@@ -41,17 +45,24 @@ def Glnprior(theta, p_init, p_max):
         return np.sum(lnGauss(theta, mu, sigma))
     return -np.inf
 
-# lnprob
+
 def lnprob(theta, x, y, yerr, plims):
     prob = lnlike(theta, x, y, yerr) + lnprior(theta, plims)
     return prob, prob
 
-# lnprob
+
 def Glnprob(theta, x, y, yerr, p_init, p_max):
     prob = lnlike(theta, x, y, yerr) + Glnprior(theta, p_init, p_max)
     return prob, prob
 
-# lnlike
+
+def Glnprob_split(theta, x, y, yerr, p_init, p_max):
+    prior = Glnprior(theta, p_init, p_max)
+    prob = np.sum([lnlike(theta, x[i], y[i], yerr[i]) + prior for i in
+                   range(len(x))])
+    return prob, prob
+
+
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -63,7 +74,7 @@ def lnlike(theta, x, y, yerr):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
 
-# lnlike
+
 def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
