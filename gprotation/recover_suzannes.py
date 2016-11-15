@@ -28,11 +28,11 @@ def recover(i):
 #     RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_initialisation"
 
-#     RESULTS_DIR = "results_sigma"
-#     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+    RESULTS_DIR = "results_sigma"
+    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
-    RESULTS_DIR = "results_nf"
+#     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
+#     RESULTS_DIR = "results_nf"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -66,12 +66,11 @@ def recover(i):
 
     # set initial period
     p_init = acf_period
-    p_max = np.log((x[-1] - x[0]) / 2.)
-    if p_init > np.exp(p_max) or p_init < .5:
+    p_max = np.log((xb[-1] - xb[0]) / 2.)
+    if p_init > np.exp(p_max):
+        p_init = 40
+    elif p_init < .5:
         p_init = 10
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
-    if p_init > 40:
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
     burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
@@ -80,7 +79,6 @@ def recover(i):
 #     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
 #     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
-    print(p_init)
     trths = [None, None, None, None, truths.P_MIN.values[m][i]]
     mcmc_fit(xb, yb, yerrb, p_init, sid, RESULTS_DIR, truths=trths,
 	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
@@ -96,6 +94,5 @@ if __name__ == "__main__":
     pool = Pool()
     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-#     for i in range(len(truths.N.values[m])):
-#     for i in range(10):
-# 	    recover(i)
+    for i in range(len(truths.N.values[m])):
+	    recover(i)
