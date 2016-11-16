@@ -1,7 +1,119 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import emcee
 import glob
+
+def simple_acf(x, y):
+
+    # fit and subtract straight line
+    AT = np.vstack((x, np.ones_like(x)))
+    ATA = np.dot(AT, AT.T)
+    m, b = np.linalg.solve(ATA, np.dot(AT, y))
+    y -= m*x + b
+
+    # perform acf
+    acf = dan_acf(y)
+
+    # create 'lags' array
+    gap_days = 0.02043365
+    lags = np.arange(len(acf))*gap_days
+
+    N = len(acf)
+    double_acf, double_lags = [np.zeros((2*N)) for i in range(2)]
+    double_acf[:N], double_lags[:N] = acf[::-1], -lags[::-1]
+    double_acf[N:], double_lags[N:] = acf, lags
+    acf, lags = double_acf, double_lags
+
+    # smooth with Gaussian kernel convolution
+    Gaussian = lambda x, sig: 1./(2*np.pi*sig**.5) * np.exp(-0.5*(x**2)/
+                                                            (sig**2))
+    conv_func = Gaussian(np.arange(-28, 28, 1.), 9.)
+    acf_smooth = np.convolve(acf, conv_func, mode='same')
+
+    # just use the second bit (no reflection)
+    acf_smooth, lags = acf_smooth[N:], lags[N:]
+
+    # cut it in half
+    m = lags < max(lags)/2.
+    acf_smooth, lags = acf_smooth[m], lags[m]
+
+    # ditch the first point
+    acf_smooth, lags = acf_smooth[1:], lags[1:]
+
+#     peaks, dips, leftdips, rightdips, bigpeaks = find_peaks(acf_smooth, lags)
+
+    # find all the peaks
+    peaks = np.array([i for i in range(1, len(lags)-1)
+                     if acf_smooth[i-1] < acf_smooth[i] and
+                     acf_smooth[i+1] < acf_smooth[i]])
+
+    # find the first and second peaks
+    if len(peaks) > 1:
+        if acf_smooth[peaks[0]] > acf_smooth[peaks[1]]:
+            period = lags[peaks[0]]
+        else:
+            period = lags[peaks[1]]
+    elif len(peaks) == 1:
+        period = lags[peaks][0]
+    elif not len(peaks):
+        period = np.nan
+
+    # find the highest peak
+    if len(peaks):
+        m = acf_smooth == max(acf_smooth[peaks])
+        highest_peak = acf_smooth[m][0]
+        period = lags[m][0]
+        print(period)
+    else:
+        period = 0.
+
+    rvar = np.percentile(y, 95)
+
+#     return period, acf_smooth, lags, rvar, peaks, dips, leftdips, rightdips, \
+#         bigpeaks
+    return period, acf_smooth, lags, rvar, peaks
+
+
+def find_peaks(acf_smooth, lags, t=.2):
+
+    # find all the peaks
+    peaks = np.array([i for i in range(1, len(lags)-1)
+                     if acf_smooth[i-1] < acf_smooth[i] and
+                     acf_smooth[i+1] < acf_smooth[i]])
+
+    # find all the dips
+    dips = np.array([i for i in range(1, len(lags)-1)
+                     if acf_smooth[i-1] > acf_smooth[i] and
+                     acf_smooth[i+1] > acf_smooth[i]])
+
+    # find all dips immediately left and right of the peaks
+    leftdips = np.array([lags[dips][lags[dips] < lags[peak]][-1] for peak in
+                         peaks])
+    if lags[dips[-1]] > lags[peaks[-1]]:
+        rightdips = np.array([lags[dips][lags[dips] > lags[peak]][0] for peak
+                              in peaks])
+    else:  # if there is no right hand dip:
+        rightdips = [lags[dips][lags[dips] > lags[peaks[i]]][0]
+                     for i in range(len(peaks)-1)]
+        rightdips.append(lags[-1])
+        rightdips = np.array(rightdips)
+
+    # find the peak heights
+    leftdip_heights = acf_smooth[lags == leftdips]
+    rightdip_heights = acf_smooth[lags == rightdips]
+    peak_heights = acf_smooth[peaks]
+    meandiffs = .5*(np.abs(peak_heights - leftdip_heights) +
+                    np.abs(peak_heights - rightdip_heights))
+    bigpeaks = peaks[meandiffs > t]
+
+    return peaks, dips, leftdips, rightdips, bigpeaks
+
+
+def find_nearest(array, value):
+    idx = (np.abs(array-value)).argmin()
+    return array[idx]
+
 
 # dan's acf function
 def dan_acf(x, axis=0, fast=False):
@@ -36,69 +148,6 @@ def dan_acf(x, axis=0, fast=False):
     m[axis] = 0
     return acf / acf[m]
 
-def simple_acf(x, y):
-
-    # fit and subtract straight line
-    AT = np.vstack((x, np.ones_like(x)))
-    ATA = np.dot(AT, AT.T)
-    m, b = np.linalg.solve(ATA, np.dot(AT, y))
-    y -= m*x + b
-
-    # perform acf
-    acf = dan_acf(y)
-
-    # smooth with Gaussian kernel convolution
-    Gaussian = lambda x, sig: 1./(2*np.pi*sig**.5) * \
-                 np.exp(-0.5*(x**2)/(sig**2))
-    conv_func = Gaussian(np.arange(-28,28,1.), 9.)
-    acf_smooth = np.convolve(acf, conv_func, mode='same')
-
-    # create 'lags' array
-    gap_days = 0.02043365
-    lags = np.arange(len(acf))*gap_days
-
-    # find all the peaks
-    peaks = np.array([i for i in range(1, len(lags)-1)
-                     if acf_smooth[i-1] < acf_smooth[i] and
-                     acf_smooth[i+1] < acf_smooth[i]])
-
-    # throw the first peak away
-    peaks = peaks[1:]
-
-    # find the first and second peaks
-    if acf_smooth[peaks[0]] > acf_smooth[peaks[1]]:
-        period = lags[peaks[0]]
-    else: period = lags[peaks[1]]
-
-    return period, acf_smooth, lags
-
-def make_plot(acf_smooth, lags, id, fn):
-        # find all the peaks
-        peaks = np.array([i for i in range(1, len(lags)-1)
-                         if acf_smooth[i-1] < acf_smooth[i] and
-                         acf_smooth[i+1] < acf_smooth[i]])
-
-        # throw the first peak away
-        peaks = peaks[1:]
-
-        # find the lag of highest correlation
-        m = acf_smooth ==  max(acf_smooth[peaks])
-        highest = lags[m]
-
-        # find the first and second peaks
-        if acf_smooth[peaks[0]] > acf_smooth[peaks[1]]:
-            period = lags[peaks[0]]
-        else: period = lags[peaks[1]]
-        print(period)
-
-        plt.clf()
-        for i in peaks:
-            plt.axvline(lags[i], color="r")
-        plt.axvline(highest, color="g")
-        plt.axvline(period, color="k")
-        plt.plot(lags, acf_smooth)
-        plt.xlim(0, 10*period)
-        plt.savefig("%s/%s_acf" % (fn, str(id).zfill(4)))
 
 if __name__ == "__main__":
 
