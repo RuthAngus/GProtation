@@ -41,8 +41,6 @@ def simple_acf(x, y):
     # ditch the first point
     acf_smooth, lags = acf_smooth[1:], lags[1:]
 
-#     peaks, dips, leftdips, rightdips, bigpeaks = find_peaks(acf_smooth, lags)
-
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
                      if acf_smooth[i-1] < acf_smooth[i] and
@@ -70,44 +68,7 @@ def simple_acf(x, y):
 
     rvar = np.percentile(y, 95)
 
-#     return period, acf_smooth, lags, rvar, peaks, dips, leftdips, rightdips, \
-#         bigpeaks
-    return period, acf_smooth, lags, rvar, peaks
-
-
-def find_peaks(acf_smooth, lags, t=.2):
-
-    # find all the peaks
-    peaks = np.array([i for i in range(1, len(lags)-1)
-                     if acf_smooth[i-1] < acf_smooth[i] and
-                     acf_smooth[i+1] < acf_smooth[i]])
-
-    # find all the dips
-    dips = np.array([i for i in range(1, len(lags)-1)
-                     if acf_smooth[i-1] > acf_smooth[i] and
-                     acf_smooth[i+1] > acf_smooth[i]])
-
-    # find all dips immediately left and right of the peaks
-    leftdips = np.array([lags[dips][lags[dips] < lags[peak]][-1] for peak in
-                         peaks])
-    if lags[dips[-1]] > lags[peaks[-1]]:
-        rightdips = np.array([lags[dips][lags[dips] > lags[peak]][0] for peak
-                              in peaks])
-    else:  # if there is no right hand dip:
-        rightdips = [lags[dips][lags[dips] > lags[peaks[i]]][0]
-                     for i in range(len(peaks)-1)]
-        rightdips.append(lags[-1])
-        rightdips = np.array(rightdips)
-
-    # find the peak heights
-    leftdip_heights = acf_smooth[lags == leftdips]
-    rightdip_heights = acf_smooth[lags == rightdips]
-    peak_heights = acf_smooth[peaks]
-    meandiffs = .5*(np.abs(peak_heights - leftdip_heights) +
-                    np.abs(peak_heights - rightdip_heights))
-    bigpeaks = peaks[meandiffs > t]
-
-    return peaks, dips, leftdips, rightdips, bigpeaks
+    return period, acf_smooth, lags, rvar
 
 
 def find_nearest(array, value):
