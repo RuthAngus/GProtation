@@ -51,11 +51,12 @@ def recover(i):
 #     RESULTS_DIR = "results_Gprior"
 #     RESULTS_DIR = "results_initialisation"
 
-    RESULTS_DIR = "results_sigma"
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
-
 #     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
 #     RESULTS_DIR = "results_nf"
+
+    RESULTS_DIR = "results_sigma"
+#     RESULTS_DIR = "results"
+    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
@@ -105,8 +106,10 @@ def recover(i):
 #     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
 
     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
-    mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR, truths=trths,
-	     burnin=burnin, nwalkers=nwalkers, nruns=nruns, full_run=full_run)
+#     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
+    mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
+             truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
+             full_run=full_run)
 
 if __name__ == "__main__":
 
@@ -114,10 +117,10 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-    recover(2)
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m][:100])))
+#     recover(2)
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)

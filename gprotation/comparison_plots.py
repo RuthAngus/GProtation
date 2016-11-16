@@ -248,7 +248,6 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-    print("mcmc noise free rms = ", mcmc_plots(truths, "results_nf"))
 #     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
-    print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
-    print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt
+#     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
+#     print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt

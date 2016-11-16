@@ -87,7 +87,7 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
+def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
@@ -148,6 +148,9 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
+        x = [i for j in xb for i in j]
+        y = [i for j in yb for i in j]
+        yerr = [i for j in yerrb for i in j]
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
