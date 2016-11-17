@@ -6,6 +6,7 @@ from __future__ import print_function
 import numpy as np
 from GProtation import make_plot, lnprob, Glnprob, Glnprob_split
 from Kepler_ACF import corr_run
+import simple_acf as sa
 import h5py
 from gatspy.periodic import LombScargle
 import os
@@ -44,7 +45,16 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
         pgram_period_err = df.pgram_period_err.values[m]
     else:
         print("Calculating ACF")
-        acf_period, err, lags, acf = corr_run(x, y, yerr, id, RESULTS_DIR)
+        acf_period, acf, lags, rvar = sa.simple_acf(x, y)
+        err = .1 * acf_period
+        plt.clf()
+        plt.plot(lags, acf)
+        plt.axvline(acf_period, color="r")
+        plt.xlabel("Lags (days)")
+        plt.ylabel("ACF")
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_acf".format(id)))
+        print("saving figure ", os.path.join(RESULTS_DIR,
+                                             "{0}_acf".format(id)))
 
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
@@ -154,10 +164,12 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         return samples, results
 
 if __name__ == "__main__":
-    id = 211000411
-    x, y = load_k2_data(id, DATA_DIR)
+    x = np.arange(0, 100, 1)
+    y = np.sin(2*np.pi/10. * x)
     yerr = np.ones_like(y) * 1e-5
-    p_init, p_err = calc_p_init(x, y, yerr)
-    sub = 10
-    xb, yb, yerrb = x[::sub], y[::sub], yerr[::sub]
-    fit(xb, yb, yerrb, p_init)
+    plt.clf()
+    plt.plot(x, y)
+    plt.savefig("0")
+    id = 0
+    RESULTS_DIR = "."
+    calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False)
