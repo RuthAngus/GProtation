@@ -82,7 +82,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
 
 
 def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
-             nwalkers=12, nruns=10, full_run=500, parallel=False):
+             nwalkers=12, nruns=10, full_run=500, autocorr_threshold=30, parallel=False):
     """
     Run the MCMC
     """
@@ -133,8 +133,13 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     # uncomment this line for Tim's initialisation
 #     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
+    # repeating MCMC runs.
+    autocorr_times = np.ones((nruns, ndim + 2)) * 1e20
     sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
     for i, run in enumerate(runs):
+        if max(autocorr_times[i, :]) < autocorr_threshold:
+		print("break")
+		break
         print("run {0} of {1}".format(i, len(runs)))
         sampler.reset()
         print("production run, {0} steps".format(int(run)))
@@ -159,17 +164,7 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
-                            traces=True, tri=True, prediction=True)
-        return samples, results
-
-if __name__ == "__main__":
-    x = np.arange(0, 100, 1)
-    y = np.sin(2*np.pi/10. * x)
-    yerr = np.ones_like(y) * 1e-5
-    plt.clf()
-    plt.plot(x, y)
-    plt.savefig("0")
-    id = 0
-    RESULTS_DIR = "."
-    calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False)
+        results, acorr_times = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
+                            		    traces=True, tri=True, prediction=True)
+	autocorr_times[i, :] = acorr_times
+    return autocorr_times

@@ -148,9 +148,12 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
-        x = [i for j in xb for i in j]
-        y = [i for j in yb for i in j]
-        yerr = [i for j in yerrb for i in j]
+        if len(xb) > 1:
+            x = [i for j in xb for i in j]
+            y = [i for j in yb for i in j]
+            yerr = [i for j in yerrb for i in j]
+        else:
+            x, y, yerr = xb, yb, yerrb
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -167,4 +170,4 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(ID)))
         print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(ID)))
-    return r
+    return r, acorr_t
