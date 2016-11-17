@@ -17,7 +17,7 @@ def make_lists(xb, yb, yerrb, l):
         m = (masks[i] < xb) * (xb < masks[i+1])
         xlist.append(xb[m])
         ylist.append(yb[m])
-        yerrlist.append(yb[m])
+        yerrlist.append(yerrb[m])
     return xlist, ylist, yerrlist
 
 
@@ -54,8 +54,8 @@ def recover(i):
 #     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
 #     RESULTS_DIR = "results_nf"
 
-    RESULTS_DIR = "results_sigma"
-#     RESULTS_DIR = "results"
+#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+    RESULTS_DIR = "results"
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"

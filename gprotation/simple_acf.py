@@ -5,7 +5,10 @@ import emcee
 import glob
 
 def simple_acf(x, y):
-
+    """
+    Calculate ACF of y.
+    Returns period, acf_smooth, lags, rvar
+    """
     # fit and subtract straight line
     AT = np.vstack((x, np.ones_like(x)))
     ATA = np.dot(AT, AT.T)

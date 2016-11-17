@@ -1,8 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from plotstuff import params, colours
-reb = params()
+import math
 
+plotpar = {'axes.labelsize': 18,
+           'font.size': 10,
+           'legend.fontsize': 15,
+           'xtick.labelsize': 18,
+           'ytick.labelsize': 18,
+           'text.usetex': True}
+plt.rcParams.update(plotpar)
 
 def expcos(x, p, a, l):
     return a*np.cos(2*np.pi*(1./p)*x) + np.exp(-.5*(x/l)**2)
@@ -36,11 +42,12 @@ periods = np.array(periods)
 m = periods > 0
 plt.clf()
 xs = np.linspace(0, 100, 100)
-plt.plot(xs, xs, "--", color=".7")
-plt.plot(xs, .5*xs, "--", color=".7")
-plt.plot(xs, 2*xs, "--", color=".7")
-plt.plot(ps[m], periods[m], "k.")
-plt.ylim(0, 120)
+plt.plot(np.log(xs), np.log(xs), "--", color=".7")
+plt.plot(np.log(xs), 2./3 + np.log(xs), "--", color=".7")
+plt.plot(np.log(xs), np.log(xs) - 2./3, "--", color=".7")
+plt.plot(np.log(ps[m]), np.log(list(periods[m])), "k.")
+plt.ylim(0, 4.8)
+plt.xlim(0, 4.8)
 plt.xlabel("$\mathrm{True~period~(days)}$")
 plt.ylabel("$\mathrm{Measured~period~(days)}$")
 plt.savefig("exp_sine_test.pdf")
