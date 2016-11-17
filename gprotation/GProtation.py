@@ -15,6 +15,8 @@ import scipy.optimize as spo
 import time
 import os
 import pandas as pd
+import time
+
 
 def lnprior(theta, plims):
     """
@@ -28,37 +30,39 @@ def lnprior(theta, plims):
         return 0.
     return -np.inf
 
+
 def lnGauss(x, mu, sigma):
     return -.5 * ((x - mu)**2/(.5 * sigma**2))
 
-def Glnprior(theta, plims):
+
+def Glnprior(theta, p_init, p_max):
     """
-    plims is a tuple, list or array containing the lower and upper limits for
-    the rotation period.
     theta = A, l, G, sigma, period
     """
-    p_init = plims[1] / 1.5
-    mu = np.array([-12, 7, -1, -17, np.exp(p_init)])
-#     sigma = np.array([2, 2, 2, 2, np.exp(p_init * .5)])
-    sigma = np.array([5.4, 10, 3.8, 1.7, np.exp(p_init * .5)])
-#     if plims[0] < theta[4] < plims[1] and theta[1] > theta[4] \
-#             and np.log(.5) < theta[4]:
-    if theta[1] > theta[4] and np.log(.5) < theta[4]:
-#         return np.logaddexp.reduce(lnGauss(np.array(theta), mu, sigma), axis=0)
-        return np.sum(lnGauss(np.array(theta), mu, sigma))
+    mu = np.array([-13, 6.2, -1.4, -17, p_init])
+    sigma = np.array([2.7, 1.5, 1.5, 5, p_init * 2])
+    if np.log(.5) < theta[4] < p_max:
+        return np.sum(lnGauss(theta, mu, sigma))
     return -np.inf
 
-# lnprob
+
 def lnprob(theta, x, y, yerr, plims):
     prob = lnlike(theta, x, y, yerr) + lnprior(theta, plims)
     return prob, prob
 
-# lnprob
-def Glnprob(theta, x, y, yerr, plims):
-    prob = lnlike(theta, x, y, yerr) + Glnprior(theta, plims)
+
+def Glnprob(theta, x, y, yerr, p_init, p_max):
+    prob = lnlike(theta, x, y, yerr) + Glnprior(theta, p_init, p_max)
     return prob, prob
 
-# lnlike
+
+def Glnprob_split(theta, x, y, yerr, p_init, p_max):
+    prior = Glnprior(theta, p_init, p_max)
+    prob = np.sum([lnlike(theta, x[i], y[i], yerr[i]) + prior for i in
+                   range(len(x))])
+    return prob, prob
+
+
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -70,7 +74,7 @@ def lnlike(theta, x, y, yerr):
         return 10e25
     return gp.lnlikelihood(y, quiet=True)
 
-# lnlike
+
 def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -83,7 +87,7 @@ def neglnlike(theta, x, y, yerr):
     return -gp.lnlikelihood(y, quiet=True)
 
 # make various plots
-def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
+def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
@@ -139,11 +143,14 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
                             quantiles=[.16, .5, .84], show_titles=True,
-                            truths=trths,)
+                            truths=trths)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
+        x = [i for j in xb for i in j]
+        y = [i for j in yb for i in j]
+        yerr = [i for j in yerrb for i in j]
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -156,82 +163,8 @@ def make_plot(sampler, x, y, yerr, ID, RESULTS_DIR, trths, traces=False,
         plt.errorbar(x-x[0], y, yerr=yerr, fmt="k.", capsize=0)
         plt.xlabel("Time (days)")
         plt.ylabel("Normalised Flux")
-        plt.plot(xs, mu, color='#66CCCC')
+        plt.plot(xs, mu, color='#0066CC')
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(ID)))
         print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(ID)))
     return r
-
-
-def quarter_MCMC(theta_init, x, y, yerr, plims, burnin, run, ID, DIR,
-                 nwalkers=32, logsamp=True, plot_inits=False):
-    """
-    Split quarters and run MCMC.
-    """
-
-    # figure out whether x, y and yerr are arrays or lists of lists
-    quarters = False
-    if len(x) < 20:
-        quarters = True
-        print("Quarter splits detected")
-
-    print("\n", "log(theta_init) = ", theta_init)
-    print("theta_init = ", np.exp(theta_init), "\n")
-
-    # if plot_inits:  # plot initial guess and the result of minimise
-    if quarters:
-        xl = [i for j in x for i in j]
-        yl = [i for j in y for i in j]
-        yerrl = [i for j in yerr for i in j]
-        print("plotting inits")
-        print(np.exp(theta_init))
-        t = np.exp(theta_init)
-        k = t[0] * ExpSquaredKernel(t[1]) * ExpSine2Kernel(t[2], t[3])
-        gp = george.GP(k)
-        gp.compute(xl, yerrl)
-        xs = np.linspace(xl[0], xl[-1], 1000)
-        mu, cov = gp.predict(yl, xs)
-
-        plt.clf()
-        plt.errorbar(xl, yl, yerr=yerrl)
-        plt.plot(xs, mu, color='#0066CC')
-
-        args = (xl, yl, yerrl)
-        results = spo.minimize(neglnlike, theta_init, args=args)
-        print("optimisation results = ", results.x)
-
-        r = np.exp(results.x)
-        k = r[0] * ExpSquaredKernel(r[1]) * ExpSine2Kernel(r[2], r[3])
-        gp = george.GP(k)
-        gp.compute(xl, yerrl)
-
-        mu, cov = gp.predict(yl, xs)
-        plt.plot(xs, mu, color="#FF33CC", alpha=.5)
-        plt.savefig("%s/%s_init" % (DIR, ID))
-        print("%s/%s_init.png" % (DIR, ID))
-
-    ndim, nwalkers = len(theta_init), nwalkers
-    p0 = [theta_init+1e-4*np.random.rand(ndim) for i in range(nwalkers)]
-    args = (x, y, yerr, plims)
-
-    lp = lnprob
-    if quarters:  # if fitting each quarter separately, use a different lnprob
-        lp = lnprob_split
-
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lp, args=args)
-    print(np.shape(sampler))
-    assert 0
-
-    print("burning in...")
-    p0, lp, state = sampler.run_mcmc(p0, burnin)
-    sampler.reset()
-    print("production run...")
-    p0, lp, state = sampler.run_mcmc(p0, run)
-
-    # save samples
-    f = h5py.File("%s/%s_samples.h5" % (DIR, ID), "w")
-    data = f.create_dataset("samples", np.shape(sampler.chain))
-    data[:, :] = np.array(sampler.chain)
-    f.close()
-    print(np.shape(np.array(sampler.chain)))
-    return sampler

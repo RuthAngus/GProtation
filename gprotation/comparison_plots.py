@@ -20,7 +20,7 @@ RESULTS_DIR = "results/"
 
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR):
-    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
     if os.path.exists(fname):
         print("Previous ACF pgram result found")
         df = pd.read_csv(fname)
@@ -80,8 +80,8 @@ def make_new_df(truths, R_DIR):
 #                                                              RESULTS_DIR)
 
     # get column names
-    mfname2 = os.path.join(R_DIR, "0002_mcmc_results.csv")
-    apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.csv")
+    mfname2 = os.path.join(R_DIR, "0002_mcmc_results.txt")
+    apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.txt")
     mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
 
     # assemble master data frame
@@ -92,14 +92,13 @@ def make_new_df(truths, R_DIR):
     n = 0
     for i, id in enumerate(truths.N.values[m]):
         sid = str(int(id)).zfill(4)
-        mfname = os.path.join(R_DIR, "{0}_mcmc_results.csv".format(sid))
-        afname = os.path.join(R_DIR, "{0}_acf_pgram_results.csv".format(sid))
+        mfname = os.path.join(R_DIR, "{0}_mcmc_results.txt".format(sid))
+        afname = os.path.join(R_DIR, "{0}_acf_pgram_results.txt".format(sid))
         if os.path.exists(mfname) and os.path.exists(afname):
             n += 1
             Ns.append(int(sid))
             mcmc = pd.concat([mcmc, pd.read_csv(mfname)], axis=0)
             acf_pgram = pd.concat([acf_pgram, pd.read_csv(afname)], axis=0)
-    print(n)
 
     mcmc["N"], acf_pgram["N"] = np.array(Ns), np.array(Ns)
     truths1 = mcmc.merge(acf_pgram, on="N")
@@ -121,6 +120,9 @@ def mcmc_plots(truths, DIR):
     true = truths_e.P_MIN.values[m]
     med = np.exp(truths_e.sigma.values[m])  # period and sigma names swapped
     med_errp = np.exp(truths_e.sigma_errp.values[m])
+    lnp = truths_e.period[m]
+    lnerrp = truths_e.period_errp.values[m]
+    lnerrm = truths_e.period_errm.values[m]
     med_errm = np.exp(truths_e.sigma_errm.values[m])
     maxlike = np.exp(truths_e.sigma_max[m])
     amp = truths_e.AMP.values[m]
@@ -134,19 +136,22 @@ def mcmc_plots(truths, DIR):
 
     # mcmc plot
     plt.clf()
-    xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
-    plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 100)
-#     plt.ylim(0, 1)
-    plt.xlim(0, 55)
-    plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
-    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
-#     plt.errorbar(true, maxlike, yerr=[med_errp, med_errm], fmt="k.", zorder=0,
-#                  capsize=0)
-    print(len(maxlike))
-    plt.scatter(true, maxlike, c=np.log(amp), edgecolor="", cmap="GnBu",
-                vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
+    xs = np.log(np.arange(0, 100, 1))
+    plt.plot(xs, xs, "k-", alpha=.2, zorder=0)
+    plt.plot(xs, xs + 2, "k--", alpha=.2, zorder=0)
+    plt.plot(xs, xs + 2./3, "k--", alpha=.2, zorder=0)
+    plt.plot(xs, xs - 2, "k--", alpha=.2, zorder=0)
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+
+    plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
+                 fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
+    plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor="",
+                cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
+                s=15, zorder=2)
+
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.savefig(os.path.join(DIR, "compare_mcmc"))
@@ -154,19 +159,21 @@ def mcmc_plots(truths, DIR):
     # mcmc plot with samples
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
-    plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.ylim(0, 100)
-    plt.xlim(0, 55)
-    plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
-    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
+    plt.plot(np.log(xs), np.log(xs), "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.5)
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     for i, n in enumerate(N):
         samples = load_samples(n)
-        plt.plot(np.ones(100) * true[i], np.exp(np.random.choice(samples,
-                                                                 100)),
+        plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
+                                                                 100),
                  "k.", ms=1)
     plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
-    return (np.median((maxlike - true)**2))**.5
+    return (np.median((maxlike - true)**2))**.5, \
+            (np.median((np.exp(lnp) - true)**2))**.5
 
 
 def acf_plot(truths, DIR):
@@ -186,18 +193,22 @@ def acf_plot(truths, DIR):
     # acf plot
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
-    plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.errorbar(true, acfs, yerr=acf_errs, fmt="k.", capsize=0, ecolor=".7",
-                 zorder=0)
-    plt.scatter(true, acfs, c=np.log(amp), edgecolor="", cmap="GnBu",
-                vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
+    plt.plot(np.log(xs), np.log(xs), "k-", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
+
+    plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
+                 capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
+    plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="",
+                cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
+                s=15, zorder=2)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    plt.ylim(0, 100)
-    plt.xlim(0, 55)
-    plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
-    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.savefig(os.path.join(DIR, "compare_acf"))
     return (np.median((acfs - true)**2))**.5
 
@@ -236,8 +247,7 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    print("mcmc Gprior rms = ", mcmc_plots(truths, "results_Gprior"))
-    print("mcmc initialisation rms = ", mcmc_plots(truths, "results_initialisation"))
-    print("mcmc prior rms = ", mcmc_plots(truths, "results_prior"))
-    print("mcmc rms = ", mcmc_plots(truths, "results"))
-    print("acf rms = ", acf_plot(truths, "results_Gprior"))
+    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+#     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
+#     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
+#     print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt

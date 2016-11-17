@@ -4,7 +4,7 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob, Glnprob
+from GProtation import make_plot, lnprob, Glnprob, Glnprob_split
 from Kepler_ACF import corr_run
 import h5py
 from gatspy.periodic import LombScargle
@@ -33,7 +33,7 @@ def load_k2_data(epic_id, DATA_DIR):
 
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
-    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.csv".format(id))
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
     if not clobber and os.path.exists(fname):
         print("Previous ACF pgram result found")
         df = pd.read_csv(fname)
@@ -71,28 +71,31 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
-             nwalkers=12, nruns=10, full_run=500):
+def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
+             nwalkers=12, nruns=10, full_run=500, parallel=False):
     """
     Run the MCMC
     """
 
     print("total number of points = ", len(x))
-    print(p_init)
     theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
     ndim = len(theta_init)
-    inits = [2, 2, 2, 2, np.log(.5*p_init)]
+    inits = [1, 1, 1, 1, np.log(.5*p_init)]
     p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
 
     # comment this line for Tim's initialisation
-#     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
-    args = (x, y, yerr, plims)
+    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+
+    print("p_init = ", p_init, "days, log(p_init) = ", np.log(p_init),
+          "p_max = ", p_max)
+    args = (x, y, yerr, np.log(p_init), p_max)
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", Glnprob(theta_init, x, y, yerr, plims)[0], "\n")
+    print("lnprob = ", Glnprob_split(theta_init, x, y, yerr, np.log(p_init),
+                                     p_max)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -103,7 +106,12 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
 
 
     # Run MCMC.
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob, args=args)
+    if parallel:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
+                                        args=args, threads=15)
+    else:
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
+                                        args=args)
     print("burning in...")
     p0, _, state, prob = sampler.run_mcmc(p0, burnin)
 
@@ -113,7 +121,7 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
     theta_init = flat[np.where(ml)[0][0], :]  # maximum likelihood sample
 
     # uncomment this line for Tim's initialisation
-    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+#     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
     sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
     for i, run in enumerate(runs):
@@ -141,8 +149,8 @@ def mcmc_fit(x, y, yerr, p_init, plims, id, RESULTS_DIR, truths, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths, traces=True,
-                            tri=True, prediction=True)
+        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
+                            traces=True, tri=True, prediction=True)
         return samples, results
 
 if __name__ == "__main__":

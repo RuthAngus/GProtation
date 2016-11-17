@@ -1,6 +1,4 @@
 from __future__ import print_function
-import numpy as np
-import matplotlib.pyplot as plt
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
 import os
@@ -12,8 +10,9 @@ A_DIR = "aperiodic_gp_simulations"
 nsims = 333
 
 mus = np.array([-12, 7, -1, -17])
-# sigmas = np.array([5.4, 10, 3.8, 1.7])
 sigmas = np.array([1, 1, 1, 1])
+mus = np.array([-13, 6.2, -1.4, 2.9])
+sigmas = np.array([2.7, 1.5, 1.5, .73])
 periods = np.random.uniform(np.log(.5), np.log(100), nsims)
 
 As = sigmas[0] * np.random.randn(nsims) + mus[0]
