@@ -56,6 +56,7 @@ if __name__=='__main__':
     parser.add_argument('--nwalkers', default=200, type=int)
     parser.add_argument('--iter_chunksize', default=50, type=int)
     parser.add_argument('-p', '--processes', default=None, type=int)
+    parser.add_argument('--targetn', default=6, type=int)
 
     args = parser.parse_args()
 
@@ -67,7 +68,7 @@ if __name__=='__main__':
                 fit_polychord(ix, test=args.test)
             if args.emcee3:
                 _fit_emcee3(ix, ndays=args.ndays, subsample=args.subsample,
-                            chunksize=args.chunksize,
+                            chunksize=args.chunksize, targetn=args.targetn,
                             iter_chunksize=args.iter_chunksize, 
                             nwalkers=args.nwalkers, processes=args.processes,
                             verbose=args.verbose)

@@ -20,6 +20,9 @@ class Emcee3Model(emcee3.Model):
 def write_samples(mod, df, resultsdir='results'):
     """df is dataframe of samples, mod is model
     """
+
+    if not os.path.exists(resultsdir):
+        os.makedirs(resultsdir)
     samplefile = os.path.join(resultsdir, '{}.h5'.format(mod.name))
     df.to_hdf(samplefile, 'samples')
     mod.lc.df.to_hdf(samplefile, 'lc')
