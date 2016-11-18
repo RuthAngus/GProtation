@@ -54,8 +54,8 @@ def recover(i):
 #     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
 #     RESULTS_DIR = "results_nf"
 
-#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
-    RESULTS_DIR = "results"
+    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+#     RESULTS_DIR = "results"
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -97,17 +97,18 @@ def recover(i):
         p_init = 40
     elif p_init < .5:
         p_init = 10
-    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
+    burnin, nwalkers, nruns, full_run = 1000, 16, 5, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
     # fast settings
-    burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-    xb[0], yb[0], yerrb[0] = xb[0][::1000], yb[0][::1000], yerrb[0][::1000]
+#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
+#     xb[0], yb[0], yerrb[0] = xb[0][::1000], yb[0][::1000], yerrb[0][::1000]
 
     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
 #     mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
-    mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+#     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+    mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=0, n_independent=1000)
 
@@ -117,10 +118,10 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m][:100])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-    recover(2)
+#     recover(2)
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
