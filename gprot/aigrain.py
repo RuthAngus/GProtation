@@ -21,7 +21,7 @@ class AigrainLightCurve(LightCurve):
         super(AigrainLightCurve, self).__init__(x - x[0], y - 1, yerr, name=str(i), **kwargs)
 
         # Restrict range if desired
-        if range is not None:
+        if rng is not None:
             self.restrict_range(rng)
         elif ndays is not None:
             self.restrict_range((0, ndays))
