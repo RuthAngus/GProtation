@@ -106,10 +106,6 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
     r = np.concatenate((maxlike, med))
 
-    # calculate autocorrelation times
-    flat_time = np.vstack((np.arange(len(flat)), flat.T)).T
-    acorr_t = emcee.autocorr.integrated_time(flat_time)
-
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
                        "gamma_max": [r[2]], "period_max": [r[3]],
@@ -172,4 +168,4 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         plt.xlim(min(x-x[0]), max(x-x[0]))
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_prediction".format(ID)))
         print(os.path.join(RESULTS_DIR, "{0}_prediction.png".format(ID)))
-    return r, acorr_t
+    return r

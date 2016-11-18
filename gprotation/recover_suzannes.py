@@ -97,7 +97,7 @@ def recover(i):
         p_init = 40
     elif p_init < .5:
         p_init = 10
-    burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
+    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
@@ -107,15 +107,9 @@ def recover(i):
 
     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
 #     mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
-    autocorr_times = mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid,
-                              RESULTS_DIR, truths=trths, burnin=burnin,
-                              nwalkers=nwalkers, nruns=nruns,
-                              full_run=full_run, autocorr_threshold=30)
-    print("autocorr_times = ", autocorr_times)
-#     plt.clf()
-#     plt.plot(autocorr_times)
-#     plt.savefig("test")
-#     np.savetxt(os.path.join(RESULTS_DIR, "{0}_acorr.txt"), autocorr_times)
+    mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+             truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
+             full_run=full_run, diff_threshold=0, n_independent=1000)
 
 if __name__ == "__main__":
 
