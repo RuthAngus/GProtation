@@ -76,13 +76,22 @@ class GPRotModel(object):
     def sample_from_prior(self, N, seed=None):
         """
         Returns N x ndim array of prior samples
+        (within bounds)
         """
         samples = np.empty((N, self.ndim))
 
         np.random.seed(seed)
         for i in range(self.ndim - 1):
-            rn = np.random.randn(N)
-            samples[:, i] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+            vals = np.inf*np.ones(N)
+            m = ~np.isfinite(vals)
+            nbad = m.sum()
+            while nbad > 0:
+                rn = np.random.randn(nbad)
+                vals[m] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+                m = (vals < self.bounds[i][0]) | (vals > self.bounds[i][1])
+                nbad = m.sum()
+
+            samples[:, i] = vals
 
         loP, hiP = self.bounds[-1]
         samples[:, -1] = np.random.random(N) * (hiP - loP) + loP
