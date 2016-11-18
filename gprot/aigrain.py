@@ -41,10 +41,9 @@ class AigrainLightCurve(LightCurve):
             self._sim_params = AigrainTruths().df.ix[self.i]
         return self._sim_params
 
-    def corner_plot(self, chainsdir='chains', **kwargs):
-        basename = os.path.join(chainsdir,str(self.i))
+    def corner_plot(self, samples, **kwargs):
         P1, P2 = self.sim_params.P_MIN, self.sim_params.P_MAX
-        return corner_plot(basename, true_period=(np.log(P1), np.log(P2)))
+        return corner_plot(samples, true_period=(np.log(P1), np.log(P2)))
 
     def subsample(self, *args, **kwargs):
         if 'seed' not in kwargs:

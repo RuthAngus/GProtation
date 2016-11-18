@@ -4,6 +4,8 @@ import numpy as np
 
 import emcee3
 
+from gprot.summary import corner_plot
+
 class Emcee3Model(emcee3.Model):
     def __init__(self, mod, *args, **kwargs):
         self.mod = mod
@@ -17,7 +19,7 @@ class Emcee3Model(emcee3.Model):
         state.log_likelihood = self.mod.lnlike(state.coords)
         return state
 
-def write_samples(mod, df, resultsdir='results'):
+def write_samples(mod, df, resultsdir='results', true_period=None):
     """df is dataframe of samples, mod is model
     """
 
@@ -32,7 +34,12 @@ def write_samples(mod, df, resultsdir='results'):
 
     print('Samples, light curve, and prior saved to {}.'.format(samplefile))
     figfile = os.path.join(resultsdir, '{}.png'.format(mod.name))
-    fig = lc.corner_plot()
+    try:
+        if true_period is None:
+            true_period = (mod.lc.sim_params.P_MIN, mod.lc.sim_params.P_MAX)
+    except AttributeError:
+        pass
+    fig = corner_plot(df, true_period=true_period)
     fig.savefig(figfile)
     print('Corner plot saved to {}.'.format(figfile))
 
