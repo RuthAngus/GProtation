@@ -20,67 +20,6 @@ DATA_DIR = "data/"
 RESULTS_DIR = "results/"
 
 
-def load_k2_data(epic_id, DATA_DIR):
-    hdulist = \
-        pyfits.open(os.path.join(
-            DATA_DIR,
-            "hlsp_everest_k2_llc_{0}-c04_kepler_v1.0_lc.fits"
-            .format(epic_id)))
-    time, flux = hdulist[1].data["TIME"], hdulist[1].data["FLUX"]
-    out = hdulist[1].data["OUTLIER"]
-    m = np.isfinite(time) * np.isfinite(flux) * (out < 1)
-    med = np.median(flux[m])
-    return time[m], flux[m]/med - 1
-
-
-def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
-    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
-    if not clobber and os.path.exists(fname):
-        print("Previous ACF pgram result found")
-        df = pd.read_csv(fname)
-        m = df.N.values == id
-        acf_period = df.acf_period.values[m]
-        err = df.acf_period_err.values[m]
-        pgram_period = df.pgram_period.values[m]
-        pgram_period_err = df.pgram_period_err.values[m]
-    else:
-        print("Calculating ACF")
-        acf_period, acf, lags, rvar = sa.simple_acf(x, y)
-        err = .1 * acf_period
-        plt.clf()
-        plt.plot(lags, acf)
-        plt.axvline(acf_period, color="r")
-        plt.xlabel("Lags (days)")
-        plt.ylabel("ACF")
-        plt.savefig(os.path.join(RESULTS_DIR, "{0}_acf".format(id)))
-        print("saving figure ", os.path.join(RESULTS_DIR,
-                                             "{0}_acf".format(id)))
-
-        print("Calculating periodogram")
-        ps = np.arange(.1, 100, .1)
-        model = LombScargle().fit(x, y, yerr)
-        pgram = model.periodogram(ps)
-
-        plt.clf()
-        plt.plot(ps, pgram)
-        plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
-        print("saving figure ", os.path.join(RESULTS_DIR,
-                                             "{0}_pgram".format(id)))
-
-        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
-                          pgram[i] and pgram[i+1] < pgram[i]])
-        pgram_period = ps[pgram == max(pgram[peaks])][0]
-        print("pgram period = ", pgram_period, "days")
-        pgram_period_err = pgram_period * .1
-
-        df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
-                           "acf_period_err": [err],
-                           "pgram_period": [pgram_period],
-                           "pgram_period_err": [pgram_period_err]})
-        df.to_csv(fname)
-    return acf_period, err, pgram_period, pgram_period_err
-
-
 def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
              nwalkers=12, nruns=10, full_run=500, autocorr_threshold=30, parallel=False):
     """
@@ -164,7 +103,72 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results, acorr_times = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
-                            		    traces=True, tri=True, prediction=True)
+        results, acorr_times = make_plot(samples, x, y, yerr, id, RESULTS_DIR,
+                                         truths, traces=True, tri=True,
+                                         prediction=True)
 	autocorr_times[i, :] = acorr_times
+    plt.clf()
+    plt.plot(autocorr_times)
+    plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
     return autocorr_times
+
+
+def load_k2_data(epic_id, DATA_DIR):
+    hdulist = \
+        pyfits.open(os.path.join(
+            DATA_DIR,
+            "hlsp_everest_k2_llc_{0}-c04_kepler_v1.0_lc.fits"
+            .format(epic_id)))
+    time, flux = hdulist[1].data["TIME"], hdulist[1].data["FLUX"]
+    out = hdulist[1].data["OUTLIER"]
+    m = np.isfinite(time) * np.isfinite(flux) * (out < 1)
+    med = np.median(flux[m])
+    return time[m], flux[m]/med - 1
+
+
+def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
+    fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
+    if not clobber and os.path.exists(fname):
+        print("Previous ACF pgram result found")
+        df = pd.read_csv(fname)
+        m = df.N.values == id
+        acf_period = df.acf_period.values[m]
+        err = df.acf_period_err.values[m]
+        pgram_period = df.pgram_period.values[m]
+        pgram_period_err = df.pgram_period_err.values[m]
+    else:
+        print("Calculating ACF")
+        acf_period, acf, lags, rvar = sa.simple_acf(x, y)
+        err = .1 * acf_period
+        plt.clf()
+        plt.plot(lags, acf)
+        plt.axvline(acf_period, color="r")
+        plt.xlabel("Lags (days)")
+        plt.ylabel("ACF")
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_acf".format(id)))
+        print("saving figure ", os.path.join(RESULTS_DIR,
+                                             "{0}_acf".format(id)))
+
+        print("Calculating periodogram")
+        ps = np.arange(.1, 100, .1)
+        model = LombScargle().fit(x, y, yerr)
+        pgram = model.periodogram(ps)
+
+        plt.clf()
+        plt.plot(ps, pgram)
+        plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
+        print("saving figure ", os.path.join(RESULTS_DIR,
+                                             "{0}_pgram".format(id)))
+
+        peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
+                          pgram[i] and pgram[i+1] < pgram[i]])
+        pgram_period = ps[pgram == max(pgram[peaks])][0]
+        print("pgram period = ", pgram_period, "days")
+        pgram_period_err = pgram_period * .1
+
+        df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
+                           "acf_period_err": [err],
+                           "pgram_period": [pgram_period],
+                           "pgram_period_err": [pgram_period_err]})
+        df.to_csv(fname)
+    return acf_period, err, pgram_period, pgram_period_err
