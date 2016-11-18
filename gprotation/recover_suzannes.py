@@ -112,10 +112,10 @@ def recover(i):
                               nwalkers=nwalkers, nruns=nruns,
                               full_run=full_run, autocorr_threshold=30)
     print("autocorr_times = ", autocorr_times)
-    plt.clf()
-    plt.plot(autocorr_times)
-    plt.savefig("test")
-    np.savetxt(os.path.join(RESULTS_DIR, "{0}_acorr.txt"), autocorr_times)
+#     plt.clf()
+#     plt.plot(autocorr_times)
+#     plt.savefig("test")
+#     np.savetxt(os.path.join(RESULTS_DIR, "{0}_acorr.txt"), autocorr_times)
 
 if __name__ == "__main__":
 

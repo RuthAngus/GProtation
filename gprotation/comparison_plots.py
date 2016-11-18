@@ -250,8 +250,8 @@ if __name__ == "__main__":
 
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-    print("mcmc full rms = ", mcmc_plots(truths, "results"))
-    print("acf full rms = ", acf_plot(truths, "results"))
+#     print("mcmc full rms = ", mcmc_plots(truths, "results"))
+#     print("acf full rms = ", acf_plot(truths, "results"))
 #     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
 #     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
 #     print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt

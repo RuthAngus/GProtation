@@ -21,7 +21,8 @@ RESULTS_DIR = "results/"
 
 
 def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
-             nwalkers=12, nruns=10, full_run=500, autocorr_threshold=30, parallel=False):
+             nwalkers=12, nruns=10, full_run=500, autocorr_threshold=30,
+             n_independent=1000, parallel=False):
     """
     Run the MCMC
     """
@@ -73,12 +74,13 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
 #     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
     # repeating MCMC runs.
-    autocorr_times = np.ones((nruns, ndim + 2)) * 1e20
+#     autocorr_times = np.ones((nruns, ndim + 2)) * 1e20
+    autocorr_times, mean_ind, mean_diff = [], [], []
     sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
     for i, run in enumerate(runs):
-        if max(autocorr_times[i, :]) < autocorr_threshold:
-		print("break")
-		break
+#         if max(autocorr_times[i, :]) < autocorr_threshold:
+# 		print("break")
+# 		break
         print("run {0} of {1}".format(i, len(runs)))
         sampler.reset()
         print("production run, {0} steps".format(int(run)))
@@ -106,11 +108,70 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         results, acorr_times = make_plot(samples, x, y, yerr, id, RESULTS_DIR,
                                          truths, traces=True, tri=True,
                                          prediction=True)
-	autocorr_times[i, :] = acorr_times
+# 	autocorr_times[i, :] = acorr_times
+#         autocorr_times.append(acorr_times)
+        _, nsteps, _ = np.shape(samples)
+        flat = np.reshape(samples[:, :, :5], (nwalkers*nsteps, ndim))
+        conv, autocorr_times, ind_samp, diff = \
+                evaluate_convergence(flat, autocorr_times)
+        mean_ind.append(ind_samp)
+        mean_diff.append(diff)
+	print(conv)
+        if conv:
+            break
+
     plt.clf()
     plt.plot(autocorr_times)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
+    plt.clf()
+    plt.plot(mean_ind)
+    plt.savefig(os.path.join(RESULTS_DIR, "{0}_ind".format(id)))
+    plt.clf()
+    plt.plot(mean_diff)
+    plt.savefig(os.path.join(RESULTS_DIR, "{0}_diff".format(id)))
     return autocorr_times
+
+
+def evaluate_convergence(flat, mean_acorr, diff_threshold=0, ind_threshold=1000):
+    """
+    Calculates the autocorrelation time of flat and appends to mean_acorr.
+    Also calculates the number of independent samples and the difference between
+    adjacent autocorrelation times estimates.
+
+    Params:
+    ------
+    flat: (ndarray)
+    	flattened array of emcee samples
+    mean_acorr: (list)
+    	list of lists of autocorrelation times.
+    diff_threshold: (int) default = 0
+	The threshold reached by the autocorrelation time difference which
+	constitues convergence.
+    ind_threshold: (int) default = 1000
+	The minimum number of independent samples
+    Returns
+    -------
+    converged: (boolean)
+    	If True then convergence criteria have been satisfied.
+    mean_acorr: (list)
+    	A list of lists of autocorrelation times (averaged over chains/dimensions).
+    mean_ind: (list)
+        The number of independent samples (averaged over chains/dimensions).
+    mean_diff: (list)
+        The difference between this autocorrelation time and the last
+	autocorrelation time.
+    """
+    converged = False
+#     acorr_t = emcee.autocorr.integrated_time(flat, c=1)
+    acorr_t = emcee.autocorr.integrated_time(flat)
+    mean_acorr.append(np.mean(acorr_t))
+    mean_ind = len(flat) / np.mean(acorr_t)
+    mean_diff = None
+    if len(mean_acorr) > 1:
+        mean_diff = np.mean(mean_acorr[-1] - mean_acorr[-2])
+        if mean_diff < 0 and mean_ind > 1000:
+            converged = True
+    return converged, mean_acorr, mean_ind, mean_diff
 
 
 def load_k2_data(epic_id, DATA_DIR):
