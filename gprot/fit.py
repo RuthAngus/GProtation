@@ -36,7 +36,8 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     figfile = os.path.join(resultsdir, '{}.png'.format(mod.name))
     try:
         if true_period is None:
-            true_period = (mod.lc.sim_params.P_MIN, mod.lc.sim_params.P_MAX)
+            true_period = (np.log(mod.lc.sim_params.P_MIN), 
+                           np.log(mod.lc.sim_params.P_MAX))
     except AttributeError:
         pass
     fig = corner_plot(df, true_period=true_period)
