@@ -44,13 +44,15 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     print('Corner plot saved to {}.'.format(figfile))
 
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
-                iter_chunksize=10, processes=None):
+                iter_chunksize=10, processes=None, overwrite=False,
+                maxiter=100):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
 
     """
-    #initialize
+
+    # Initialize
     walker = Emcee3Model(mod)
     ndim = 5
 
@@ -67,7 +69,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     ensemble = emcee3.Ensemble(walker, coords_init, pool=pool)
 
     chunksize = iter_chunksize
-    for iteration in range(100):
+    for iteration in range(maxiter):
         if verbose:
             print("Iteration {0}...".format(iteration + 1))
         sampler.run(ensemble, chunksize, progress=verbose)
@@ -96,7 +98,9 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
 
     df = pd.DataFrame(samples, columns=mod.param_names)
     write_samples(mod, df)
+    
     return df
+    # return sampler
 
 def fit_mnest(mod, basename=None, test=False, 
                 verbose=False, resultsdir='results', **kwargs):

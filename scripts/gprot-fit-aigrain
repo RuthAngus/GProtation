@@ -57,6 +57,7 @@ if __name__=='__main__':
     parser.add_argument('--iter_chunksize', default=50, type=int)
     parser.add_argument('-p', '--processes', default=None, type=int)
     parser.add_argument('--targetn', default=6, type=int)
+    parser.add_argument('--maxiter', default=100, type=int)
 
     args = parser.parse_args()
 
@@ -71,7 +72,7 @@ if __name__=='__main__':
                             chunksize=args.chunksize, targetn=args.targetn,
                             iter_chunksize=args.iter_chunksize, 
                             nwalkers=args.nwalkers, processes=args.processes,
-                            verbose=args.verbose)
+                            verbose=args.verbose, maxiter=args.maxiter)
             else:
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
