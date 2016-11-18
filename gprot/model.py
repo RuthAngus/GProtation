@@ -47,6 +47,10 @@ class GPRotModel(object):
         self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, 5])
 
     @property
+    def ndim(self):
+        return len(self.param_names)
+
+    @property
     def x(self):
         return self.lc.x
 
@@ -69,6 +73,22 @@ class GPRotModel(object):
     def bounds(self):
         return self._bounds
     
+    def sample_from_prior(self, N, seed=None):
+        """
+        Returns N x ndim array of prior samples
+        """
+        samples = np.empty((N, self.ndim))
+
+        np.random.seed(seed)
+        for i in range(self.ndim - 1):
+            rn = np.random.randn(N)
+            samples[:, i] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+
+        loP, hiP = self.bounds[-1]
+        samples[:, -1] = np.random.random(N) * (hiP - loP) + loP
+
+        return samples
+
     def lnprior(self, theta):
         """
         theta = A, l, G, sigma, period
@@ -107,10 +127,7 @@ class GPRotModel(object):
         gp.compute(x, np.sqrt(sigma + yerr**2)) # is this correct?
         return gp
 
-    def lnlike(self, theta, x=None, y=None, yerr=None):
-        if y is None:
-            y = self.y
-
+    def lnlike_function(self, theta, x, y, yerr):
         try:
             gp = self.gp(theta, x=x, yerr=yerr)
         except (ValueError, np.linalg.LinAlgError):
@@ -119,15 +136,17 @@ class GPRotModel(object):
 
         return lnl if np.isfinite(lnl) else -np.inf
 
-    def lnpost(self, theta):
+    def lnlike(self, theta):
         if self.lc.x_list is None:
-            lnprob = self.lnlike(theta) + self.lnprior(theta)
+            return self.lnlike_function(theta, self.x, self.y, self.yerr)
         else:
-            lnprob = self.lnprior(theta) + \
-                        np.sum([self.lnlike(theta, x=x, y=y, yerr=yerr)
-                                for (x, y, yerr) in zip(self.lc.x_list,
-                                                        self.lc.y_list,
-                                                        self.lc.yerr_list)])
+            return np.sum([self.lnlike_function(theta, x=x, y=y, yerr=yerr)
+                            for (x, y, yerr) in zip(self.lc.x_list,
+                                                    self.lc.y_list,
+                                                    self.lc.yerr_list)])
+
+    def lnpost(self, theta):
+        lnprob = self.lnlike(theta) + self.lnprior(theta)
         return lnprob
 
     def polychord_prior(self, cube):
