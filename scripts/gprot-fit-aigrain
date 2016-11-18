@@ -51,12 +51,14 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    for i in args.stars:
+    N = len(args.stars)
+    for i,ix in enumerate(args.stars):
+        print('{} of {}: {}'.format(i+1, N, ix))
         try:
             if args.polychord:
-                fit_polychord(i, test=args.test)
+                fit_polychord(ix, test=args.test)
             else:
-                _fit_mnest(i, test=args.test, verbose=args.verbose, 
+                _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
                           chunksize=args.chunksize)
