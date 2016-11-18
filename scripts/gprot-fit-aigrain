@@ -6,8 +6,11 @@ import logging
 from gprot.aigrain import AigrainLightCurve
 from gprot.model import GPRotModel
 from gprot.config import POLYCHORD
+from gprot.fit import fit_mnest
 
-def fit_polychord(i, test=False):
+def fit_polychord(i, test=False, nlive=1000):
+    raise NotImplementedError
+
     sys.path.append(POLYCHORD)
     import PyPolyChord.PyPolyChord as PolyChord
 
@@ -19,34 +22,17 @@ def fit_polychord(i, test=False):
     else:
         _ = PolyChord.run_nested_sampling(mod.polychord_lnpost, 5, 0,
                         prior=mod.polychord_prior,
-                        file_root=basename)    
+                        file_root=basename, n_live_points=nlive)    
 
-def fit_mnest(i, test=False, verbose=False, resultsdir='results', 
-              ndays=600, subsample=20, **kwargs):
-    import pymultinest
-
-    lc = AigrainLightCurve(i, ndays, subsample)
+def get_model(i, ndays=None, subsample=40, chunksize=200):
+    lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
     mod = GPRotModel(lc)
+    return mod    
+
+def _fit_mnest(i, ndays=None, subsample=40, chunksize=200, **kwargs):
+    mod = get_model(i, ndays=ndays, subsample=subsample, chunksize=chunksize)
     basename = os.path.join('chains',str(i))
-    if test:
-        print('Will run multinest on star {}...'.format(i))
-    else:
-        _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
-                            verbose=verbose, outputfiles_basename=basename, 
-                            **kwargs)
-
-        if not os.path.exists(resultsdir):
-            os.makedirs(resultsdir)
-
-        df = GPRotModel.get_mnest_samples(basename)
-        samplefile = os.path.join(resultsdir, '{}.h5'.format(i))
-        df.to_hdf(samplefile, 'df')
-        print('Samples saved to {}.'.format(samplefile))
-        figfile = os.path.join(resultsdir, '{}.png'.format(i))
-        fig = lc.corner_plot()
-        fig.savefig(figfile)
-        print('Corner plot saved to {}.'.format(figfile))
-
+    fit_mnest(mod, basename=basename, **kwargs)
 
 if __name__=='__main__':
     import argparse
@@ -58,8 +44,10 @@ if __name__=='__main__':
     parser.add_argument('--polychord', action='store_true')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--resultsdir', default='results')
-    parser.add_argument('-n', '--ndays', default=600, type=int)
-    parser.add_argument('--subsample', default=20, type=int)
+    parser.add_argument('-n', '--ndays', default=None, type=int)
+    parser.add_argument('--subsample', default=40, type=int)
+    parser.add_argument('--nlive', default=1000, type=int)
+    parser.add_argument('--chunksize', default=200, type=int)
 
     args = parser.parse_args()
 
@@ -68,9 +56,10 @@ if __name__=='__main__':
             if args.polychord:
                 fit_polychord(i, test=args.test)
             else:
-                fit_mnest(i, test=args.test, verbose=args.verbose, 
+                _fit_mnest(i, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
-                          resultsdir=args.resultsdir)
+                          resultsdir=args.resultsdir, n_live_points=args.nlive,
+                          chunksize=args.chunksize)
         except:
             import traceback
             traceback.print_exc()

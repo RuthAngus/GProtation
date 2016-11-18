@@ -17,7 +17,7 @@ import os
 import pandas as pd
 
 def lnGauss(x, mu, sigma):
-    return -.5 * ((x - mu)**2/(.5 * sigma**2))
+    return -0.5 * ((x - mu)**2/(sigma**2)) + np.log(1./np.sqrt(2*np.pi*sigma**2))
 
 class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
@@ -25,7 +25,7 @@ class GPRotModel(object):
     # log bounds
     _bounds = ((-20., 0.), 
                (-0.69, 20.), 
-               (-8., 8.), 
+               (-10., 10.), 
                (-20., 5.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
@@ -43,13 +43,8 @@ class GPRotModel(object):
         self._name = name
 
         # Default gaussian for GP param priors
-        # These are suggested by Ruth but fits didn't work...
-        # self.gp_prior_mu = np.array([-13, 6.2, -1.4, 2.9])
-        # self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, .73])
-
-        # These were old ones where fits worked...
-        self.gp_prior_mu = np.array([-12, 7, -1, -12])
-        self.gp_prior_sigma = np.array([5.4, 10, 3.8, 5])
+        self.gp_prior_mu = np.array([-13, 6.2, -1.4, -17])
+        self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, 5])
 
     @property
     def x(self):
@@ -91,24 +86,49 @@ class GPRotModel(object):
 
         return lnpr
 
-    def lnlike(self, theta):
+    def gp_kernel(self, theta):
         A = np.exp(theta[0])
         l = np.exp(theta[1])
         G = np.exp(theta[2])
         sigma = np.exp(theta[3])
         P = np.exp(theta[4])
+        return A * ExpSquaredKernel(l) * ExpSine2Kernel(G, P) + WhiteKernel(sigma)        
 
-        k = A * ExpSquaredKernel(l) * ExpSine2Kernel(G, P) + WhiteKernel(sigma)
+    def gp(self, theta, x=None, yerr=None):
+        if x is None:
+            x = self.x
+        if yerr is None:
+            yerr = self.yerr
+
+        k = self.gp_kernel(theta)
         gp = george.GP(k, solver=george.HODLRSolver)
+
+        sigma = np.exp(theta[3])
+        gp.compute(x, np.sqrt(sigma + yerr**2)) # is this correct?
+        return gp
+
+    def lnlike(self, theta, x=None, y=None, yerr=None):
+        if y is None:
+            y = self.y
+
         try:
-            gp.compute(self.x, np.sqrt(sigma + self.yerr**2))
+            gp = self.gp(theta, x=x, yerr=yerr)
         except (ValueError, np.linalg.LinAlgError):
-            return 10e25
-        return gp.lnlikelihood(self.y, quiet=True)
+            return -np.inf
+        lnl = gp.lnlikelihood(y, quiet=True)
+
+        return lnl if np.isfinite(lnl) else -np.inf
 
     def lnpost(self, theta):
-        prob = self.lnlike(theta) + self.lnprior(theta)
-        return prob
+        if self.lc.x_list is None:
+            lnprob = self.lnlike(theta) + self.lnprior(theta)
+        else:
+            lnprob = self.lnprior(theta) + \
+                        np.sum([self.lnlike(theta, x=x, y=y, yerr=yerr)
+                                for (x, y, yerr) in zip(self.lc.x_list,
+                                                        self.lc.y_list,
+                                                        self.lc.yerr_list)])
+        return lnprob
 
     def polychord_prior(self, cube):
         """Takes unit cube, returns true parameters

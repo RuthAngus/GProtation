@@ -11,16 +11,24 @@ from .summary import corner_plot
 
 class AigrainLightCurve(LightCurve):
     subdir = 'final'
-    def __init__(self, i, ndays=200, sub=10):
+    def __init__(self, i, ndays=None, sub=40, rng=None, nsigma=5, **kwargs):
         self.i = i
 
         sid = str(int(i)).zfill(4)
         x, y = np.genfromtxt(os.path.join(AIGRAIN_DIR, self.subdir,
                              "lightcurve_{0}.txt".format(sid))).T
         yerr = np.ones(len(y)) * 1e-5
-        super(AigrainLightCurve, self).__init__(x - x[0], y - 1, yerr, name=str(i))
-        self.restrict_range((0, ndays))
+        super(AigrainLightCurve, self).__init__(x - x[0], y - 1, yerr, name=str(i), **kwargs)
+
+        # Restrict range if desired
+        if range is not None:
+            self.restrict_range(rng)
+        elif ndays is not None:
+            self.restrict_range((0, ndays))
+
         self.subsample(sub)
+        if nsigma is not None:
+            self.sigma_clip(nsigma)
 
         self._sim_params = None
 
@@ -37,6 +45,11 @@ class AigrainLightCurve(LightCurve):
         basename = os.path.join(chainsdir,str(self.i))
         P1, P2 = self.sim_params.P_MIN, self.sim_params.P_MAX
         return corner_plot(basename, true_period=(np.log(P1), np.log(P2)))
+
+    def subsample(self, *args, **kwargs):
+        if 'seed' not in kwargs:
+            kwargs['seed'] = self.i
+        super(AigrainLightCurve, self).subsample(*args, **kwargs)
 
 class NoiseFreeAigrainLightCurve(AigrainLightCurve):
     subdir = 'noise_free'
