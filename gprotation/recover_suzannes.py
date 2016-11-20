@@ -46,16 +46,7 @@ def sigma_clip(x, y, yerr, nsigma):
 
 def recover(i):
 
-#     RESULTS_DIR = "results"
-#     RESULTS_DIR = "results_prior"
-#     RESULTS_DIR = "results_Gprior"
-#     RESULTS_DIR = "results_initialisation"
-
-#     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
-#     RESULTS_DIR = "results_nf"
-
     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
-#     RESULTS_DIR = "results"
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -72,12 +63,6 @@ def recover(i):
 
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)
-
-    # calculate the variance
-    var = np.var(y)
-    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
-    if np.log(var) < -13:
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     ppd = 4  # cut off at 200 days, 4 points per day
     xb, yb, yerrb = make_gaps(x, y, yerr, ppd)
