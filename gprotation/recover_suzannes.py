@@ -110,7 +110,7 @@ def recover(i):
 #     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
-             full_run=full_run, diff_threshold=0, n_independent=1000)
+             full_run=full_run, diff_threshold=.5, n_independent=1000)
 
 if __name__ == "__main__":
 
