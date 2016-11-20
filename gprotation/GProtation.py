@@ -147,12 +147,16 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
-        if len(xb) > 1:
-            x = [i for j in xb for i in j]
-            y = [i for j in yb for i in j]
-            yerr = [i for j in yerrb for i in j]
-        else:
-            x, y, yerr = xb, yb, yerrb
+        if len(xb) > 1:  # if the data is a list of lists.
+            try:
+                x = [i for j in xb for i in j]
+                y = [i for j in yb for i in j]
+                yerr = [i for j in yerrb for i in j]
+            except:  # if the data are just a single list.
+                TypeError
+                x, y, yerr = xb, yb, yerrb
+        else:  # if the data is a list of a single list.
+            x, y, yerr = xb[0], yb[0], yerrb[0]
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
