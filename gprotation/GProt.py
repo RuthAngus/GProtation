@@ -21,7 +21,7 @@ RESULTS_DIR = "results/"
 
 
 def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
-             nwalkers=12, nruns=10, full_run=500, diff_threshold=30,
+             nwalkers=12, nruns=10, full_run=500, diff_threshold=.5,
              n_independent=1000, parallel=False):
     """
     Run the MCMC
@@ -164,7 +164,7 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     mean_diff = None
     if len(mean_acorr) > 1:
         mean_diff = np.mean(mean_acorr[-1] - mean_acorr[-2])
-        if mean_diff < 0 and mean_ind > 1000:
+        if np.abs(mean_diff) < diff_threshold and mean_ind > 1000:
             converged = True
     return converged, mean_acorr, mean_ind, mean_diff
 
