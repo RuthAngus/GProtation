@@ -29,8 +29,8 @@ def recover(i):
     truths = pd.read_csv("gp_truths.csv")
 
     # select either periodic or non-periodic
-#     RESULTS_DIR = "results_periodic_gp"
-    RESULTS_DIR = "results_aperiodic_gp"
+    RESULTS_DIR = "results_periodic_gp"
+#     RESULTS_DIR = "results_aperiodic_gp"
 
     DATA_DIR = "periodic_gp_simulations"
     trths = [truths.lnA.values[i], truths.lnl_p.values[i],
@@ -83,28 +83,28 @@ def recover(i):
     assert p_init < np.exp(p_max), "p_init > p_max"
 
     # fast settings:
-    burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-    xb[0], yb[0], yerrb[0] = xb[0][::1000], yb[0][::1000], yerrb[0][::1000]
-    xb_n[0], yb_n[0], yerrb_n[0] = xb_n[0][::1000], yb_n[0][::1000], \
-        yerrb_n[0][::1000]
+#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
+#     xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
+#     xb_n[0], yb_n[0], yerrb_n[0] = xb_n[0][::100], yb_n[0][::100], \
+#         yerrb_n[0][::100]
 
     # run on noisy and noise free
-#     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
-    mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+#     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+    mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
-#     mcmc_fit(xb_n[:2], yb_n[:2], yerrb_n[:2], p_init_n, p_max,
-    mcmc_fit(xb_n[0], yb_n[0], yerrb_n[0], p_init_n, p_max,
+#     mcmc_fit(xb_n[0], yb_n[0], yerrb_n[0], p_init_n, p_max,
+    mcmc_fit(xb_n[:2], yb_n[:2], yerrb_n[:2], p_init_n, p_max,
              "{0}_n".format(sid), RESULTS_DIR, truths=trths, burnin=burnin,
              nwalkers=nwalkers, nruns=nruns, full_run=full_run,
              diff_threshold=.5, n_independent=1000)
 
 if __name__ == "__main__":
 
-#     pool = Pool()
-#     results = pool.map(recover, range(333))
+    pool = Pool()
+    results = pool.map(recover, range(333))
 
-    recover(0)
+#     recover(0)
 
 #     for i in range(333):
 # 	    recover(i)
