@@ -58,6 +58,7 @@ if __name__=='__main__':
     parser.add_argument('-p', '--processes', default=None, type=int)
     parser.add_argument('--targetn', default=6, type=int)
     parser.add_argument('--maxiter', default=100, type=int)
+    parser.add_argument('-o', '--overwrite', action='store_true')
 
     args = parser.parse_args()
 
@@ -72,12 +73,13 @@ if __name__=='__main__':
                             chunksize=args.chunksize, targetn=args.targetn,
                             iter_chunksize=args.iter_chunksize, 
                             nwalkers=args.nwalkers, processes=args.processes,
-                            verbose=args.verbose, maxiter=args.maxiter)
+                            verbose=args.verbose, maxiter=args.maxiter, 
+                            overwrite=args.overwrite)
             else:
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
-                          chunksize=args.chunksize)
+                          chunksize=args.chunksize, overwrite=args.overwrite)
         except:
             import traceback
             traceback.print_exc()

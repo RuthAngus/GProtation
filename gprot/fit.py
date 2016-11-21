@@ -47,7 +47,8 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
 
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, processes=None, overwrite=False,
-                maxiter=100, sample_directory='mcmc_chains'):
+                maxiter=100, sample_directory='mcmc_chains',
+                overwrite=False):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
@@ -69,6 +70,8 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         backend = Backend()
 
     sampler = emcee3.Sampler(emcee3.moves.KDEMove(), backend=backend)
+    if overwrite:
+        sampler.reset()
 
     if processes is not None:
         from multiprocessing import Pool
@@ -114,11 +117,13 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     # return sampler
 
 def fit_mnest(mod, basename=None, test=False, 
-                verbose=False, resultsdir='results', **kwargs):
+                verbose=False, resultsdir='results', overwrite=False, **kwargs):
     import pymultinest
 
     if basename is None:
         basename = os.path.join('chains', mod.name)
+    if overwrite:
+        raise NotImplementedError('Overwrite not implemented for fit_mnest yet.')
 
     if test:
         print('Will run multinest on star {}..., basename={}'.format(i, basename))
