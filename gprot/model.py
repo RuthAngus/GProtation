@@ -39,7 +39,7 @@ class GPRotModel(object):
 
         # Default gaussian for GP param priors
         self.gp_prior_mu = np.array([-13, 6.2, -1.4, -17])
-        self.gp_prior_sigma = np.array([2.7, 1.5, 1.5, 5])
+        self.gp_prior_sigma = np.array([2.7, 3.5, 3.5, 5])
 
     @property
     def ndim(self):
