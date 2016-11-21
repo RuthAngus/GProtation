@@ -9,6 +9,11 @@ from .lc import LightCurve
 
 from .summary import corner_plot
 
+def get_true_period(i):
+    lc = AigrainLightCurve(i)
+    P1, P2 = lc.sim_params.P_MIN, lc.sim_params.P_MAX
+    return (P1, P2)
+
 class AigrainLightCurve(LightCurve):
     subdir = 'final'
     def __init__(self, i, ndays=None, sub=40, rng=None, nsigma=5, **kwargs):

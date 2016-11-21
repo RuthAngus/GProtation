@@ -45,10 +45,10 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     fig.savefig(figfile)
     print('Corner plot saved to {}.'.format(figfile))
 
-def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=8,
+def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, processes=None, overwrite=False,
                 maxiter=100, sample_directory='mcmc_chains',
-                nburn=4):
+                nburn=3):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
