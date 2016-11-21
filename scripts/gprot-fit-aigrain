@@ -64,7 +64,14 @@ if __name__=='__main__':
     parser.add_argument('-o', '--overwrite', action='store_true')
     parser.add_argument('--nburn', default=3, type=int)
 
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--ncores", dest="n_cores", default=1,
+                       type=int, help="Number of processes (uses multiprocessing).")
+    group.add_argument("--mpi", dest="mpi", default=False,
+                       action="store_true", help="Run with MPI.")
     args = parser.parse_args()
+
+    pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
 
     N = len(args.stars)
     for i,ix in enumerate(args.stars):
@@ -76,9 +83,9 @@ if __name__=='__main__':
                 _fit_emcee3(ix, ndays=args.ndays, subsample=args.subsample,
                             chunksize=args.chunksize, targetn=args.targetn,
                             iter_chunksize=args.iter_chunksize, 
-                            nwalkers=args.nwalkers, processes=args.processes,
+                            nwalkers=args.nwalkers,
                             verbose=args.verbose, maxiter=args.maxiter, 
-                            overwrite=args.overwrite)
+                            overwrite=args.overwrite, pool=pool)
             else:
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,

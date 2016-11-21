@@ -46,7 +46,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     print('Corner plot saved to {}.'.format(figfile))
 
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
-                iter_chunksize=10, processes=None, overwrite=False,
+                iter_chunksize=10, pool=None, overwrite=False,
                 maxiter=100, sample_directory='mcmc_chains',
                 nburn=3):
     """fit model using Emcee3 
@@ -74,10 +74,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     if overwrite:
         sampler.reset()
 
-    if processes is not None:
-        from multiprocessing import Pool
-        pool = Pool(processes=processes)
-    else:
+    if pool is None:
         from emcee3.pool import DefaultPool
         pool = DefaultPool()
 
