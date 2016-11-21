@@ -16,8 +16,6 @@ plotpar = {'axes.labelsize': 18,
 plt.rcParams.update(plotpar)
 
 DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
-RESULTS_DIR = "results/"
-
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
@@ -58,7 +56,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-def load_samples(id):
+def load_samples(id, RESULTS_DIR):
     fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
     if not os.path.exists(fname):
         return None
@@ -139,9 +137,8 @@ def mcmc_plots(truths, DIR):
     plt.clf()
     xs = np.log(np.arange(0, 100, 1))
     plt.plot(xs, xs, "k-", alpha=.2, zorder=0)
-    plt.plot(xs, xs + 2, "k--", alpha=.2, zorder=0)
     plt.plot(xs, xs + 2./3, "k--", alpha=.2, zorder=0)
-    plt.plot(xs, xs - 2, "k--", alpha=.2, zorder=0)
+    plt.plot(xs, xs - 2./3, "k--", alpha=.2, zorder=0)
     plt.xlim(0, 4)
     plt.ylim(0, 6)
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
@@ -161,14 +158,14 @@ def mcmc_plots(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(np.log(xs), np.log(xs), "k--", alpha=.5)
-    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.5)
-    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.5)
     plt.xlim(0, 4)
     plt.ylim(0, 6)
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     for i, n in enumerate(N):
-        samples = load_samples(n)
+        samples = load_samples(n, DIR)
         if samples != None:
             plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
                      100), "k.", ms=1)
@@ -195,8 +192,7 @@ def acf_plot(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(np.log(xs), np.log(xs), "k-", alpha=.3, zorder=0)
-    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.3, zorder=0)
-    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
 
     plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
