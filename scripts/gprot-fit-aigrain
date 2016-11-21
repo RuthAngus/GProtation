@@ -3,6 +3,9 @@
 import sys, os
 import logging
 
+import matplotlib
+matplotlib.use('agg')
+
 from gprot.aigrain import AigrainLightCurve
 from gprot.model import GPRotModel
 from gprot.config import POLYCHORD
