@@ -43,6 +43,7 @@ def _fit_mnest(i, ndays=None, subsample=40, chunksize=200, **kwargs):
 
 if __name__=='__main__':
     import argparse
+    import schwimmbad
 
     parser = argparse.ArgumentParser()
 
