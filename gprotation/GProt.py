@@ -114,14 +114,17 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         if conv:
             break
 
+    col = "b"
+    if conv:
+        col = "r"
     plt.clf()
-    plt.plot(autocorr_times)
+    plt.plot(autocorr_times, color=color)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
     plt.clf()
-    plt.plot(mean_ind)
+    plt.plot(mean_ind, color=color)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_ind".format(id)))
     plt.clf()
-    plt.plot(mean_diff)
+    plt.plot(mean_diff, color=color)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_diff".format(id)))
     return
 
