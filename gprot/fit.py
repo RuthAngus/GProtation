@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 import emcee3
+from emcee3.backends import Backend, HDFBackend
 
 from gprot.summary import corner_plot
 
@@ -46,7 +47,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
 
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, processes=None, overwrite=False,
-                maxiter=100):
+                maxiter=100, sample_directory='mcmc_chains'):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
@@ -58,7 +59,16 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     ndim = 5
 
     coords_init = mod.sample_from_prior(nwalkers)
-    sampler = emcee3.Sampler(emcee3.moves.KDEMove())
+
+    if sample_directory is not None:
+        sample_file = os.path.join(sample_directory, '{}.h5'.format(mod.name))
+        if not os.path.exists(sample_directory):
+            os.makedirs(sample_directory)
+        backend = HDFBackend(sample_file)
+    else:
+        backend = Backend()
+
+    sampler = emcee3.Sampler(emcee3.moves.KDEMove(), backend=backend)
 
     if processes is not None:
         from multiprocessing import Pool

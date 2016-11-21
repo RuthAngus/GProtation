@@ -31,14 +31,9 @@ class GPRotModel(object):
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
-    def __init__(self, lc, plims=None, name=None):
+    def __init__(self, lc, name=None):
 
         self.lc = lc
-
-        if plims is None:
-            self.plims = self._bounds[4]
-        else:
-            self.plims = plims
 
         self._name = name
 
@@ -102,8 +97,9 @@ class GPRotModel(object):
         """
         theta = A, l, G, sigma, period
         """
-        if theta[4] < self.plims[0] or theta[4] > self.plims[1]:
-            return -np.inf
+        for i, (lo, hi) in enumerate(self.bounds):
+            if theta[i] < lo or theta[i] > hi:
+                return -np.inf
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
 
