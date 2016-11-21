@@ -41,7 +41,7 @@ def Glnprior(theta, p_init, p_max):
     """
     mu = np.array([-13, 6.2, -1.4, -17, p_init])
     sigma = np.array([2.7, 1.5, 1.5, 5, p_init * 2])
-    if np.log(.5) < theta[4] < p_max:
+    if np.log(.5) < theta[4] < p_max and 0 < theta[1]:
         return np.sum(lnGauss(theta, mu, sigma))
     return -np.inf
 
@@ -105,8 +105,7 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     r = np.concatenate((maxlike, med))
 
     # calculate autocorrelation times
-    flat_time = np.vstack((np.arange(len(flat)), flat.T)).T
-    acorr_t = emcee.autocorr.integrated_time(flat_time)
+    acorr_t = emcee.autocorr.integrated_time(flat)
 
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
@@ -148,9 +147,16 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print(os.path.join("{0}_triangle.png".format(ID)))
 
     if prediction:
-        x = [i for j in xb for i in j]
-        y = [i for j in yb for i in j]
-        yerr = [i for j in yerrb for i in j]
+        if len(xb) > 1:  # if the data is a list of lists.
+            try:
+                x = [i for j in xb for i in j]
+                y = [i for j in yb for i in j]
+                yerr = [i for j in yerrb for i in j]
+            except:  # if the data are just a single list.
+                TypeError
+                x, y, yerr = xb, yb, yerrb
+        else:  # if the data is a list of a single list.
+            x, y, yerr = xb[0], yb[0], yerrb[0]
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \

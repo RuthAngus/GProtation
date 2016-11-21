@@ -46,16 +46,7 @@ def sigma_clip(x, y, yerr, nsigma):
 
 def recover(i):
 
-#     RESULTS_DIR = "results"
-#     RESULTS_DIR = "results_prior"
-#     RESULTS_DIR = "results_Gprior"
-#     RESULTS_DIR = "results_initialisation"
-
-#     DATA_DIR = "../code/simulations/kepler_diffrot_full/noise_free"
-#     RESULTS_DIR = "results_nf"
-
-#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
-    RESULTS_DIR = "results"
+    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -72,12 +63,6 @@ def recover(i):
 
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)
-
-    # calculate the variance
-    var = np.var(y)
-    burnin, nwalkers, nruns, full_run = 1000, 16, 20, 500
-    if np.log(var) < -13:
-        burnin, nwalkers, nruns, full_run = 1000, 16, 20, 1000
 
     ppd = 4  # cut off at 200 days, 4 points per day
     xb, yb, yerrb = make_gaps(x, y, yerr, ppd)
@@ -97,19 +82,20 @@ def recover(i):
         p_init = 40
     elif p_init < .5:
         p_init = 10
-    burnin, nwalkers, nruns, full_run = 5000, 16, 20, 1000
+    burnin, nwalkers, nruns, full_run = 1000, 16, 5, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
     # fast settings
-#     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
-#     xb, yb, yerrb = xb[::10], yb[::10], yerrb[::10]
+#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
+#     xb[0], yb[0], yerrb[0] = xb[0][::1000], yb[0][::1000], yerrb[0][::1000]
 
     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
-#     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
-    mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
+#     mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
+#     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+    mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
-             full_run=full_run)
+             full_run=full_run, diff_threshold=.5, n_independent=1000)
 
 if __name__ == "__main__":
 

@@ -202,8 +202,8 @@ def plots(truths, DIR):
     plt.clf()
     xs = np.arange(0, 100, 1)
     plt.plot(np.log(xs), np.log(xs), "k--", alpha=.5)
-    plt.plot(np.log(xs), np.log(xs) + 2, "k--", alpha=.5)
-    plt.plot(np.log(xs), np.log(xs) - 2, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.5)
+    plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.5)
     plt.xlim(0, 4)
     plt.ylim(0, 6)
     plt.title("$\mathrm{MCMC~failures}$")
@@ -228,9 +228,9 @@ def plots(truths, DIR):
         print("ID: ", N[mgpf][mu][num], ", true period = ",
               true[mgpf][mu][num], ", GP period = ", maxlike[mgpf][mu][num],
               ", ACF period = ", acfs[mgpf][mu][num])
-    num = 2
+    num = 0
     plt.plot(np.log(true[mgpf][m][num]), np.log(maxlike[mgpf][m][num]), "r.")
-    plt.plot(np.log(true[mgpf][mu][num]), np.log(maxlike[mgpf][m][num]), "r.")
+    plt.plot(np.log(true[mgpf][mu][num]), np.log(maxlike[mgpf][mu][num]), "r.")
     plt.savefig(os.path.join(DIR, "mcmc_fail.pdf"))
 
     plt.clf()
@@ -256,6 +256,27 @@ def plots(truths, DIR):
     plt.legend()
     plt.xlabel("$\ln(l)$")
     plt.savefig(os.path.join(DIR, "l_comp.pdf"))
+
+    plt.clf()
+    plt.plot(ls[mgpf], np.log(maxlike[mgpf]), "k.")
+    plt.plot(ls[mgp], np.log(maxlike[mgp]), "r.")
+    plt.xlabel("$\ln(l)$")
+    plt.ylabel("$\ln(period)$")
+    plt.savefig(os.path.join(DIR, "l_vs_p.pdf"))
+
+    plt.clf()
+    fail_ratio = ls[mgpf]/maxlike[mgpf]
+    success_ratio = ls[mgp]/maxlike[mgp]
+    plt.hist(fail_ratio, color="w", alpha=.5,
+             histtype="stepfilled", ls="--",
+             label="${0:.2} \pm {1:.2}$"
+             .format(np.median(fail_ratio), np.std(fail_ratio)))
+    plt.hist(success_ratio, color="w", alpha=.5, histtype="stepfilled",
+             label="${0:.2} \pm {1:.2}$".format(np.median(success_ratio),
+                 np.std(success_ratio)))
+    plt.legend()
+    plt.xlabel("$\ln(l)/\ln(P)$")
+    plt.savefig(os.path.join(DIR, "l_vs_p_comp.pdf"))
 
     plt.clf()
     plt.hist(As[mgpf], color="w", alpha=.5, histtype="stepfilled",
@@ -300,6 +321,4 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-#     print("mcmc Gprior rms = ", plots(truths, "results_Gprior"))
     print("mcmc Gprior rms = ", plots(truths, "results_sigma"))
-#     print("mcmc Gprior rms = ", plots(truths, "results_initialisation"))

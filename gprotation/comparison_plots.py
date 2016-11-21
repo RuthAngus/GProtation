@@ -60,9 +60,10 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR):
 
 def load_samples(id):
     fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
-    if os.path.exists(fname):
-        with h5py.File(fname, "r") as f:
-            samples = f["samples"][...]
+    if not os.path.exists(fname):
+        return None
+    with h5py.File(fname, "r") as f:
+        samples = f["samples"][...]
     nwalkers, nsteps, ndims = np.shape(samples)
     return np.reshape(samples[:, :, 4], nwalkers * nsteps)
 
@@ -168,9 +169,9 @@ def mcmc_plots(truths, DIR):
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     for i, n in enumerate(N):
         samples = load_samples(n)
-        plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
-                                                                 100),
-                 "k.", ms=1)
+        if samples != None:
+            plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
+                     100), "k.", ms=1)
     plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
     return (np.median((maxlike - true)**2))**.5, \
             (np.median((np.exp(lnp) - true)**2))**.5
@@ -248,6 +249,9 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+    print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
+#     print("mcmc full rms = ", mcmc_plots(truths, "results"))
+#     print("acf full rms = ", acf_plot(truths, "results"))
 #     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
 #     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
 #     print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt
