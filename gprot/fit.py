@@ -47,8 +47,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
 
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, processes=None, overwrite=False,
-                maxiter=100, sample_directory='mcmc_chains',
-                overwrite=False):
+                maxiter=100, sample_directory='mcmc_chains'):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
