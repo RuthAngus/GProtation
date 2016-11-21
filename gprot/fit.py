@@ -99,7 +99,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         if neff > targetn:
             break
 
-    burnin = int(2*tau_max)
+    burnin = int(3*tau_max) #changed from 2 to 3.
     ntot = nsamples
     if verbose:
         print("Discarding {0} samples for burn-in".format(burnin))
