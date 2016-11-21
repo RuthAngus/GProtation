@@ -45,13 +45,15 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     fig.savefig(figfile)
     print('Corner plot saved to {}.'.format(figfile))
 
-def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
+def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=8,
                 iter_chunksize=10, processes=None, overwrite=False,
-                maxiter=100, sample_directory='mcmc_chains'):
+                maxiter=100, sample_directory='mcmc_chains',
+                nburn=4):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
 
+    nburn is number of autocorr times to discard as burnin.
     """
 
     # Initialize
@@ -99,7 +101,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         if neff > targetn:
             break
 
-    burnin = int(3*tau_max) #changed from 2 to 3.
+    burnin = int(nburn*tau_max) 
     ntot = nsamples
     if verbose:
         print("Discarding {0} samples for burn-in".format(burnin))

@@ -56,9 +56,10 @@ if __name__=='__main__':
     parser.add_argument('--nwalkers', default=200, type=int)
     parser.add_argument('--iter_chunksize', default=50, type=int)
     parser.add_argument('-p', '--processes', default=None, type=int)
-    parser.add_argument('--targetn', default=6, type=int)
+    parser.add_argument('--targetn', default=8, type=int)
     parser.add_argument('--maxiter', default=100, type=int)
     parser.add_argument('-o', '--overwrite', action='store_true')
+    parser.add_argument('--nburn', default=4, type=int)
 
     args = parser.parse_args()
 
