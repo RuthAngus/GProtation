@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('agg')
 
 from gprot.aigrain import AigrainLightCurve
+from gprot.kepler import KeplerLightCurve
 from gprot.model import GPRotModel
 from gprot.config import POLYCHORD
 from gprot.fit import fit_mnest, fit_emcee3
@@ -27,17 +28,29 @@ def fit_polychord(i, test=False, nlive=1000):
                         prior=mod.polychord_prior,
                         file_root=basename, n_live_points=nlive)    
 
-def get_model(i, ndays=None, subsample=40, chunksize=200):
-    lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
+def get_model(i, aigrain=True, kepler=False,
+                ndays=None, subsample=40, chunksize=200):
+    if not aigrain and not kepler:
+        raise ValueError('Must specify either --aigrain or --kepler.')
+        sys.exit(1)
+    if aigrain:
+        lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
+    elif kepler:
+        lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize)
     mod = GPRotModel(lc)
+    foo = lc.x
     return mod    
 
-def _fit_emcee3(i, ndays=None, subsample=40, chunksize=200, **kwargs):
-    mod = get_model(i, ndays=ndays, subsample=subsample, chunksize=chunksize)
+def _fit_emcee3(i, aigrain=True, kepler=False,
+                ndays=None, subsample=40, chunksize=200, **kwargs):
+    mod = get_model(i, aigrain=aigrain, kepler=kepler,
+                    ndays=ndays, subsample=subsample, chunksize=chunksize)
     fit_emcee3(mod, **kwargs)
 
-def _fit_mnest(i, ndays=None, subsample=40, chunksize=200, **kwargs):
-    mod = get_model(i, ndays=ndays, subsample=subsample, chunksize=chunksize)
+def _fit_mnest(i, aigrain=True, kepler=False,
+                ndays=None, subsample=40, chunksize=200, **kwargs):
+    mod = get_model(i, aigrain=aigrain, kepler=kepler,
+                    ndays=ndays, subsample=subsample, chunksize=chunksize)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -70,6 +83,14 @@ if __name__=='__main__':
                        type=int, help="Number of processes (uses multiprocessing).")
     group.add_argument("--mpi", dest="mpi", default=False,
                        action="store_true", help="Run with MPI.")
+    
+    datagroup = parser.add_mutually_exclusive_group()
+    datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
+                       help="Use Aigrain simulations.")
+    datagroup.add_argument("--kepler", dest="kepler", action='store_true',
+                       help="Use Kepler data.")
+
+
     args = parser.parse_args()
 
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
@@ -86,12 +107,14 @@ if __name__=='__main__':
                             iter_chunksize=args.iter_chunksize, 
                             nwalkers=args.nwalkers,
                             verbose=args.verbose, maxiter=args.maxiter, 
-                            overwrite=args.overwrite, pool=pool)
+                            overwrite=args.overwrite, pool=pool,
+                            kepler=args.kepler, aigrain=args.aigrain)
             else:
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
-                          chunksize=args.chunksize, overwrite=args.overwrite)
+                          chunksize=args.chunksize, overwrite=args.overwrite,
+                          kepler=args.kepler, aigrain=args.aigrain)
         except:
             import traceback
             traceback.print_exc()

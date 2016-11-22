@@ -35,7 +35,7 @@ setup(name = "gprot",
     url = "https://github.com/ruthangus/GProtation",
     packages = ['gprot'],
     # package_data = {'':['data/*']},
-    scripts = ['scripts/gprot-fit-aigrain'],
+    scripts = ['scripts/gprot-fit'],
     classifiers=[
       'Development Status :: 3 - Alpha',
       'Intended Audience :: Science/Research',

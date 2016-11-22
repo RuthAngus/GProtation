@@ -28,6 +28,9 @@ class LightCurve(object):
     def _make_chunks(self, chunksize=None):
         if chunksize is None:
             if self.chunksize is None:
+                self._x_list = None
+                self._y_list = None
+                self._yerr_list = None
                 return
             chunksize = self.chunksize
         N = len(self.x) // chunksize
