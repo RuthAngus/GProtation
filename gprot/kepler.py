@@ -51,12 +51,12 @@ class KeplerLightCurve(LightCurve):
                 m = np.logical_not(q)
 
                 time.append(t[m])
-                flux.append(f[m] / np.median(f[m]) - 1)
-                ferr.append(f_e[m])
+                norm = np.median(f[m])
+                flux.append(f[m] / norm - 1)
+                ferr.append(f_e[m] / norm)
 
         time = np.concatenate(time)
         flux = np.concatenate(flux)
-        flux -= flux.max() # to make all negative, like aigrain LCs...?
         ferr = np.concatenate(ferr)
 
         # Mask transits for all kois 

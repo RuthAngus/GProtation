@@ -60,15 +60,16 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     walker = Emcee3Model(mod)
     ndim = 5
 
-    coords_init = mod.sample_from_prior(nwalkers)
 
     if sample_directory is not None:
         sample_file = os.path.join(sample_directory, '{}.h5'.format(mod.name))
         if not os.path.exists(sample_directory):
             os.makedirs(sample_directory)
         backend = HDFBackend(sample_file)
+        coords_init = backend.current_coords
     else:
         backend = Backend()
+        coords_init = mod.sample_from_prior(nwalkers)
 
     sampler = emcee3.Sampler(emcee3.moves.KDEMove(), backend=backend)
     if overwrite:
@@ -80,25 +81,42 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
 
     ensemble = emcee3.Ensemble(walker, coords_init, pool=pool)
 
+    def calc_stats(s):
+        """returns tau_max, neff
+        """
+        tau = s.get_integrated_autocorr_time(c=1)
+        tau_max = tau.max()
+        neff = s.backend.niter / tau_max - nburn
+        if verbose:
+            print("Maximum autocorrelation time: {0}".format(tau_max))
+            print("N_eff: {0}\n".format(neff * nwalkers))            
+        return tau_max, neff
+
+    done = False
+    try:
+        if verbose:
+            print('Status from previous run:')
+        tau_max, neff = calc_stats(sampler)
+        if neff > targetn:
+            done = True
+    except emcee3.autocorr.AutocorrError:
+        pass
+
     chunksize = iter_chunksize
     for iteration in range(maxiter):
+        if done:
+            break
         if verbose:
             print("Iteration {0}...".format(iteration + 1))
         sampler.run(ensemble, chunksize, progress=verbose)
-        mu = np.mean(sampler.get_coords(), axis=1)
         try:
-            tau = emcee3.autocorr.integrated_time(mu, c=1)
+            tau_max, neff = calc_stats(sampler)
         except emcee3.autocorr.AutocorrError:
             continue
-        tau_max = tau.max()
-        neff = ((iteration+1) * chunksize / tau_max - 2.0)
-        if verbose:
-            print("Maximum autocorrelation time: {0}".format(tau_max))
-            print("N_eff: {0}\n".format(neff * nwalkers))
         if neff > targetn:
-            break
+            done = True
 
-    burnin = int(nburn*tau_max) 
+    burnin = int(nburn*tau_max)
     ntot = nsamples
     if verbose:
         print("Discarding {0} samples for burn-in".format(burnin))
