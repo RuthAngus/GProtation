@@ -74,6 +74,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
     sampler = emcee3.Sampler(emcee3.moves.KDEMove(), backend=backend)
     if overwrite:
         sampler.reset()
+        coords_init = mod.sample_from_prior(nwalkers)
 
     if pool is None:
         from emcee3.pool import DefaultPool
@@ -93,14 +94,15 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         return tau_max, neff
 
     done = False
-    try:
-        if verbose:
-            print('Status from previous run:')
-        tau_max, neff = calc_stats(sampler)
-        if neff > targetn:
-            done = True
-    except emcee3.autocorr.AutocorrError:
-        pass
+    if not overwrite:
+        try:
+            if verbose:
+                print('Status from previous run:')
+            tau_max, neff = calc_stats(sampler)
+            if neff > targetn:
+                done = True
+        except emcee3.autocorr.AutocorrError:
+            pass
 
     chunksize = iter_chunksize
     for iteration in range(maxiter):
