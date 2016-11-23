@@ -66,7 +66,10 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         if not os.path.exists(sample_directory):
             os.makedirs(sample_directory)
         backend = HDFBackend(sample_file)
-        coords_init = backend.current_coords
+        try:
+            coords_init = backend.current_coords
+        except AttributeError:
+            coords_init = mod.sample_from_prior(nwalkers)
     else:
         backend = Backend()
         coords_init = mod.sample_from_prior(nwalkers)
