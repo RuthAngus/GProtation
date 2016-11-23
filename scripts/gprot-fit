@@ -29,7 +29,7 @@ def fit_polychord(i, test=False, nlive=1000):
                         file_root=basename, n_live_points=nlive)    
 
 def get_model(i, aigrain=True, kepler=False,
-                ndays=None, subsample=40, chunksize=200):
+                ndays=None, subsample=40, chunksize=200, daterange=None):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -37,20 +37,28 @@ def get_model(i, aigrain=True, kepler=False,
         lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
     elif kepler:
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize)
+    if daterange is not None:
+        lc.restrict_range(daterange)
     mod = GPRotModel(lc)
-    foo = lc.x
-    return mod    
+    fig = mod.lc.plot(marker='o', ms=1, mew=0, color='k', ls='none')
+    figfilename = 'results/{}_lc.png'.format(mod.lc.name)
+    fig.savefig(figfilename)
+    print('Light curve plot saved to {}.'.format(figfilename))
+    return mod
 
 def _fit_emcee3(i, aigrain=True, kepler=False,
-                ndays=None, subsample=40, chunksize=200, **kwargs):
+                ndays=None, subsample=40, chunksize=200, 
+                daterange=None, debug=False, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
-                    ndays=ndays, subsample=subsample, chunksize=chunksize)
+                    ndays=ndays, subsample=subsample, chunksize=chunksize,
+                    daterange=daterange)
     fit_emcee3(mod, **kwargs)
 
-def _fit_mnest(i, aigrain=True, kepler=False,
+def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
-                    ndays=ndays, subsample=subsample, chunksize=chunksize)
+                    ndays=ndays, subsample=subsample, chunksize=chunksize,
+                    daterange=daterange)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -77,6 +85,7 @@ if __name__=='__main__':
     parser.add_argument('--maxiter', default=100, type=int)
     parser.add_argument('-o', '--overwrite', action='store_true')
     parser.add_argument('--nburn', default=3, type=int)
+    parser.add_argument('--daterange', nargs=2, type=float)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--ncores", dest="n_cores", default=1,
@@ -108,13 +117,15 @@ if __name__=='__main__':
                             nwalkers=args.nwalkers,
                             verbose=args.verbose, maxiter=args.maxiter, 
                             overwrite=args.overwrite, pool=pool,
-                            kepler=args.kepler, aigrain=args.aigrain)
+                            kepler=args.kepler, aigrain=args.aigrain,
+                            daterange=args.daterange)
             else:
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
                           chunksize=args.chunksize, overwrite=args.overwrite,
-                          kepler=args.kepler, aigrain=args.aigrain)
+                          kepler=args.kepler, aigrain=args.aigrain,
+                          daterange=args.daterange)
         except:
             import traceback
             traceback.print_exc()

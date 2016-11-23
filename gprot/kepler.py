@@ -31,6 +31,7 @@ class KeplerLightCurve(LightCurve):
         if client is None:
             client = kplr.API()
         koi = client.koi(self.koinum + 0.01)
+        kois = [client.koi(self.koinum + 0.01*i) for i in range(1, koi.koi_count+1)]
 
         # Get a list of light curve datasets.
         lcs = koi.get_light_curves(short_cadence=False, clobber=clobber)
@@ -55,13 +56,20 @@ class KeplerLightCurve(LightCurve):
 
         time = np.concatenate(time)
         flux = np.concatenate(flux)
+        flux -= flux.max() # to make all negative, like aigrain LCs...?
         ferr = np.concatenate(ferr)
 
-        # Mask out planets.
+        # Mask transits for all kois 
+        m = np.zeros(len(time), dtype=bool)
+        for k in kois:
+            period, epoch = k.koi_period, k.koi_time0bk
+            phase = (time + period/2. - epoch) % period - (period/2)
+            duration = k.koi_duration / 24.
+            m |= np.absolute(phase) < duration*0.55
 
-        self._x = time
-        self._y = flux
-        self._yerr = ferr
+        self._x = time[~m]
+        self._y = flux[~m]
+        self._yerr = ferr[~m]
 
         self.sigma_clip(self.nsigma)
         self.subsample(self.sub)

@@ -28,9 +28,6 @@ class LightCurve(object):
     def _make_chunks(self, chunksize=None):
         if chunksize is None:
             if self.chunksize is None:
-                self._x_list = None
-                self._y_list = None
-                self._yerr_list = None
                 return
             chunksize = self.chunksize
         N = len(self.x) // chunksize
@@ -98,3 +95,4 @@ class LightCurve(object):
         ax.set_xlabel('Time [d]')
         ax.set_ylabel('Flux')
         ax.set_title(self.name)
+        return fig
