@@ -6,8 +6,6 @@ import logging
 import matplotlib
 matplotlib.use('agg')
 
-from gprot.aigrain import AigrainLightCurve
-from gprot.kepler import KeplerLightCurve
 from gprot.model import GPRotModel
 from gprot.config import POLYCHORD
 from gprot.fit import fit_mnest, fit_emcee3
@@ -34,8 +32,10 @@ def get_model(i, aigrain=True, kepler=False,
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
     if aigrain:
+        from gprot.aigrain import AigrainLightCurve
         lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
     elif kepler:
+        from gprot.kepler import KeplerLightCurve
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize)
     if daterange is not None:
         lc.restrict_range(daterange)
