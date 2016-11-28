@@ -14,6 +14,9 @@ That is,
     final               noise_free          soft
     kepler_diffrot_full.tar.gz  par             sun
 
+To download Kepler data, you will also need [kplr](http://dan.iel.fm/kplr)
+installed.
+
 Running
 --------
 If you have MultiNest/PyMultiNest installed, you should be able to run 
