@@ -17,11 +17,25 @@ That is,
 To download Kepler data, you will also need [kplr](http://dan.iel.fm/kplr)
 installed.
 
+Fitting also uses [emcee3](https://github.com/dfm/emcee3), so you will need
+to install that as well.
+
 Running
 --------
-If you have MultiNest/PyMultiNest installed, you should be able to run 
+After installing, you should be able to run 
 
-    gprot-fit-aigrain 1 (-v)
+    gprot-fit 1 --aigrain (-v)
 
 to fit the GProtation model star 1 from the Aigrain set using MultiNest (`-v` for 
-verbose MultiNest running).
+verbose emcee3 running--recommended!).  If you have [kplr](http://dan.iel.fm/kplr) installed, you should also be able to run
+
+    gprot-fit 42 --kepler -v
+
+The number you provide will be assumed to be a KOI number if it is <10000, and a KIC
+ID number if >10000.
+
+Now with the default parameters, on a single core, these fits will take a long time 
+(e.g. >1hr).  If you have multiple cores available, use the `--ncores`
+option to specify how many cores you want to want to use to do the fitting.
+
+Additional parameters can be seen with `gprot-fit -h`.
