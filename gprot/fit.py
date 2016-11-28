@@ -48,7 +48,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
 def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, pool=None, overwrite=False,
                 maxiter=100, sample_directory='mcmc_chains',
-                nburn=3):
+                nburn=3, mixedmoves=False):
     """fit model using Emcee3 
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
@@ -74,7 +74,14 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         backend = Backend()
         coords_init = mod.sample_from_prior(nwalkers)
 
-    sampler = emcee3.Sampler(emcee3.moves.KDEMove(), backend=backend)
+    if mixedmoves:
+        moves = [(emcee3.moves.KDEMove(), 0.4),
+                 (emcee3.moves.DEMove(1.0), 0.4),
+                 (emcee3.moves.DESnookerMove(), 0.2)]
+    else:
+        moves = emcee3.moves.KDEMove()
+
+    sampler = emcee3.Sampler(moves, backend=backend)
     if overwrite:
         sampler.reset()
         coords_init = mod.sample_from_prior(nwalkers)

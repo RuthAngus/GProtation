@@ -86,6 +86,9 @@ if __name__=='__main__':
     parser.add_argument('-o', '--overwrite', action='store_true')
     parser.add_argument('--nburn', default=3, type=int)
     parser.add_argument('--daterange', nargs=2, type=float)
+    parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
+                            default='emcee3')
+    parser.add_argument('--mixedmoves', action='store_true')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--ncores", dest="n_cores", default=1,
@@ -99,7 +102,6 @@ if __name__=='__main__':
     datagroup.add_argument("--kepler", dest="kepler", action='store_true',
                        help="Use Kepler data.")
 
-
     args = parser.parse_args()
 
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
@@ -108,9 +110,9 @@ if __name__=='__main__':
     for i,ix in enumerate(args.stars):
         print('{} of {}: {}'.format(i+1, N, ix))
         try:
-            if args.polychord:
+            if args.sampler=='polychord':
                 fit_polychord(ix, test=args.test)
-            if args.emcee3:
+            elif args.sampler=='emcee3':
                 _fit_emcee3(ix, ndays=args.ndays, subsample=args.subsample,
                             chunksize=args.chunksize, targetn=args.targetn,
                             iter_chunksize=args.iter_chunksize, 
@@ -118,14 +120,15 @@ if __name__=='__main__':
                             verbose=args.verbose, maxiter=args.maxiter, 
                             overwrite=args.overwrite, pool=pool,
                             kepler=args.kepler, aigrain=args.aigrain,
-                            daterange=args.daterange)
-            else:
+                            daterange=args.daterange, mixedmoves=args.mixedmoves)
+            elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
                           chunksize=args.chunksize, overwrite=args.overwrite,
                           kepler=args.kepler, aigrain=args.aigrain,
                           daterange=args.daterange)
+
         except:
             import traceback
             traceback.print_exc()
