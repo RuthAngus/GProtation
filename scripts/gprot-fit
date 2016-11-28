@@ -27,7 +27,8 @@ def fit_polychord(i, test=False, nlive=1000):
                         file_root=basename, n_live_points=nlive)    
 
 def get_model(i, aigrain=True, kepler=False,
-                ndays=None, subsample=40, chunksize=200, daterange=None):
+                ndays=None, subsample=40, chunksize=200, daterange=None,
+                resultsdir='results'):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -41,26 +42,27 @@ def get_model(i, aigrain=True, kepler=False,
         lc.restrict_range(daterange)
     mod = GPRotModel(lc)
     fig = mod.lc.plot(marker='o', ms=1, mew=0, color='k', ls='none')
-    if not os.path.exists('results'):
-        os.mkdirs('results')
-    figfilename = 'results/{}_lc.png'.format(mod.lc.name)
+    if not os.path.exists(resultsdir):
+        os.mkdirs(resultsdir)
+    figfilename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
     fig.savefig(figfilename)
     print('Light curve plot saved to {}.'.format(figfilename))
     return mod
 
 def _fit_emcee3(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, 
-                daterange=None, debug=False, **kwargs):
+                daterange=None, debug=False, resultsdir='results', **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
-                    daterange=daterange)
-    fit_emcee3(mod, **kwargs)
+                    daterange=daterange, resultsdir=resultsdir)
+    fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
-                ndays=None, subsample=40, chunksize=200, **kwargs):
+                ndays=None, subsample=40, chunksize=200, 
+                resultsdir='results', **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
-                    daterange=daterange)
+                    daterange=daterange, resultsdir=resultsdir)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -91,6 +93,8 @@ if __name__=='__main__':
     parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
                             default='emcee3')
     parser.add_argument('--mixedmoves', action='store_true')
+    parser.add_argument('--resultsdir', default='results')
+
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--ncores", dest="n_cores", default=1,
@@ -122,14 +126,15 @@ if __name__=='__main__':
                             verbose=args.verbose, maxiter=args.maxiter, 
                             overwrite=args.overwrite, pool=pool,
                             kepler=args.kepler, aigrain=args.aigrain,
-                            daterange=args.daterange, mixedmoves=args.mixedmoves)
+                            daterange=args.daterange, mixedmoves=args.mixedmoves,
+                            resultsdir=args.resultsdir)
             elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
                           chunksize=args.chunksize, overwrite=args.overwrite,
                           kepler=args.kepler, aigrain=args.aigrain,
-                          daterange=args.daterange)
+                          daterange=args.daterange, resultsdir=args.resultsdir)
 
         except:
             import traceback
