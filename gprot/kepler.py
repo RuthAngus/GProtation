@@ -10,10 +10,15 @@ from .lc import LightCurve
 client = None
 
 class KeplerLightCurve(LightCurve):
-    def __init__(self, koinum, sub=1, nsigma=5, chunksize=200):
-        self.koinum = int(koinum)
+    def __init__(self, kid, sub=1, nsigma=5, chunksize=200):
 
-        self.name = 'KOI-{}'.format(self.koinum)
+        if koinum < 10000:
+            self.koinum = int(kid)
+            self._kepid = None
+        else:
+            self.koinum = None
+            self._kepid = kid
+
         self.sub = sub
         self.nsigma = nsigma
         self.chunksize = chunksize
@@ -26,15 +31,41 @@ class KeplerLightCurve(LightCurve):
         self._y_list = None
         self._yerr_list = None
 
+    @property
+    def is_koi(self):
+        return self.koinum is not None
+
+    @property
+    def name(self):
+        if self.is_koi:
+            return 'KOI-{}'.format(self.koinum)
+        else:
+            return 'KIC-{}'.format(self.kepid)
+
+    @property
+    def kepid(self):
+        if self._kepid is None:
+            global client
+            if client is None:
+                client = kplr.API()
+            koi = client.koi(self.koinum + 0.01)
+            self._kepid = koi.kepid
+        return self._kepid            
+
     def _get_data(self, clobber=False):
         global client
         if client is None:
             client = kplr.API()
-        koi = client.koi(self.koinum + 0.01)
-        kois = [client.koi(self.koinum + 0.01*i) for i in range(1, koi.koi_count+1)]
+
+        if self.is_koi:
+            star = client.koi(self.koinum + 0.01)
+            kois = [client.koi(self.koinum + 0.01*i) for i in range(1, koi.koi_count+1)]
+        else:
+            star = client.star(self.kepid)
+            kois = []
 
         # Get a list of light curve datasets.
-        lcs = koi.get_light_curves(short_cadence=False, clobber=clobber)
+        lcs = star.get_light_curves(short_cadence=False, clobber=clobber)
 
         # Loop over the datasets and read in the data.
         time, flux, ferr = [], [], []
