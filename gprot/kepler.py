@@ -10,9 +10,26 @@ from .lc import LightCurve
 client = None
 
 class KeplerLightCurve(LightCurve):
+    """
+    Light curve from Kepler data
+
+    Parameters
+    ----------
+    kid : int
+        Either KOI number or KIC number.
+
+    sub : int
+        Subsampling factor
+
+    nsigma : float
+        Threshold for sigma-clipping
+
+    chunksize : int
+        (Approximate) number of points in each subchunk of the light curve.
+    """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200):
 
-        if koinum < 10000:
+        if kid < 10000:
             self.koinum = int(kid)
             self._kepid = None
         else:
@@ -59,7 +76,7 @@ class KeplerLightCurve(LightCurve):
 
         if self.is_koi:
             star = client.koi(self.koinum + 0.01)
-            kois = [client.koi(self.koinum + 0.01*i) for i in range(1, koi.koi_count+1)]
+            kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
         else:
             star = client.star(self.kepid)
             kois = []
