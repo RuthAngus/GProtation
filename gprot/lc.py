@@ -4,7 +4,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from collections import OrderedDict
 from pkg_resources import resource_filename
+
+from .filter import sigma_clip
 
 qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
                           delim_whitespace=True, index_col=0)
@@ -40,9 +43,11 @@ class LightCurve(object):
         self._y_list = []
         self._yerr_list = []
         np.random.seed(seed)
-        for (qtr, (t0, t1)), sub in zip(qtr_times.iterrows(), subs):
+        for qtr, sub in zip(qtrs, subs):
+            t0, t1 = qtr_times.ix[qtr]
             m = (self.x_full >= t0) & (self.x_full <= t1)
             N = int(m.sum())
+            # print(N, sub, N//sub)
             if N==0:
                 continue
             inds = np.sort(np.random.choice(N, int(N//sub), replace=False))
@@ -53,6 +58,15 @@ class LightCurve(object):
         self.x = np.concatenate(self._x_list)
         self.y = np.concatenate(self._y_list)
         self.yerr = np.concatenate(self._yerr_list)
+
+    def multi_split_quarters_rms(self, subs=None,
+                                 seed=None):
+        d = self.qtr_rms()
+        if subs is None:
+            subs = np.ones(len(d))*40
+            subs[:4] = [5, 10, 20, 30]
+        qtrs = np.array(d.keys())[np.argsort(d.values())[::-1]][:len(subs)]
+        self.multi_split_quarters(qtrs, subs, seed=seed)
 
     def _split_quarters(self):
         if not hasattr(self, 'quarters'):
@@ -82,6 +96,37 @@ class LightCurve(object):
         self._y_list = np.array_split(self.y, N)
         self._yerr_list = np.array_split(self.yerr, N)
 
+    def chunk_rms(self, t0, t1, nsigma=5):
+        """Returns rms flux variability between t0 and t1
+
+        """
+        m = (self.x_full >= t0) & (self.x_full <= t1)
+        if m.sum()==0:
+            return np.nan
+        x = self.x_full[m].copy()
+        y = self.y_full[m].copy()
+        yerr = self.yerr_full[m].copy()
+
+        x, y, yerr = sigma_clip(x, y, yerr, nsigma)
+
+        p = np.polyfit(x, y, 1)
+        y -= np.polyval(p, x)
+
+        med = np.median(y)
+        std = (sum((med - y)**2)/float(len(y)))**.5
+
+        return std
+
+    def qtr_rms(self, nsigma=5):
+        rms_all = {}
+        for qtr, (t0, t1) in qtr_times.iterrows():
+            if self.quarters is not None and qtr not in self.quarters:
+                continue
+            rms = self.chunk_rms(t0, t1, nsigma=nsigma)
+            if np.isfinite(rms):
+                rms_all[qtr] = rms
+        return rms_all
+
     @property
     def x_list(self):
         if self._x_list is None:
@@ -105,13 +150,7 @@ class LightCurve(object):
         return self.x_list is not None
 
     def sigma_clip(self, nsigma):
-        med = np.median(self.y)
-        std = (sum((med - self.y)**2)/float(len(self.y)))**.5
-        m = np.abs(self.y - med) > (nsigma * std)
-
-        self.x = self.x[~m]
-        self.y = self.y[~m]
-        self.yerr = self.yerr[~m]
+        self.x, self.y, self.yerr = sigma_clip(self.x, self.y, self.yerr, nsigma)
 
     def restrict_range(self, rng):
         m = (self.x > rng[0]) & (self.x < rng[1])

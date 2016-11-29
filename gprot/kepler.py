@@ -160,20 +160,20 @@ class KeplerLightCurve(LightCurve):
         self.sigma_clip(self.nsigma)
         self.subsample(self.sub)
 
-    def multi_split_quarters(self):
-        if self.quarters is None:
-            qtrs = qtr_times.index
-        else:
-            qtrs = self.quarters
+    # def multi_split_quarters(self):
+    #     if self.quarters is None:
+    #         qtrs = qtr_times.index
+    #     else:
+    #         qtrs = self.quarters
 
-        N = len(qtrs)
-        subs = np.ones(len(qtrs))*40
-        # have middle be 5, flanked by 10, 20, then 40
-        for i, sub in zip(range(3), [5,10,20]):
-            subs[N//2 + i] = sub
-            subs[N//2 - i] = sub
+    #     N = len(qtrs)
+    #     subs = np.ones(len(qtrs))*40
+    #     # have middle be 5, flanked by 10, 20, then 40
+    #     for i, sub in zip(range(3), [5,10,20]):
+    #         subs[N//2 + i] = sub
+    #         subs[N//2 - i] = sub
 
-        super(KeplerLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.kepid)
+    #     super(KeplerLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.kepid)
 
     def subsample(self, *args, **kwargs):
         if 'seed' not in kwargs:

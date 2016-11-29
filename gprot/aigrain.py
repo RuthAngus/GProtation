@@ -65,20 +65,20 @@ class AigrainLightCurve(LightCurve):
 
         return name
 
-    def multi_split_quarters(self):
-        if self.quarters is None:
-            qtrs = np.arange(10) + 1
-        else:
-            qtrs = self.quarters
+    # def multi_split_quarters(self):
+    #     if self.quarters is None:
+    #         qtrs = np.arange(10) + 1
+    #     else:
+    #         qtrs = self.quarters
 
-        N = len(qtrs)
-        subs = np.ones(len(qtrs))*40
-        # have middle be 5, flanked by 10, 20 then 40
-        for i, sub in zip(range(3), [5,10,20]):
-            subs[N//2 + i] = sub
-            subs[N//2 - i] = sub
+    #     N = len(qtrs)
+    #     subs = np.ones(len(qtrs))*40
+    #     # have middle be 5, flanked by 10, 20 then 40
+    #     for i, sub in zip(range(3), [5,10,20]):
+    #         subs[N//2 + i] = sub
+    #         subs[N//2 - i] = sub
 
-        super(AigrainLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.i)
+    #     super(AigrainLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.i)
 
     def sigma_clip(self, nsigma=5):
         super(AigrainLightCurve, self).sigma_clip(nsigma)

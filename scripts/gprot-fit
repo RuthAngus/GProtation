@@ -45,7 +45,7 @@ def get_model(i, aigrain=True, kepler=False,
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
                                 quarters=quarters)
     if clever:
-        lc.multi_split_quarters()
+        lc.multi_split_quarters_rms()
 
     if daterange is not None:
         lc.restrict_range(daterange)
