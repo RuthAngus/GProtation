@@ -52,18 +52,19 @@ def get_model(i, aigrain=True, kepler=False,
 
 def _fit_emcee3(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, 
-                daterange=None, debug=False, resultsdir='results', **kwargs):
+                daterange=None, debug=False, resultsdir='results', 
+                quarters=quarters, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
-                    daterange=daterange, resultsdir=resultsdir)
+                    daterange=daterange, resultsdir=resultsdir, quarters=quarters)
     fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, 
-                resultsdir='results', **kwargs):
+                resultsdir='results', quarters=quarters, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
-                    daterange=daterange, resultsdir=resultsdir)
+                    daterange=daterange, resultsdir=resultsdir, quarters=quarters)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
