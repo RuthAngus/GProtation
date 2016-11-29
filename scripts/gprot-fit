@@ -34,7 +34,8 @@ def get_model(i, aigrain=True, kepler=False,
         sys.exit(1)
     if aigrain:
         from gprot.aigrain import AigrainLightCurve
-        lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
+        lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize,
+                                quarters=quarters)
     elif kepler:
         from gprot.kepler import KeplerLightCurve
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,

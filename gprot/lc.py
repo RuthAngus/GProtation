@@ -6,20 +6,45 @@ import matplotlib.pyplot as plt
 
 class LightCurve(object):
     def __init__(self, x, y, yerr, name='', chunksize=200):
-        self.x = x.copy()
-        self.y = y.copy()
-        self.yerr = yerr.copy()
-        self.name = name
+        self._x = x.copy()
+        self._y = y.copy()
+        self._yerr = yerr.copy()
 
         self.chunksize = chunksize
+
+        self._name = name
 
         self._x_list = None
         self._y_list = None
         self._yerr_list = None
 
-        self._x_raw = x.copy()
-        self._y_raw = y.copy()
-        self._yerr_raw = yerr.copy()
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, val):
+        self._x = val
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, val):
+        self._y = val
+
+    @property
+    def yerr(self):
+        return self._yerr
+
+    @yerr.setter
+    def yerr(self, val):
+        self._yerr = val
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def df(self):

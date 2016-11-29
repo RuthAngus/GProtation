@@ -77,11 +77,8 @@ class KeplerLightCurve(LightCurve):
             name = 'KIC-{}'.format(self.kepid)
 
         if self.quarters is not None:
-            try:
-                for q in self.quarters:
-                    name += '-Q{}'.format(q)
-            except TypeError:
-                name += '-Q{}'.format(self.quarters)
+            for q in self.quarters:
+                name += '-Q{}'.format(q)
 
         return name
 
@@ -187,26 +184,14 @@ class KeplerLightCurve(LightCurve):
             self._get_data()
         return self._x
 
-    @x.setter
-    def x(self, val):
-        self._x = val
-
     @property
     def y(self):
         if self._y is None:
             self._get_data()
         return self._y
 
-    @y.setter
-    def y(self, val):
-        self._y = val
-
     @property
     def yerr(self):
         if self._yerr is None:
             self._get_data()
         return self._yerr
-
-    @yerr.setter
-    def yerr(self, val):
-        self._yerr = val
