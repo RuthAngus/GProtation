@@ -44,7 +44,7 @@ def get_model(i, aigrain=True, kepler=False,
     mod = GPRotModel(lc)
     fig = mod.lc.plot(marker='o', ms=1, mew=0, color='k', ls='none')
     if not os.path.exists(resultsdir):
-        os.mkdirs(resultsdir)
+        os.makedirs(resultsdir)
     figfilename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
     fig.savefig(figfilename)
     print('Light curve plot saved to {}.'.format(figfilename))
