@@ -113,7 +113,7 @@ if __name__=='__main__':
     parser.add_argument('--targetn', default=6, type=int, 
                         help='Number of autocorrelation times after which to ' + 
                              'say fit has converged.')
-    parser.add_argument('--nburn', default=3, type=int, 
+    parser.add_argument('--nburn', default=2, type=int, 
                         help='Number of autocorrelation times to toss out as burn-in.')
     parser.add_argument('--maxiter', default=50, type=int,
                         help='Maximum number of times to repeat <iter_chunksize> ' +
