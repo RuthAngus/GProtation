@@ -34,7 +34,7 @@ setup(name = "gprot",
     author_email = "ruthangus@gmail.com, tim.morton@gmail.com",
     url = "https://github.com/ruthangus/GProtation",
     packages = ['gprot'],
-    # package_data = {'':['data/*']},
+    package_data = {'gprot':['data/*']},
     scripts = ['scripts/gprot-fit'],
     classifiers=[
       'Development Status :: 3 - Alpha',

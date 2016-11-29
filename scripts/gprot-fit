@@ -28,7 +28,7 @@ def fit_polychord(i, test=False, nlive=1000):
 
 def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
-                resultsdir='results'):
+                resultsdir='results', quarters=None):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -37,7 +37,8 @@ def get_model(i, aigrain=True, kepler=False,
         lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize)
     elif kepler:
         from gprot.kepler import KeplerLightCurve
-        lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize)
+        lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
+                                quarters=quarters)
     if daterange is not None:
         lc.restrict_range(daterange)
     mod = GPRotModel(lc)
@@ -89,6 +90,7 @@ if __name__=='__main__':
 
 
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('--quarters', nargs='+', type=int, default=None)
     parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
                             default='emcee3', 
                         help='Which sampling method to use.')    
@@ -153,14 +155,14 @@ if __name__=='__main__':
                             overwrite=args.overwrite, pool=pool,
                             kepler=args.kepler, aigrain=args.aigrain,
                             daterange=args.daterange, mixedmoves=args.mixedmoves,
-                            resultsdir=args.resultsdir)
+                            resultsdir=args.resultsdir, quarters=args.quarters)
             elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
                           resultsdir=args.resultsdir, n_live_points=args.nlive,
                           chunksize=args.chunksize, overwrite=args.overwrite,
                           kepler=args.kepler, aigrain=args.aigrain,
-                          daterange=args.daterange)
+                          daterange=args.daterange, quarters=args.quarters)
 
         except:
             import traceback

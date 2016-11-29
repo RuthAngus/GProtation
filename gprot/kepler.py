@@ -1,7 +1,15 @@
 from __future__ import print_function, division
 
+import re
 import numpy as np
 import pandas as pd
+
+from collections import OrderedDict
+
+from pkg_resources import resource_filename
+
+qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
+                          delim_whitespace=True, index_col=0)
 
 import kplr
 
@@ -27,7 +35,8 @@ class KeplerLightCurve(LightCurve):
     chunksize : int
         (Approximate) number of points in each subchunk of the light curve.
     """
-    def __init__(self, kid, sub=1, nsigma=5, chunksize=200):
+    def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
+                 quarters=None):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -35,6 +44,14 @@ class KeplerLightCurve(LightCurve):
         else:
             self.koinum = None
             self._kepid = kid
+
+        if quarters is None:
+            self.quarters = None
+        else:
+            try:
+                self.quarters = sorted(quarters)
+            except TypeError:
+                self.quarters = [quarters]
 
         self.sub = sub
         self.nsigma = nsigma
@@ -55,9 +72,18 @@ class KeplerLightCurve(LightCurve):
     @property
     def name(self):
         if self.is_koi:
-            return 'KOI-{}'.format(self.koinum)
+            name = 'KOI-{}'.format(self.koinum)
         else:
-            return 'KIC-{}'.format(self.kepid)
+            name = 'KIC-{}'.format(self.kepid)
+
+        if self.quarters is not None:
+            try:
+                for q in self.quarters:
+                    name += '-Q{}'.format(q)
+            except TypeError:
+                name += '-Q{}'.format(self.quarters)
+
+        return name
 
     @property
     def kepid(self):
@@ -91,12 +117,24 @@ class KeplerLightCurve(LightCurve):
                 # The lightcurve data are in the first FITS HDU.
                 hdu_data = f[1].data
                 t = hdu_data["time"]
+
                 f = hdu_data["sap_flux"]
                 f_e = hdu_data["sap_flux_err"]
                 q = hdu_data["sap_quality"]
 
                 # Keep only good points, median-normalize and mean-subtract flux
                 m = np.logical_not(q)
+
+                if self.quarters is not None:
+                    ok = False
+                    for qtr in self.quarters:
+                        t0, t1 = qtr_times.ix[qtr, ['tstart', 'tstop']]
+                        # print(qtr, t0, t1, t[m].min(), t[m].max())
+                        if (np.absolute(t0 - t[m].min()) < 10 and
+                            np.absolute(t1 - t[m].max()) < 10):
+                            ok = True
+                    if not ok:
+                        continue
 
                 time.append(t[m])
                 norm = np.median(f[m])
@@ -126,6 +164,22 @@ class KeplerLightCurve(LightCurve):
         if 'seed' not in kwargs:
             kwargs['seed'] = self.koinum
         super(KeplerLightCurve, self).subsample(*args, **kwargs)
+
+    def _make_chunks(self, *args, **kwargs):
+        self._split_quarters()
+
+    def _split_quarters(self):
+        self._x_list = []
+        self._y_list = []
+        self._yerr_list = []
+
+        for qtr, (t0, t1) in qtr_times.iterrows():
+            if self.quarters is not None and qtr not in self.quarters:
+                continue
+            m = (self._x >= t0) & (self._x <= t1)
+            self._x_list.append(self._x[m])
+            self._y_list.append(self._y[m])
+            self._yerr_list.append(self._yerr[m])
 
     @property
     def x(self):

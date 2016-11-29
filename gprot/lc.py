@@ -74,6 +74,10 @@ class LightCurve(object):
         self.yerr = self.yerr[m]
 
     def subsample(self, sub, seed=None):
+        """Random subsampling
+        """
+        if sub is None:
+            return
         N = len(self.x)
         np.random.seed(seed)
         inds = np.sort(np.random.choice(N, N//sub, replace=False))
