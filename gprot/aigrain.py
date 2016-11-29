@@ -4,15 +4,10 @@ import os
 import numpy as np
 import pandas as pd
 
-from pkg_resources import resource_filename
-
 from .config import AIGRAIN_DIR
-from .lc import LightCurve
+from .lc import LightCurve, qtr_times
 
 from .summary import corner_plot
-
-qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
-                          delim_whitespace=True, index_col=0)
 
 def get_true_period(i):
     lc = AigrainLightCurve(i)
@@ -70,6 +65,21 @@ class AigrainLightCurve(LightCurve):
 
         return name
 
+    def multi_split_quarters(self):
+        if self.quarters is None:
+            qtrs = np.arange(10) + 1
+        else:
+            qtrs = self.quarters
+
+        N = len(qtrs)
+        subs = np.ones(len(qtrs))*40
+        # have middle be 5, flanked by 10s, then 20s, then 40s
+        for i, sub in zip(range(3), [5,10,20]):
+            subs[N//2 + i] = sub
+            subs[N//2 - i] = sub
+
+        super(AigrainLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.i)
+
     def sigma_clip(self, nsigma=5):
         super(AigrainLightCurve, self).sigma_clip(nsigma)
 
@@ -90,22 +100,6 @@ class AigrainLightCurve(LightCurve):
 
     def _make_chunks(self, *args, **kwargs):
         self._split_quarters()
-
-    def _split_quarters(self):
-        self._x_list = []
-        self._y_list = []
-        self._yerr_list = []
-
-        for qtr, (t0, t1) in qtr_times.iterrows():
-            if self.quarters is not None and qtr not in self.quarters:
-                continue
-            m = (self._x >= t0) & (self._x <= t1)
-            if m.sum()==0:
-                continue
-            self._x_list.append(self._x[m])
-            self._y_list.append(self._y[m])
-            self._yerr_list.append(self._yerr[m])
-
 
 class NoiseFreeAigrainLightCurve(AigrainLightCurve):
     subdir = 'noise_free'

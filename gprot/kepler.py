@@ -6,14 +6,9 @@ import pandas as pd
 
 from collections import OrderedDict
 
-from pkg_resources import resource_filename
-
-qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
-                          delim_whitespace=True, index_col=0)
-
 import kplr
 
-from .lc import LightCurve
+from .lc import LightCurve, qtr_times
 
 client = None
 
@@ -64,6 +59,10 @@ class KeplerLightCurve(LightCurve):
         self._x_list = None
         self._y_list = None
         self._yerr_list = None
+
+        self._x_full = None
+        self._y_full = None
+        self._yerr_full = None
 
     @property
     def is_koi(self):
@@ -154,8 +153,27 @@ class KeplerLightCurve(LightCurve):
         self._y = flux[~m]
         self._yerr = ferr[~m]
 
+        self._x_full = time[~m].copy()
+        self._y_full = flux[~m].copy()
+        self._yerr_full = ferr[~m].copy()
+
         self.sigma_clip(self.nsigma)
         self.subsample(self.sub)
+
+    def multi_split_quarters(self):
+        if self.quarters is None:
+            qtrs = qtr_times.index
+        else:
+            qtrs = self.quarters
+
+        N = len(qtrs)
+        subs = np.ones(len(qtrs))*40
+        # have middle be 5, flanked by 10s, then 20s, then 40s
+        for i, sub in zip(range(3), [5,10,20]):
+            subs[N//2 + i] = sub
+            subs[N//2 - i] = sub
+
+        super(KeplerLightCurve, self).multi_split_quarters(qtrs, subs, seed=self.kepid)
 
     def subsample(self, *args, **kwargs):
         if 'seed' not in kwargs:
@@ -164,19 +182,6 @@ class KeplerLightCurve(LightCurve):
 
     def _make_chunks(self, *args, **kwargs):
         self._split_quarters()
-
-    def _split_quarters(self):
-        self._x_list = []
-        self._y_list = []
-        self._yerr_list = []
-
-        for qtr, (t0, t1) in qtr_times.iterrows():
-            if self.quarters is not None and qtr not in self.quarters:
-                continue
-            m = (self._x >= t0) & (self._x <= t1)
-            self._x_list.append(self._x[m])
-            self._y_list.append(self._y[m])
-            self._yerr_list.append(self._yerr[m])
 
     @property
     def x(self):
@@ -195,3 +200,34 @@ class KeplerLightCurve(LightCurve):
         if self._yerr is None:
             self._get_data()
         return self._yerr
+
+    @property
+    def x_full(self):
+        if self._x_full is None:
+            self._get_data()
+        return self._x_full
+
+    @property
+    def y_full(self):
+        if self._y_full is None:
+            self._get_data()
+        return self._y_full
+
+    @property
+    def yerr_full(self):
+        if self._yerr_full is None:
+            self._get_data()
+        return self._yerr_full
+
+
+    @x.setter
+    def x(self, val):
+        self._x = val
+    @y.setter
+    def y(self, val):
+        self._y = val
+
+    @yerr.setter
+    def yerr(self, val):
+        self._yerr = val
+
