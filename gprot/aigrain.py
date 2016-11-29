@@ -73,7 +73,7 @@ class AigrainLightCurve(LightCurve):
 
         N = len(qtrs)
         subs = np.ones(len(qtrs))*40
-        # have middle be 5, flanked by 10s, then 20s, then 40s
+        # have middle be 5, flanked by 10, 20 then 40
         for i, sub in zip(range(3), [5,10,20]):
             subs[N//2 + i] = sub
             subs[N//2 - i] = sub

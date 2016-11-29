@@ -102,7 +102,7 @@ if __name__=='__main__':
 
     parser.add_argument('-v', '--verbose', action='store_true', 
                         help='Have sampler talk to you.')
-    parser.add_argument('--clever', action='store_true', 
+    parser.add_argument('--clever', action='store_true', default=True,
                         help='Subsample in a tiered way but use whole light curve. ' +
                              'Supersedes "quarters", "subsample", and "daterange" arguments.')
     parser.add_argument('--quarters', nargs='+', type=int, default=None)
@@ -145,7 +145,7 @@ if __name__=='__main__':
     parser.add_argument('--nlive', default=1000, type=int,
                         help='Number of live points (for multinest)')
     parser.add_argument('--test', action='store_true', 
-                        help="Test, don't actually run.  Doesn't do anything if sampler " + 
+                        help="Test, don't actually run. Flag has no effect if sampler " + 
                              "is set to emcee3.")
 
 

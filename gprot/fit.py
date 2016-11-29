@@ -111,7 +111,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
             tau_max, neff = calc_stats(sampler)
             if neff > targetn:
                 done = True
-        except emcee3.autocorr.AutocorrError:
+        except emcee3.autocorr.AutocorrError, KeyError:
             pass
 
     chunksize = iter_chunksize
