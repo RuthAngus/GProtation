@@ -6,6 +6,7 @@ import glob
 from simple_acf import simple_acf
 from measure_GP_rotation import bin_data
 import h5py
+import os
 import time
 from GProtation import lnprob
 from multiprocessing import Pool
@@ -14,12 +15,13 @@ from george.kernels import ExpSquaredKernel, ExpSine2Kernel, \
         WhiteKernel
 
 
-def load_kepler_data(fnames):
+def load_kepler_data(KID, LC_DIR):
     """
     load and join quarters together.
     Takes a list of fits file names for a given star.
     Returns the concatenated arrays of time, flux and flux_err
     """
+    fnames = glob.glob(os.path.join(LC_DIR, "*fits"))
     hdulist = pyfits.open(fnames[0])
     t = hdulist[1].data
     time = t["TIME"]

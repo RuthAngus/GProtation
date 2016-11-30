@@ -92,8 +92,8 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
-    mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                      zip(*np.percentile(flat, [16, 50, 84], axis=0)))
+    mcmc_res = list(map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                      zip(*np.percentile(flat, [16, 50, 84], axis=0))))
     med = np.concatenate([np.array(mcmc_res[i]) for i in
                           range(len(mcmc_res))])
     print("median values = ", med[::3])
@@ -105,7 +105,10 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     r = np.concatenate((maxlike, med))
 
     # calculate autocorrelation times
-    acorr_t = emcee.autocorr.integrated_time(flat)
+    try:
+        acorr_t = emcee.autocorr.integrated_time(flat, c=1)
+    except:
+        acorr_t = emcee.autocorr.integrated_time(flat)
 
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
@@ -135,14 +138,9 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
 
     if tri:
         DIR = "../code/simulations/kepler_diffrot_full/par/"
-        truths = pd.read_csv(os.path.join(DIR, "final_table.txt"),
-                             delimiter=" ")
-        true_p = np.log(truths.P_MIN.values[truths.N.values ==
-                                    int(filter(str.isdigit, ID))][0])
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
-                            quantiles=[.16, .5, .84], show_titles=True,
-                            truths=trths)
+                            quantiles=[.16, .5, .84], show_titles=True)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 

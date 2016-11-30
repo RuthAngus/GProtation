@@ -30,9 +30,10 @@ def acf_demo(x, y):
     plt.clf()
     plt.plot(lags, acf, "k")
     plt.axvline(period, color="CornFlowerBlue")
+    plt.axvline(20.8, color="LightCoral", ls="--")
     plt.xlabel("$\mathrm{Lags~(Days)}$")
     plt.ylabel("$\mathrm{Autocorrelation}$")
-    plt.xlim(0, 470)
+    plt.xlim(0, 200)  # 450
     plt.savefig(os.path.join(FIG_DIR, "demo_ACF.pdf"))
 
 
