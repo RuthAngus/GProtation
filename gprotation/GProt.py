@@ -110,7 +110,7 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
                                      n_independent)
         mean_ind.append(ind_samp)
         mean_diff.append(diff)
-	print(conv)
+        print(conv)
         if conv:
             break
 
@@ -160,8 +160,10 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
 	autocorrelation time.
     """
     converged = False
-#     acorr_t = emcee.autocorr.integrated_time(flat, c=1)
-    acorr_t = emcee.autocorr.integrated_time(flat)
+    try:
+        acorr_t = emcee.autocorr.integrated_time(flat, c=1)
+    except:
+        acorr_t = emcee.autocorr.integrated_time(flat)
     mean_acorr.append(np.mean(acorr_t))
     mean_ind = len(flat) / np.mean(acorr_t)
     mean_diff = None
