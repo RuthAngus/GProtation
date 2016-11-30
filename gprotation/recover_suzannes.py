@@ -44,22 +44,7 @@ def sigma_clip(x, y, yerr, nsigma):
     m = np.abs(y - med) > (nsigma * std)
     return x[~m], y[~m], yerr[~m]
 
-def recover(i):
-
-    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
-
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
-    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
-    m = truths.DELTA_OMEGA.values == 0
-
-    id = truths.N.values[m][i]
-    sid = str(int(id)).zfill(4)
-    print(id, i, "of", len(truths.N.values[m]))
-    x, y = load_suzanne_lcs(sid, DATA_DIR)
-    yerr = np.ones_like(y) * 1e-5
-    if RESULTS_DIR == "results_nf":
-        yerr *= 1e-15
+def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)
@@ -90,12 +75,32 @@ def recover(i):
 #     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
 #     xb[0], yb[0], yerrb[0] = xb[0][::1000], yb[0][::1000], yerrb[0][::1000]
 
-    trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
+    trths = [None, None, None, None, None]
+#     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
 #     mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
 #     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
+
+
+def recover(i):
+
+    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+
+    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
+    m = truths.DELTA_OMEGA.values == 0
+
+    id = truths.N.values[m][i]
+    sid = str(int(id)).zfill(4)
+    print(id, i, "of", len(truths.N.values[m]))
+    x, y = load_suzanne_lcs(sid, DATA_DIR)
+    yerr = np.ones_like(y) * 1e-5
+
+    gp_fit(x, y, yerr, sid, RESULTS_DIR)
+
 
 if __name__ == "__main__":
 
@@ -103,10 +108,11 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-    pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m][:100])))
+#     pool = Pool()
+#     results = pool.map(recover, range(len(truths.N.values[m])))
+# #     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-#     recover(2)
+    recover(2)
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)

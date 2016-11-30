@@ -125,13 +125,13 @@ def mcmc_plots(truths, DIR):
     med_errm = np.exp(truths_e.sigma_errm.values[m])
     maxlike = np.exp(truths_e.sigma_max[m])
     amp = truths_e.AMP.values[m]
-
-    plt.clf()
-    plt.plot(truths_e.TAU / truths_e.P_MIN, np.exp(truths_e.gamma_max), "k.")
-    plt.xlabel("tau / period")
-    plt.ylabel("gamma")
-    plt.ylim(0, 5)
-    plt.savefig("tau_gamma")
+    acorr_A = truths_e.acorr_A.values[m]
+    acorr_l = truths_e.acorr_l.values[m]
+    acorr_g = truths_e.acorr_gamma.values[m]
+    acorr_s = truths_e.acorr_sigma.values[m]
+    acorr_p = truths_e.acorr_period.values[m]
+    acorr = np.vstack((acorr_A, acorr_l, acorr_g, acorr_s, acorr_p))
+    mean_acorr = np.mean(acorr, axis=0)
 
     # mcmc plot
     plt.clf()
@@ -153,6 +153,25 @@ def mcmc_plots(truths, DIR):
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.savefig(os.path.join(DIR, "compare_mcmc"))
+
+    # make convergence plot.
+    plt.clf()
+    plt.plot(xs, xs, "k-", alpha=.2, zorder=0)
+    plt.plot(xs, xs + 2./3, "k--", alpha=.2, zorder=0)
+    plt.plot(xs, xs - 2./3, "k--", alpha=.2, zorder=0)
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
+                 fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
+    plt.scatter(np.log(true), np.log(maxlike), c=mean_acorr, edgecolor="",
+                cmap="GnBu_r", vmin=min(mean_acorr), vmax=max(mean_acorr),
+                s=15, zorder=2)
+    cbar = plt.colorbar()
+    cbar.ax.set_ylabel("$<\mathrm{(Autocorrelation~Time)}>$")
+    plt.savefig(os.path.join(DIR, "compare_mcmc_convergence"))
+
 
     # mcmc plot with samples
     plt.clf()
@@ -226,16 +245,19 @@ def pgram_plot(truths, DIR):
     # pgram plot
     plt.clf()
     xs = np.arange(0, 100, 1)
-    plt.plot(xs, xs, "k--", alpha=.5)
-    plt.plot(xs, 2*xs, "k--", alpha=.5)
-    plt.scatter(true, pgram, c=np.log(amp), edgecolor="", cmap="GnBu",
-                vmin=min(np.log(amp)), vmax=max(np.log(amp)), s=50, zorder=1)
+    plt.plot(np.log(xs), np.log(xs), "k-", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.3, zorder=0)
+    plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
+    plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor="",
+                cmap="GnBu", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
+                s=50, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    plt.ylim(0, 100)
-    plt.xlim(0, 55)
+    plt.xlim(0, 4)
+    plt.ylim(0, 6)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
-    plt.ylabel("$\mathrm{Recovered~Period~(Days)}$")
+    plt.xlabel("$\ln(\mathrm{Injected~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.savefig(os.path.join(DIR, "compare_pgram"))
     return (np.median((pgram - true)**2))**.5
 
@@ -246,8 +268,4 @@ if __name__ == "__main__":
 
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-#     print("mcmc full rms = ", mcmc_plots(truths, "results"))
-#     print("acf full rms = ", acf_plot(truths, "results"))
-#     print("acf rms = ", acf_plot(truths, "results_Gprior"))  # csv to txt
-#     print("acf rms = ", acf_plot(truths, "results_nf"))  # csv to txt
-#     print("acf rms = ", acf_plot(truths, "results_sigma"))  # csv to txt
+    print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
