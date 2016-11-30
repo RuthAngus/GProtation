@@ -37,12 +37,19 @@ def simple_acf(x, y):
     # just use the second bit (no reflection)
     acf_smooth, lags = acf_smooth[N:], lags[N:]
 
-    # cut it in half
+    # cut it in half (and reduce to 100 days)
     m = lags < max(lags)/2.
+    m = (lags < max(lags)/2.) * (lags < 100)
     acf_smooth, lags = acf_smooth[m], lags[m]
 
     # ditch the first point
     acf_smooth, lags = acf_smooth[1:], lags[1:]
+
+    # fit and subtract straight line
+    AT = np.vstack((lags, np.ones_like(lags))
+    ATA = np.dot(AT, AT.T)
+    m, b = np.linalg.solve(ATA, np.dot(AT, acf_smooth))
+    acf_smooth -= m*lags + b
 
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
