@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import simple_acf as sa
 from acf import Kepler_ACF
+import simple_acf as sa
 
 plotpar = {'axes.labelsize': 18,
            'font.size': 10,
@@ -24,8 +25,8 @@ def lc_demo(x, y):
 
 def acf_demo(x, y):
     yerr = np.ones_like(y) * 1e-5
-    period, err, lags, acf = Kepler_ACF.corr_run(x, y, yerr, 2)
-    # period, acf, lags = sa.simple_acf(x, y)
+    # period, err, lags, acf = Kepler_ACF.corr_run(x, y, yerr, 25)
+    period, acf, lags, rvar = sa.simple_acf(x, y)
 
     plt.clf()
     plt.plot(lags, acf, "k")
