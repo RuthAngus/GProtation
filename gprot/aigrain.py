@@ -98,8 +98,13 @@ class AigrainLightCurve(LightCurve):
             kwargs['seed'] = self.i
         super(AigrainLightCurve, self).subsample(*args, **kwargs)
 
-    def _make_chunks(self, *args, **kwargs):
-        self._split_quarters()
+    def make_best_chunks(self, *args, **kwargs):
+        if 'seed' not in kwargs:
+            kwargs['seed'] = self.i
+        super(AigrainLightCurve, self).make_best_chunks(*args, **kwargs)
+
+    # def _make_chunks(self, *args, **kwargs):
+    #     self._split_quarters()
 
 class NoiseFreeAigrainLightCurve(AigrainLightCurve):
     subdir = 'noise_free'

@@ -209,8 +209,13 @@ class KeplerLightCurve(LightCurve):
 
     def subsample(self, *args, **kwargs):
         if 'seed' not in kwargs:
-            kwargs['seed'] = self.koinum
+            kwargs['seed'] = self.kepid
         super(KeplerLightCurve, self).subsample(*args, **kwargs)
+
+    def make_best_chunks(self, *args, **kwargs):
+        if 'seed' not in kwargs:
+            kwargs['seed'] = self.kepid
+        super(KeplerLightCurve, self).make_best_chunks(*args, **kwargs)
 
     # def _make_chunks(self, *args, **kwargs):
     #     self._split_quarters()

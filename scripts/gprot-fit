@@ -50,7 +50,7 @@ def get_model(i, aigrain=True, kepler=False,
     if daterange is not None:
         lc.restrict_range(daterange)
     mod = GPRotModel(lc)
-    fig = mod.lc.plot(marker='o', ms=1, mew=0, color='k', ls='none')
+    fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)
     figfilename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
