@@ -31,15 +31,24 @@ class GPRotModel(object):
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
-    def __init__(self, lc, name=None):
+    def __init__(self, lc, name=None, pmin=None, pmax=None):
 
         self.lc = lc
 
         self._name = name
 
+        if pmin is None:
+            pmin = -np.inf
+        if pmax is None:
+            pmax = np.inf
+        self.pmin = pmin
+        self.pmax = pmax
+
         # Default gaussian for GP param priors
         self.gp_prior_mu = np.array([-13, 6.2, -1.4, -17])
         self.gp_prior_sigma = np.array([5.7, 1.5, 1.5, 5])
+
+
 
     @property
     def ndim(self):
@@ -89,6 +98,10 @@ class GPRotModel(object):
             samples[:, i] = vals
 
         loP, hiP = self.bounds[-1]
+        if self.pmin > loP:
+            loP = self.pmin
+        if self.pmax < hiP:
+            hiP = self.pmax
         samples[:, -1] = np.random.random(N) * (hiP - loP) + loP
 
         return samples
@@ -100,6 +113,8 @@ class GPRotModel(object):
         for i, (lo, hi) in enumerate(self.bounds):
             if theta[i] < lo or theta[i] > hi:
                 return -np.inf
+        if theta[-1] < self.pmin or theta[-1] > self.pmax:
+            return -np.inf
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
 

@@ -85,6 +85,9 @@ class LightCurve(object):
                           name=newname, **kwargs)        
 
     def make_best_chunks(self, ndays=[800, 200, 50], seed=None, **kwargs):
+        if not hasattr(ndays, '__iter__'):
+            ndays = [ndays]
+            
         self._x_list = []
         self._y_list = []
         self._yerr_list = []

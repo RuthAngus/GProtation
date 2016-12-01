@@ -3,6 +3,7 @@
 import sys, os
 import logging
 
+import numpy as np
 import matplotlib
 matplotlib.use('agg')
 
@@ -28,7 +29,8 @@ def fit_polychord(i, test=False, nlive=1000):
 
 def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
-                resultsdir='results', quarters=None, clever=True):
+                resultsdir='results', quarters=None, clever=True,
+                bestchunk=None, pmax=None):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -45,11 +47,21 @@ def get_model(i, aigrain=True, kepler=False,
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
                                 quarters=quarters)
     if clever:
-        lc.make_best_chunks()
+        if bestchunk is None:
+            lc.make_best_chunks()
+        else:
+            lc.make_best_chunks(bestchunk)
 
     if daterange is not None:
         lc.restrict_range(daterange)
-    mod = GPRotModel(lc)
+
+    if pmax is None and bestchunk is not None:
+        try:
+            pmax = np.log(max(bestchunk))
+        except TypeError:
+            pmax = np.log(bestchunk)
+
+    mod = GPRotModel(lc, pmax=pmax)
     fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)
@@ -61,20 +73,21 @@ def get_model(i, aigrain=True, kepler=False,
 def _fit_emcee3(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, 
                 daterange=None, debug=False, resultsdir='results', 
-                quarters=None, clever=True, **kwargs):
+                quarters=None, clever=True, bestchunk=None, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever)
+                    clever=clever, bestchunk=bestchunk)
     fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, 
-                resultsdir='results', quarters=None, clever=True, **kwargs):
+                resultsdir='results', quarters=None, clever=True, 
+                bestchunk=None, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever)
+                    clever=clever, bestchunk=bestchunk)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -104,7 +117,9 @@ if __name__=='__main__':
                         help='Have the sampler talk to you.')
     parser.add_argument('--clever', action='store_true', default=True,
                         help='Subsample in a tiered way but use whole light curve. ' +
-                             'Supersedes "quarters", "subsample", and "daterange" arguments.')
+                             'Supersedes "quarters", "subsample", and "daterange", ' + 
+                             'arguments.')
+    parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
     parser.add_argument('--quarters', nargs='+', type=int, default=None)
     parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
                             default='emcee3', 
@@ -171,7 +186,7 @@ if __name__=='__main__':
                             kepler=args.kepler, aigrain=args.aigrain,
                             daterange=args.daterange, mixedmoves=args.mixedmoves,
                             resultsdir=args.resultsdir, quarters=args.quarters,
-                            clever=args.clever)
+                            clever=args.clever, bestchunk=args.bestchunk)
             elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
@@ -179,7 +194,7 @@ if __name__=='__main__':
                           chunksize=args.chunksize, overwrite=args.overwrite,
                           kepler=args.kepler, aigrain=args.aigrain,
                           daterange=args.daterange, quarters=args.quarters,
-                          clever=args.clever)
+                          clever=args.clever, bestchunk=args.bestchunk)
 
         except:
             import traceback
