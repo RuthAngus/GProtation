@@ -45,7 +45,7 @@ def get_model(i, aigrain=True, kepler=False,
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
                                 quarters=quarters)
     if clever:
-        lc.multi_split_quarters_rms()
+        lc.make_best_chunks()
 
     if daterange is not None:
         lc.restrict_range(daterange)
@@ -101,7 +101,7 @@ if __name__=='__main__':
 
 
     parser.add_argument('-v', '--verbose', action='store_true', 
-                        help='Have sampler talk to you.')
+                        help='Have the sampler talk to you.')
     parser.add_argument('--clever', action='store_true', default=True,
                         help='Subsample in a tiered way but use whole light curve. ' +
                              'Supersedes "quarters", "subsample", and "daterange" arguments.')

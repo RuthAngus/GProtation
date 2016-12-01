@@ -31,7 +31,7 @@ class KeplerLightCurve(LightCurve):
         (Approximate) number of points in each subchunk of the light curve.
     """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
-                 quarters=None):
+                 quarters=None, normalized=True, careful_stitching=True):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -51,6 +51,8 @@ class KeplerLightCurve(LightCurve):
         self.sub = sub
         self.nsigma = nsigma
         self.chunksize = chunksize
+        self.normalized = normalized
+        self.careful_stitching = careful_stitching
 
         self._x = None
         self._y = None
@@ -108,6 +110,8 @@ class KeplerLightCurve(LightCurve):
 
         # Loop over the datasets and read in the data.
         time, flux, ferr = [], [], []
+        p_last = None
+        t_last = None
         for lc in lcs:
             with lc.open() as f:
                 # The lightcurve data are in the first FITS HDU.
@@ -133,9 +137,31 @@ class KeplerLightCurve(LightCurve):
                         continue
 
                 time.append(t[m])
-                norm = np.median(f[m])
-                flux.append(f[m] / norm - 1)
-                ferr.append(f_e[m] / norm)
+                if self.normalized:
+                    norm = np.median(f[m])
+                    flux.append(f[m] / norm - 1)
+                    ferr.append(f_e[m] / norm)
+                else:
+                    flux.append(f[m])
+                    ferr.append(f_e[m])
+
+                if self.careful_stitching:
+                    # Use polynomial fit from last quarter to set level.
+                    if p_last is not None:
+                        t0 = time[-1][0]
+
+                        # If a quarter is missing, do nothing.
+                        if t0 - t_last > 20:
+                            pass
+                        else:
+                            f_initial = np.polyval(p_last, t0)
+                            f_offset = f_initial - flux[-1][0]
+                            flux[-1] += f_offset
+
+                    # Fit 3rd-degree polynomial to tail of quarter to 
+                    # set initial level for next quarter
+                    p_last = np.polyfit(time[-1], flux[-1], 3)
+                    t_last = time[-1][-1]
 
         time = np.concatenate(time)
         flux = np.concatenate(flux)
@@ -148,6 +174,12 @@ class KeplerLightCurve(LightCurve):
             phase = (time + period/2. - epoch) % period - (period/2)
             duration = k.koi_duration / 24.
             m |= np.absolute(phase) < duration*0.55
+
+        # Mask times > 1581 to avoid penultimate safe mode
+        # Also, require to be at least > Q2
+        if self.quarters is None:
+            m |= time > 1581
+            m |= time < 260
 
         self._x = time[~m]
         self._y = flux[~m]
@@ -180,6 +212,6 @@ class KeplerLightCurve(LightCurve):
             kwargs['seed'] = self.koinum
         super(KeplerLightCurve, self).subsample(*args, **kwargs)
 
-    def _make_chunks(self, *args, **kwargs):
-        self._split_quarters()
+    # def _make_chunks(self, *args, **kwargs):
+    #     self._split_quarters()
 
