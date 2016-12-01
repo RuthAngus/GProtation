@@ -150,13 +150,13 @@ class KeplerLightCurve(LightCurve):
                     if p_last is not None:
                         t0 = time[-1][0]
 
-                        # If a quarter is missing, do nothing.
+                        # If a quarter is missing, don't try to fit polynomial.
                         if t0 - t_last > 20:
-                            pass
+                            f_initial = flux[-2][-1]
                         else:
                             f_initial = np.polyval(p_last, t0)
-                            f_offset = f_initial - flux[-1][0]
-                            flux[-1] += f_offset
+                        f_offset = f_initial - flux[-1][0]
+                        flux[-1] += f_offset
 
                     # Fit 3rd-degree polynomial to tail of quarter to 
                     # set initial level for next quarter
