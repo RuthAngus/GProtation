@@ -312,7 +312,8 @@ light curve with a period of 17.04 days.
 
 The ranges and distributions of the physical stellar parameters used in the
 simulated light curves are tabulated below, in table
-\ref{tab:simulation_parameters}.
+\ref{tab:simulation_parameters}, and figure \ref{fig:period_hist} shows the
+distribution of rotation periods in the \citet{Aigrain2015} sample.
 
 \begin{table*}
 \begin{center}
@@ -333,13 +334,11 @@ in \citet{aigrain2015}}
 \end{table*}
 \label{tab:simulation_parameters}
 
-and figure \ref{fig:period_hist} shows the
-distribution of rotation periods in the \citet{aigrain15} sample.
 \begin{figure}
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/period_hist.pdf}
 \caption{A histogram of the rotation periods used to generate the simulated
-light curves in \citet{aigrain15}.}
+light curves in \citet{Aigrain2015}.}
 \label{fig:period_hist}
 \end{center}
 \end{figure}
@@ -360,18 +359,20 @@ periodogram method and the GP method.
 
 \subsection{ACF}
 
-We calculated an ACF for each light curve using the method of
+We calculated an ACF for each light curve following the method of
 \citet{Mcquillan2013}.
 In this method, an ACF is calculated for each light curve and smoothed by
 convolving with a Gaussian with $\sigma=9$ days.
-A rotation period is estimated as the lag-time of the first peak in the ACF,
-unless the second peak is larger in which case {\it that} lag-time is
-interpreted as the true period.
-The second peak in an ACF can be larger than the first if there are two active
-regions at or near opposite longitudes on the surface of the star---this would
-produce a light curve with two dips per rotation period.
+A rotation period is estimated as the lag-time of the highest peak in the ACF,
+less than 100 days.
+This is not always the first peak: the second can be larger than the first if
+there are two active regions at or near opposite longitudes on the surface of
+the star---this would produce a light curve with two dips per rotation period.
+We restrict our search to periods less than 100 days because this is the
+maximum period that is realistically recoverable in \kepler\ light curves ---
+instrumental noise significantly distorts the signal on longer timescales.
 An example ACF of the light curve in figure~\ref{fig:demo_lc} is shown
-in figure \ref{fig:ACF_example}.
+in figure \ref{fig:demo_acf}.
 
 \begin{figure}
 \begin{center}
@@ -379,10 +380,10 @@ in figure \ref{fig:ACF_example}.
 \caption[ACF of a simulated light curve.]
 {An autocorrelation function of the simulated light curve shown in figure
 \ref{fig:demo_lc}.
-The vertical blue line shows the period measured using the ACF method (19.5
+The vertical blue line shows the period measured using the ACF method (20.4
 days) and the pink dashed line shows the period that was used to simulate the
 light curve (20.8 days).}
-\label{fig:demo_lc}
+\label{fig:demo_acf}
 \end{center}
 \end{figure}
 
@@ -395,54 +396,21 @@ The results of the ACF method as tested in \citet{Aigrain2015} were positive
 (see, for example their figure 8) as it produced a large number of accurate
 rotation period measurements.
 Another advantage of the ACF method is that it is fast to implement.
+A clear disadvantage however, as already mentioned above, are the poorly
+defined uncertainties for rotation periods estimated using an autocorrelation
+function.
+This is related to the fact that ACF period detection is a non-probabilistic
+method, another drawback of ACF periods.
 
 We applied the ACF method to the sample of \nlightcurves\ simulated light
 curves.
 Periods measured using the ACF method are plotted against the original
 rotation period values used to generate the light curves in figure
-\ref{fig:compare_noise_free}.
-% 73\% of the injected rotation periods were recovered with a value lying
-% within 10\% of the truth and 83\% within 20\%.
-A noteworthy feature of this figure is that many of the points fall below the
-$x=y$ line, \ie\ the recovered rotation periods are a little shorter than the
-true periods.
-This is a feature of the peak position measurement method that is performed on
-the ACF.
-ACFs of stellar light curves are periodic functions added to decaying
-exponentials.
-In such functions the peak positions can be shifted towards the left--the
-short period end--because the decaying exponential raises the left side of
-each peak more than the right.
-It is possible to model this effect, however the standard practice is to
-simply measure the peak position without taking it into account.
-Additionally, the presence of gaps in the data may be contributing to this
-effect.
-Although, in our ACF method, gaps are interpolated over, these gaps still
-affect the ACF by reducing its peak heights.
-This amplifies the effect described above, in which the period is
-underestimated due to the exponential decay in the ACF.
-% To demonstrate that this effect reproduces the underestimated periods seen in
-% figure \ref{fig:compare_noise_free}, we simulated 1000 ACFs by generating
-% cosine plus exponential functions with a range of periods, decay timescales
-% and relative amplitudes.
-% The measured position of the first peak in each simulated ACF is compared to
-% the true position in figure \ref{fig:exp_sine_test}.
-% The same underestimation of the peak position is apparent in this figure.
-% Dashed lines show harmonics of $2P_{\mathrm{rot}}$ and $1/2P_{\mathrm{rot}}$.
-% In several cases, twice the true rotation period is measured.
-% The RMS of residuals is 1.59 days.
-
-% \begin{figure*}
-% \begin{center}
-% \includegraphics[width=6in, clip=true]{figures/exp_sine_test.pdf}
-% \caption[A flaw in the ACF method.]
-% {Recovered peak position as a function of the `true' period used to
-% generate simulated ACFs. In many cases the position is measured short-wards of
-% the truth, as also seen in figure \ref{fig:compare_noise_free}. The dashed
-% lines are at $x=2x$, $x=x$ and $x=\frac{1}{2}x$.}
-% \end{center}
-% \end{figure*}
-% \label{fig:exp_sine_test}
+\ref{fig:compare_acf}.
+The $2\times$ and $1/2\times$ harmonic lines are shown as dashed lines.
+The agreement between the injected and recovered rotation periods is good in
+general, however twice the true rotation period is often found.
+In addition, some rotation periods are drastically over- and underestimated.
 
 \begin{figure*}
 \begin{center}
