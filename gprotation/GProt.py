@@ -55,7 +55,8 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     model = emcee3.SimpleModel(lnlike_split, Glnprior)
     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
     ensemble = emcee3.Ensemble(model, p0)
-    sampler = emcee3.Sampler()
+    moves = emcee3.moves.KDEMove()
+    sampler = emcee3.Sampler(moves)
 
     print("burning in...")
     ensemble = sampler.run(ensemble, burnin)
