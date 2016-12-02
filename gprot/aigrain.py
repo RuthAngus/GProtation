@@ -57,12 +57,18 @@ class AigrainLightCurve(LightCurve):
 
     @property
     def name(self):
-        name = str(self.i)
-        if self.quarters is not None:
-            for q in self.quarters:
-                name += '-Q{}'.format(q)
+        if self._name is None:
+            name = str(self.i)
+            if self.quarters is not None:
+                for q in self.quarters:
+                    name += '-Q{}'.format(q)
+            self._name = name
 
-        return name
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
     # def multi_split_quarters(self):
     #     if self.quarters is None:
