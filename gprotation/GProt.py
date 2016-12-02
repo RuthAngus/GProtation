@@ -4,8 +4,9 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob, Glnprob, Glnprob_split, \
-        lnlike_split, Glnprior
+# from GProtation import make_plot, lnprob, Glnprob, Glnprob_split, \
+#         lnlike_split, Glnprior, MyModel
+from GProtation import make_plot, MyModel
 import Kepler_ACF
 import simple_acf as sa
 import h5py
@@ -41,8 +42,9 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
 
     # Time the LHF call.
     start = time.time()
-    print("lnlike = ", lnlike_split(theta_init, x, y, yerr), "lnprior = ",
-          Glnprior(theta_init, np.log(p_init), p_max)[0], "\n")
+    mod = MyModel(x, y, yerr, np.log(p_init), p_max)
+    print("lnlike = ", mod.lnlike_split(theta_init), "lnprior = ",
+          mod.Glnprior(theta_init), "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -52,17 +54,19 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
                        burnin)/60, "mins")
 
     # Run MCMC.
-    model = emcee3.SimpleModel(lnlike_split, Glnprior)
+    mod = MyModel(x, y, yerr, np.log(p_init), p_max)
+    model = emcee3.SimpleModel(mod.lnlike_split, mod.Glnprior)
     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
     ensemble = emcee3.Ensemble(model, p0)
     moves = emcee3.moves.KDEMove()
     sampler = emcee3.Sampler(moves)
+    print(type(sampler))
 
     print("burning in...")
     ensemble = sampler.run(ensemble, burnin)
 
     flat = sampler.get_coords(flat=True)
-    logprob = sampler.get_log_probablility(flat=True)
+    logprob = sampler.get_log_probability(flat=True)
     ensemble = emcee3.Ensemble(model, p0)
 
     # repeating MCMC runs.
@@ -76,26 +80,19 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         end = time.time()
         print("time taken = ", (end - start)/60, "minutes")
 
-        # save samples
-        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :-1] = \
-            np.array(sampler.get_coords)
         f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)), "w")
         data = f.create_dataset("samples",
-                                np.shape(sample_array[:, :sum(runs[:(i+1)]),
-                                                      :]))
-        data[:, :] = sample_array[:, :sum(runs[:(i+1)]), :]
+                                np.shape(sampler.get_coords(flat=True)))
+        data[:, :] = sampler.get_coords(flat=True)
         f.close()
 
-        # make various plots
-        with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
-                       "r") as f:
-            samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
+        print("samples = ", np.shape(sampler.get_coords(flat=True)))
+        results = make_plot(sampler, x, y, yerr, id, RESULTS_DIR, truths,
                             traces=True, tri=True, prediction=True)
-        _, nsteps, _ = np.shape(samples)
-        flat = np.reshape(samples[:, :, :5], (nwalkers*nsteps, ndim))
+        nsteps, _ = np.shape(sampler.get_coords(flat=True))
         conv, autocorr_times, ind_samp, diff = \
-                evaluate_convergence(flat, autocorr_times, diff_threshold,
+                evaluate_convergence(sampler.get_coords(flat=True),
+                                     autocorr_times, diff_threshold,
                                      n_independent)
         mean_ind.append(ind_samp)
         mean_diff.append(diff)

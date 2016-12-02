@@ -72,13 +72,12 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
     assert p_init < np.exp(p_max), "p_init > p_max"
 
     # fast settings
-    # burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-    # xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
+#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
+#     xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
 
     trths = [None, None, None, None, None]
 #     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
-#     mcmc_fit(xb, yb, yerrb, p_init, p_max, sid, RESULTS_DIR,
-    # mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+#     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
@@ -86,7 +85,8 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
 def recover(i):
 
-    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+    RESULTS_DIR = "results_emcee3"  # just 2 sets of 200 days
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -108,11 +108,11 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m])))
 # #     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-    recover(2)
+#     recover(2)
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
