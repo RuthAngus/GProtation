@@ -46,7 +46,7 @@ def simple_acf(x, y):
     acf_smooth, lags = acf_smooth[1:], lags[1:]
 
     # fit and subtract straight line
-    AT = np.vstack((lags, np.ones_like(lags))
+    AT = np.vstack((lags, np.ones_like(lags)))
     ATA = np.dot(AT, AT.T)
     m, b = np.linalg.solve(ATA, np.dot(AT, acf_smooth))
     acf_smooth -= m*lags + b
