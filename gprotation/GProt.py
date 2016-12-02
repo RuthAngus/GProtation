@@ -4,7 +4,8 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob, Glnprob, Glnprob_split
+from GProtation import make_plot, lnprob, Glnprob, Glnprob_split, \
+        lnlike_split, Glnprior
 import Kepler_ACF
 import simple_acf as sa
 import h5py
@@ -15,6 +16,7 @@ import emcee
 import pyfits
 import matplotlib.pyplot as plt
 import pandas as pd
+import emcee3
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
@@ -22,7 +24,7 @@ RESULTS_DIR = "results/"
 
 def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
              nwalkers=12, nruns=10, full_run=500, diff_threshold=.5,
-             n_independent=1000, parallel=False):
+             n_independent=1000):
     """
     Run the MCMC
     """
@@ -32,11 +34,6 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
                          p_init])
     runs = np.zeros(nruns) + full_run
     ndim = len(theta_init)
-    inits = [1, 1, 1, 1, np.log(.5*p_init)]
-    p0 = [theta_init + inits * np.random.rand(ndim) for i in range(nwalkers)]
-
-    # comment this line for Tim's initialisation
-    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
 
     print("p_init = ", p_init, "days, log(p_init) = ", np.log(p_init),
           "p_max = ", p_max)
@@ -44,8 +41,8 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
 
     # Time the LHF call.
     start = time.time()
-    print("lnprob = ", Glnprob_split(theta_init, x, y, yerr, np.log(p_init),
-                                     p_max)[0], "\n")
+    print("lnlike = ", lnlike_split(theta_init, x, y, yerr), "lnprior = ",
+          Glnprior(theta_init, np.log(p_init), p_max)[0], "\n")
     end = time.time()
     tm = end - start
     print("1 lhf call takes ", tm, "seconds")
@@ -54,42 +51,33 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     print("total = ", (tm * nwalkers * np.sum(runs) + tm * nwalkers *
                        burnin)/60, "mins")
 
-
     # Run MCMC.
-    if parallel:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
-                                        args=args, threads=15)
-    else:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
-                                        args=args)
+    model = emcee3.SimpleModel(lnlike_split, Glnprior)
+    p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+    ensemble = emcee3.Ensemble(model, p0)
+    sampler = emcee3.Sampler()
+
     print("burning in...")
-    p0, _, state, prob = sampler.run_mcmc(p0, burnin)
+    ensemble = sampler.run(ensemble, burnin)
 
-    flat = np.reshape(sampler.chain, (nwalkers * burnin, ndim))
-    logprob = flat[:, -1]
-    ml = logprob == max(logprob)
-    theta_init = flat[np.where(ml)[0][0], :]  # maximum likelihood sample
-
-    # uncomment this line for Tim's initialisation
-#     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
+    flat = sampler.get_coords(flat=True)
+    logprob = sampler.get_log_probablility(flat=True)
+    ensemble = emcee3.Ensemble(model, p0)
 
     # repeating MCMC runs.
     autocorr_times, mean_ind, mean_diff = [], [], []
-    sample_array = np.zeros((nwalkers, sum(runs), ndim + 1))  # +1 for blobs
+    sample_array = np.zeros((nwalkers, sum(runs), ndim))
     for i, run in enumerate(runs):
         print("run {0} of {1}".format(i, len(runs)))
-        sampler.reset()
         print("production run, {0} steps".format(int(run)))
         start = time.time()
-        p0, _, state, prob = sampler.run_mcmc(p0, run)
+        ensemble = sampler.run(ensemble, run)
         end = time.time()
         print("time taken = ", (end - start)/60, "minutes")
 
         # save samples
         sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :-1] = \
-            np.array(sampler.chain)
-        sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), -1] = \
-                np.array(sampler.blobs).T
+            np.array(sampler.get_coords)
         f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)), "w")
         data = f.create_dataset("samples",
                                 np.shape(sample_array[:, :sum(runs[:(i+1)]),
@@ -152,7 +140,8 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     converged: (boolean)
     	If True then convergence criteria have been satisfied.
     mean_acorr: (list)
-    	A list of lists of autocorrelation times (averaged over chains/dimensions).
+    	A list of lists of autocorrelation times (averaged over
+        chains/dimensions).
     mean_ind: (list)
         The number of independent samples (averaged over chains/dimensions).
     mean_diff: (list)
@@ -160,10 +149,7 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
 	autocorrelation time.
     """
     converged = False
-    try:
-        acorr_t = emcee.autocorr.integrated_time(flat, c=1)
-    except:
-        acorr_t = emcee.autocorr.integrated_time(flat)
+    acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
     mean_acorr.append(np.mean(acorr_t))
     mean_ind = len(flat) / np.mean(acorr_t)
     mean_diff = None
