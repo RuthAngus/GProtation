@@ -72,7 +72,7 @@ class KeplerLightCurve(LightCurve):
 
     @property
     def name(self):
-        if self._name is None:
+        if not hasattr(self, '_name') or self._name is None:
             if self.is_koi:
                 name = 'KOI-{}'.format(self.koinum)
             else:

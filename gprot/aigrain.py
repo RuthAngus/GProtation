@@ -57,7 +57,7 @@ class AigrainLightCurve(LightCurve):
 
     @property
     def name(self):
-        if self._name is None:
+        if not hasattr(self, '_name') or self._name is None:
             name = str(self.i)
             if self.quarters is not None:
                 for q in self.quarters:

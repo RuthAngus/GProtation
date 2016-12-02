@@ -30,7 +30,7 @@ def fit_polychord(i, test=False, nlive=1000):
 def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
                 resultsdir='results', quarters=None, clever=True,
-                bestchunk=None, pmax=None, filter=False):
+                bestchunk=None, pmax=None, filter=False, tag=None):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -54,10 +54,12 @@ def get_model(i, aigrain=True, kepler=False,
     
     if bestchunk is not None:
         lc.make_best_chunks(bestchunk)
-        lc.name = lc.name + '_{}d'.format(bestchunk)
 
     if daterange is not None:
         lc.restrict_range(daterange)
+
+    if tag is not None:
+        lc.name = lc.name + '_{}'.format(tag)
 
     if pmax is None and bestchunk is not None:
         try:
@@ -78,21 +80,21 @@ def _fit_emcee3(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, 
                 daterange=None, debug=False, resultsdir='results', 
                 quarters=None, clever=True, bestchunk=None, 
-                filter=False, **kwargs):
+                filter=False, tag=None, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever, bestchunk=bestchunk, filter=filter)
+                    clever=clever, bestchunk=bestchunk, filter=filter, tag=tag)
     fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, 
                 resultsdir='results', quarters=None, clever=True, 
-                bestchunk=None, filter=False, **kwargs):
+                bestchunk=None, filter=False, tag=None, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever, bestchunk=bestchunk, filter=filter)
+                    clever=clever, bestchunk=bestchunk, filter=filter, tag=tag)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -126,6 +128,7 @@ if __name__=='__main__':
                              'arguments.')
     parser.add_argument('--filter', action='store_true')
     parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
+    parser.add_argument('--tag', default=None)
     parser.add_argument('--quarters', nargs='+', type=int, default=None)
     parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
                             default='emcee3', 
@@ -193,7 +196,7 @@ if __name__=='__main__':
                             daterange=args.daterange, mixedmoves=args.mixedmoves,
                             resultsdir=args.resultsdir, quarters=args.quarters,
                             clever=args.clever, bestchunk=args.bestchunk,
-                            filter=args.filter)
+                            filter=args.filter, tag=args.tag)
             elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
@@ -202,7 +205,7 @@ if __name__=='__main__':
                           kepler=args.kepler, aigrain=args.aigrain,
                           daterange=args.daterange, quarters=args.quarters,
                           clever=args.clever, bestchunk=args.bestchunk,
-                          filter=args.filter)
+                          filter=args.filter, tag=args.tag)
 
         except:
             import traceback
