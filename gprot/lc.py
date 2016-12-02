@@ -41,6 +41,10 @@ class LightCurve(object):
     def name(self):
         return self._name
 
+    @name.setter
+    def name(self, name):
+        self._name = name
+
     @property
     def df(self):
         return pd.DataFrame({'x':self.x, 'y':self.y, 'yerr':self.yerr})
@@ -70,6 +74,13 @@ class LightCurve(object):
         self._x_full = x.copy()
         self._y_full = y.copy()
         self._yerr_full = yerr.copy()
+
+        self._x_list = None
+        self._y_list = None
+        self._yerr_list = None
+
+        if self.sub is not None:
+            self.subsample(self.sub)
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):

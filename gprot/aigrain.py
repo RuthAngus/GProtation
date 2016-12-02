@@ -42,7 +42,7 @@ class AigrainLightCurve(LightCurve):
             y = y[m]
             yerr = yerr[m]
 
-        super(AigrainLightCurve, self).__init__(x, y - 1, yerr, **kwargs)
+        super(AigrainLightCurve, self).__init__(x, y - 1, yerr, sub=sub, **kwargs)
 
         # Restrict range if desired
         if rng is not None:
@@ -50,7 +50,6 @@ class AigrainLightCurve(LightCurve):
         elif ndays is not None:
             self.restrict_range((0, ndays))
 
-        self.subsample(sub)
         if nsigma is not None:
             self.sigma_clip(nsigma)
 
