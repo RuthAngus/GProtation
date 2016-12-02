@@ -63,6 +63,14 @@ def Glnprob_split(theta, x, y, yerr, p_init, p_max):
     return prob, prob
 
 
+def lnlike_split(theta, x, y, yerr):
+    """
+    For emcee3
+    """
+    ll = np.sum([lnlike(theta, x[i], y[i], yerr[i]) for i in range(len(x))])
+    return prob
+
+
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
