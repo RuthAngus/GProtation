@@ -30,7 +30,7 @@ def fit_polychord(i, test=False, nlive=1000):
 def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
                 resultsdir='results', quarters=None, clever=True,
-                bestchunk=None, pmax=None):
+                bestchunk=None, pmax=None, filter=False):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -46,6 +46,9 @@ def get_model(i, aigrain=True, kepler=False,
         from gprot.kepler import KeplerLightCurve
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
                                 quarters=quarters)
+    if filter:
+        lc.bandpass_filter()
+
     if clever:
         if bestchunk is None:
             lc.make_best_chunks()
@@ -73,21 +76,22 @@ def get_model(i, aigrain=True, kepler=False,
 def _fit_emcee3(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, 
                 daterange=None, debug=False, resultsdir='results', 
-                quarters=None, clever=True, bestchunk=None, **kwargs):
+                quarters=None, clever=True, bestchunk=None, 
+                filter=False, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever, bestchunk=bestchunk)
+                    clever=clever, bestchunk=bestchunk, filter=filter)
     fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, 
                 resultsdir='results', quarters=None, clever=True, 
-                bestchunk=None, **kwargs):
+                bestchunk=None, filter=False, **kwargs):
     mod = get_model(i, aigrain=aigrain, kepler=kepler,
                     ndays=ndays, subsample=subsample, chunksize=chunksize,
                     daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-                    clever=clever, bestchunk=bestchunk)
+                    clever=clever, bestchunk=bestchunk, filter=filter)
     basename = os.path.join('chains',str(i))
     fit_mnest(mod, basename=basename, **kwargs)
 
@@ -119,6 +123,7 @@ if __name__=='__main__':
                         help='Subsample in a tiered way but use whole light curve. ' +
                              'Supersedes "quarters", "subsample", and "daterange", ' + 
                              'arguments.')
+    parser.add_argument('--filter', action='store_true')
     parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
     parser.add_argument('--quarters', nargs='+', type=int, default=None)
     parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
@@ -186,7 +191,8 @@ if __name__=='__main__':
                             kepler=args.kepler, aigrain=args.aigrain,
                             daterange=args.daterange, mixedmoves=args.mixedmoves,
                             resultsdir=args.resultsdir, quarters=args.quarters,
-                            clever=args.clever, bestchunk=args.bestchunk)
+                            clever=args.clever, bestchunk=args.bestchunk,
+                            filter=args.filter)
             elif args.sampler=='mnest':
                 _fit_mnest(ix, test=args.test, verbose=args.verbose, 
                           ndays=args.ndays, subsample=args.subsample,
@@ -194,7 +200,8 @@ if __name__=='__main__':
                           chunksize=args.chunksize, overwrite=args.overwrite,
                           kepler=args.kepler, aigrain=args.aigrain,
                           daterange=args.daterange, quarters=args.quarters,
-                          clever=args.clever, bestchunk=args.bestchunk)
+                          clever=args.clever, bestchunk=args.bestchunk,
+                          filter=args.filter)
 
         except:
             import traceback

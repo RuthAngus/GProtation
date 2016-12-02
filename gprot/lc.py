@@ -5,10 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from cycler import cycler
 
+from scipy.interpolate import UnivariateSpline
+
 from collections import OrderedDict
 from pkg_resources import resource_filename
 
-from .filter import sigma_clip
+from .filter import sigma_clip, bandpass_filter
 from .plots import tableau20
 
 qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
@@ -42,6 +44,32 @@ class LightCurve(object):
     @property
     def df(self):
         return pd.DataFrame({'x':self.x, 'y':self.y, 'yerr':self.yerr})
+
+    def bandpass_filter(self, pmin=0.5, pmax=100, cadence=None, edge=2000):
+        """Applies a Butterworth bandpass filter to data
+
+        Replaces lightcurve data with new filtered, edge-cropped data.
+        """
+        if cadence is None:
+            try:
+                cadence = self.cadence
+            except AttributeError:
+                pass
+
+        x, y, yerr = bandpass_filter(self._x_full,
+                                     self._y_full,
+                                     self._yerr_full)
+        x = x[edge:-edge]
+        y = y[edge:-edge]
+        yerr = yerr[edge:-edge]
+
+        self._x = x.copy()
+        self._y = y.copy()
+        self._yerr = y.copy()
+
+        self._x_full = x.copy()
+        self._y_full = y.copy()
+        self._yerr_full = yerr.copy()
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):
@@ -87,7 +115,7 @@ class LightCurve(object):
     def make_best_chunks(self, ndays=[800, 200, 50], seed=None, **kwargs):
         if not hasattr(ndays, '__iter__'):
             ndays = [ndays]
-            
+
         self._x_list = []
         self._y_list = []
         self._yerr_list = []
