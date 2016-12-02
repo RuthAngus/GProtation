@@ -146,9 +146,9 @@ def mcmc_plots(truths, DIR):
 
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
                  fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
-    plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor="",
+    plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor="k",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
-                s=15, zorder=2)
+                s=20, lw=.2, zorder=2)
 
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
@@ -165,9 +165,9 @@ def mcmc_plots(truths, DIR):
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
                  fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
-    plt.scatter(np.log(true), np.log(maxlike), c=mean_acorr, edgecolor="",
+    plt.scatter(np.log(true), np.log(maxlike), c=mean_acorr, edgecolor="k",
                 cmap="GnBu_r", vmin=min(mean_acorr), vmax=max(mean_acorr),
-                s=15, zorder=2)
+                s=20, lw=.2, zorder=2)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$<\mathrm{(Autocorrelation~Time)}>$")
     plt.savefig(os.path.join(DIR, "compare_mcmc_convergence"))
@@ -216,9 +216,9 @@ def acf_plot(truths, DIR):
 
     plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
                  capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
-    plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="",
+    plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="k",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
-                s=15, zorder=2)
+                s=20, lw=.2, zorder=2)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)
@@ -248,9 +248,9 @@ def pgram_plot(truths, DIR):
     plt.plot(np.log(xs), np.log(xs), "k-", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
-    plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor="",
-                cmap="GnBu", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
-                s=15, zorder=1)
+    plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor="k",
+                cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
+                s=20, zorder=1, lw=.2)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)
