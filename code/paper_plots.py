@@ -54,5 +54,6 @@ if __name__ == "__main__":
     FIG_DIR = "/Users/ruthangus/projects/GProtation/documents/figures"
     x, y = np.genfromtxt(os.path.join(DATA_DIR,
                                       "final/lightcurve_0025.txt")).T
+    x, y = x[:10000], y[:10000]
     lc_demo(x, y)
     acf_demo(x, y)

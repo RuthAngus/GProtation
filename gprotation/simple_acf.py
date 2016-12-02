@@ -1,14 +1,20 @@
 from __future__ import print_function
 import numpy as np
-import matplotlib.pyplot as plt
-import emcee
 import glob
+
 
 def simple_acf(x, y):
     """
     Calculate ACF of y.
     Returns period, acf_smooth, lags, rvar
     """
+
+    # interpolate across gaps
+    gap_days = 0.02043365
+    time = np.arange(x[0], x[-1], gap_days)
+    lin_interp = np.interp(time, x, y)
+    x, y = time, lin_interp
+
     # fit and subtract straight line
     AT = np.vstack((x, np.ones_like(x)))
     ATA = np.dot(AT, AT.T)
@@ -19,7 +25,6 @@ def simple_acf(x, y):
     acf = dan_acf(y)
 
     # create 'lags' array
-    gap_days = 0.02043365
     lags = np.arange(len(acf))*gap_days
 
     N = len(acf)
