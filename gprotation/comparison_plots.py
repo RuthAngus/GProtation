@@ -250,7 +250,7 @@ def pgram_plot(truths, DIR):
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
     plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor="",
                 cmap="GnBu", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
-                s=50, zorder=1)
+                s=15, zorder=1)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)
@@ -266,6 +266,6 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
-    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
