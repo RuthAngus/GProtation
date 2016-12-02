@@ -49,12 +49,12 @@ def get_model(i, aigrain=True, kepler=False,
     if filter:
         lc.bandpass_filter()
 
-    if clever:
-        if bestchunk is None:
-            lc.make_best_chunks()
-        else:
-            lc.make_best_chunks(bestchunk)
-            lc.name = lc.name + '_{}d'.format(bestchunk)
+    if clever and bestchunk is None:
+        lc.make_best_chunks()
+    
+    if bestchunk is not None:
+        lc.make_best_chunks(bestchunk)
+        lc.name = lc.name + '_{}d'.format(bestchunk)
 
     if daterange is not None:
         lc.restrict_range(daterange)
