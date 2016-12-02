@@ -72,16 +72,22 @@ class KeplerLightCurve(LightCurve):
 
     @property
     def name(self):
-        if self.is_koi:
-            name = 'KOI-{}'.format(self.koinum)
-        else:
-            name = 'KIC-{}'.format(self.kepid)
+        if self._name is None:
+            if self.is_koi:
+                name = 'KOI-{}'.format(self.koinum)
+            else:
+                name = 'KIC-{}'.format(self.kepid)
 
-        if self.quarters is not None:
-            for q in self.quarters:
-                name += '-Q{}'.format(q)
+            if self.quarters is not None:
+                for q in self.quarters:
+                    name += '-Q{}'.format(q)
+            self._name = name
 
-        return name
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
     @property
     def kepid(self):
