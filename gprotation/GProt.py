@@ -60,7 +60,6 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     ensemble = emcee3.Ensemble(model, p0)
     moves = emcee3.moves.KDEMove()
     sampler = emcee3.Sampler(moves)
-    print(type(sampler))
 
     print("burning in...")
     ensemble = sampler.run(ensemble, burnin)
@@ -104,13 +103,13 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     if conv:
         col = "r"
     plt.clf()
-    plt.plot(autocorr_times, color=color)
+    plt.plot(autocorr_times, color=col)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
     plt.clf()
-    plt.plot(mean_ind, color=color)
+    plt.plot(mean_ind, color=col)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_ind".format(id)))
     plt.clf()
-    plt.plot(mean_diff, color=color)
+    plt.plot(mean_diff, color=col)
     plt.savefig(os.path.join(RESULTS_DIR, "{0}_diff".format(id)))
     return
 

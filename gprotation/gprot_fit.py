@@ -7,30 +7,35 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import h5py
 import math
+import simple_acf as sa
+from gatspy.periodic import LombScargle
 
 
 class fit(object):
 
-    def __init__(self, x, y, yerr, id, sec_size=200, ppd=4):
+    def __init__(self, x, y, yerr, id, RESULTS_DIR="results", lc_size=200,
+                 ppd=4):
 
         self.x = x
         self.y = y
         self.yerr = yerr
-        kid = str(int(id)).zfill(9)
+        self.kid = str(int(id)).zfill(9)
+        self.RESULTS_DIR = RESULTS_DIR
 
         # sigma clip and subsample
-        x, y, yerr = sigma_clip(5)
-        xb, yb, yerrb = make_gaps(x, y, yerr, ppd)
+        xc, yc, yerrc = self.sigma_clip(5)
+        xg, yg, yerrg = self.make_gaps(xc, yc, yerrc, ppd)
 
         # make data into a list of lists, 200 days each
-        self.xb, self.yb, self.yerrb = make_lists(xb, yb, yerrb, sec_size)
+        self.xb, self.yb, self.yerrb = self.make_lists(xg, yg, yerrg, lc_size)
 
         # find p_init
-        self.acf_period, _, self.pgram_period, _ = calc_p_init(RESULTS_DIR,
-                                                               clobber=False)
+        if not os.path.exists(RESULTS_DIR):
+            os.makedirs(RESULTS_DIR)
+        self.acf_period, _, self.pgram_period, _ = self.calc_p_init()
 
-    def gp_fit(self, RESULTS_DIR, burnin=1000, nwalkers=16, nruns=5,
-               full_run=1000):
+    def gp_fit(self, burnin=1000, nwalkers=16, nruns=5, full_run=1000,
+               nsets=None):
 
         # set initial period
         p_init = self.acf_period
@@ -41,16 +46,12 @@ class fit(object):
             p_init = 10
         assert p_init < np.exp(p_max), "p_init > p_max"
 
-        # fast settings
-    #     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-        burnin, nwalkers, nruns, full_run = 500, 12, 3, 100
-#         self.xb[0], self.yb[0], self.yerrb[0] = self.xb[0][::100], \
-#                 self.yb[0][::100], self.yerrb[0][::100]
-
         trths = [None, None, None, None, None]
-#         mcmc_fit(self.xb[:2], self.yb[:2], self.yerrb[:2], p_init, p_max,
-        mcmc_fit(self.xb[0], self.yb[0], self.yerrb[0], p_init, p_max,
-                 self.kid, RESULTS_DIR, truths=trths, burnin=burnin,
+        if nsets:  # for running on a specific number of sets.
+            self.xb, self.yb, self.yerrb = self.xb[:nsets], self.yb[:nsets], \
+                    self.yerrb[:nsets]
+        mcmc_fit(self.xb, self.yb, self.yerrb, p_init, p_max, self.kid,
+                 self.RESULTS_DIR, truths=trths, burnin=burnin,
                  nwalkers=nwalkers, nruns=nruns, full_run=full_run,
                  diff_threshold=.5, n_independent=1000)
 
@@ -69,22 +70,22 @@ class fit(object):
         inds = np.argsort(x[m])
         return x[m][inds], y[m][inds], yerr[m][inds]
 
-    def make_lists(xb, yb, yerrb, l):
-        nlists = int(math.ceil((xb[-1] - xb[0]) / l))
+    def make_lists(self, xg, yg, yerrg, l):
+        nlists = int(math.ceil((xg[-1] - xg[0]) / l))
         xlist, ylist, yerrlist= [], [], []
         masks = np.arange(nlists + 1) * l
         for i in range(nlists):
-            m = (masks[i] < xb) * (xb < masks[i+1])
-            xlist.append(xb[m])
-            ylist.append(yb[m])
-            yerrlist.append(yerrb[m])
+            m = (masks[i] < xg) * (xg < masks[i+1])
+            xlist.append(xg[m])
+            ylist.append(yg[m])
+            yerrlist.append(yerrg[m])
         return xlist, ylist, yerrlist
 
-    def calc_p_init(RESULTS_DIR, clobber=False):
+    def calc_p_init(self, clobber=False):
         """
         Calculate the ACF and periodogram periods for initialisation.
         """
-        fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt"
+        fname = os.path.join(self.RESULTS_DIR, "{0}_acf_pgram_results.txt"
                              .format(self.kid))
         if not clobber and os.path.exists(fname):
             print("Previous ACF pgram result found")
@@ -103,9 +104,10 @@ class fit(object):
             plt.axvline(acf_period, color="r")
             plt.xlabel("Lags (days)")
             plt.ylabel("ACF")
-            plt.savefig(os.path.join(RESULTS_DIR, "{0}_acf".format(id)))
-            print("saving figure ", os.path.join(RESULTS_DIR,
-                                                 "{0}_acf".format(id)))
+            plt.savefig(os.path.join(self.RESULTS_DIR,
+                        "{0}_acf".format(self.kid)))
+            print("saving figure ", os.path.join(self.RESULTS_DIR,
+                                                 "{0}_acf".format(self.kid)))
 
             print("Calculating periodogram")
             ps = np.arange(.1, 100, .1)
@@ -114,9 +116,10 @@ class fit(object):
 
             plt.clf()
             plt.plot(ps, pgram)
-            plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
-            print("saving figure ", os.path.join(RESULTS_DIR,
-                                                 "{0}_pgram".format(id)))
+            plt.savefig(os.path.join(self.RESULTS_DIR,
+                                     "{0}_pgram".format(self.kid)))
+            print("saving figure ", os.path.join(self.RESULTS_DIR,
+                                                 "{0}_pgram".format(self.kid)))
 
             peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                               pgram[i] and pgram[i+1] < pgram[i]])
@@ -124,7 +127,7 @@ class fit(object):
             print("pgram period = ", pgram_period, "days")
             pgram_period_err = pgram_period * .1
 
-            df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
+            df = pd.DataFrame({"N": [self.kid], "acf_period": [acf_period],
                                "acf_period_err": [err],
                                "pgram_period": [pgram_period],
                                "pgram_period_err": [pgram_period_err]})

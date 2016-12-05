@@ -39,12 +39,35 @@ class MyModel(object):
         mu = np.array([-13, 6.2, -1.4, -17, self.p_init])
         sigma = np.array([2.7, 1.5, 1.5, 5, self.p_init * 2])
         if np.log(.5) < theta[4] < self.p_max and 0 < theta[1]:
-            return np.sum(lnGauss(theta, mu, sigma))
+            return np.sum(self.lnGauss(theta, mu, sigma))
         return -np.inf
 
     def lnlike_split(self, theta):
-        return np.sum([lnlike(theta, self.x[i], self.y[i], self.yerr[i]) for i
-                       in range(len(self.x))])
+        return np.sum([self.lnlike(theta, self.x[i], self.y[i], self.yerr[i])
+                       for i in range(len(self.x))])
+
+    def lnlike(self, theta, xi, yi, yerri):
+        theta = np.exp(theta)
+        k = theta[0] * ExpSquaredKernel(theta[1]) \
+                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+        gp = george.GP(k, solver=george.HODLRSolver)
+        try:
+            gp.compute(xi, np.sqrt(theta[3]+yerri**2))
+        except (ValueError, np.linalg.LinAlgError):
+            return 10e25
+        return gp.lnlikelihood(yi, quiet=True)
+
+
+def lnlike(theta, x, y, yerr):
+    theta = np.exp(theta)
+    k = theta[0] * ExpSquaredKernel(theta[1]) \
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+    gp = george.GP(k, solver=george.HODLRSolver)
+    try:
+        gp.compute(x, np.sqrt(theta[3]+yerr**2))
+    except (ValueError, np.linalg.LinAlgError):
+        return 10e25
+    return gp.lnlikelihood(y, quiet=True)
 
 
 def lnprior(theta, plims):
@@ -90,25 +113,6 @@ def Glnprob_split(theta, x, y, yerr, p_init, p_max):
     prob = np.sum([lnlike(theta, x[i], y[i], yerr[i]) + prior for i in
                    range(len(x))])
     return prob, prob
-
-
-def lnlike_split(theta, x, y, yerr):
-    """
-    For emcee3
-    """
-    return np.sum([lnlike(theta, x[i], y[i], yerr[i]) for i in range(len(x))])
-
-
-def lnlike(theta, x, y, yerr):
-    theta = np.exp(theta)
-    k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
-    gp = george.GP(k, solver=george.HODLRSolver)
-    try:
-        gp.compute(x, np.sqrt(theta[3]+yerr**2))
-    except (ValueError, np.linalg.LinAlgError):
-        return 10e25
-    return gp.lnlikelihood(y, quiet=True)
 
 
 def neglnlike(theta, x, y, yerr):
@@ -175,8 +179,8 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     if tri:
         DIR = "../code/simulations/kepler_diffrot_full/par/"
         print("Making triangle plot")
-        fig = corner.corner(flat[:, :-1], labels=fig_labels,
-                            quantiles=[.16, .5, .84], show_titles=True)
+        fig = corner.corner(flat, labels=fig_labels, quantiles=[.16, .5, .84],
+                            show_titles=True)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 

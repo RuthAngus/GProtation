@@ -214,8 +214,8 @@ def acf_plot(truths, DIR):
     plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
 
-    plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
-                 capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
+#     plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
+#                  capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
     plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="k",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=20, lw=.2, zorder=2)
@@ -225,7 +225,7 @@ def acf_plot(truths, DIR):
     plt.ylim(0, 6)
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
-    plt.savefig(os.path.join(DIR, "compare_acf"))
+    plt.savefig(os.path.join(DIR, "compare_acf.pdf"))
     return (np.median((acfs - true)**2))**.5
 
 def pgram_plot(truths, DIR):
@@ -266,6 +266,13 @@ if __name__ == "__main__":
     DIR = "../code/simulations/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
+    # remove 17 for now
+    m = truths.N.values != 17
+    truths = truths.iloc[m]
+
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
+#     print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
 #     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-    print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))

@@ -5,13 +5,13 @@ import glob
 import os
 
 
-def load_kepler_data(KID, LC_DIR):
+def load_kepler_data(LC_DIR):
     """
     load and join quarters together.
     Takes a list of fits file names for a given star.
     Returns the concatenated arrays of time, flux and flux_err
     """
-    fnames = glob.glob(os.path.join(LC_DIR, "*fits"))
+    fnames = sorted(glob.glob(os.path.join(LC_DIR, "*fits")))
     hdulist = pyfits.open(fnames[0])
     t = hdulist[1].data
     time = t["TIME"]
