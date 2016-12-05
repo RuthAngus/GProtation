@@ -25,7 +25,7 @@ class GPRotModel(object):
     # log bounds
     _bounds = ((-20., 0.), 
                (-0.69, 20.), 
-               (-10., 10.), 
+               (-10., 20.), 
                (-20., 5.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
@@ -46,7 +46,7 @@ class GPRotModel(object):
 
         # Default gaussian for GP param priors
         self.gp_prior_mu = np.array([-13, 6.2, -1.4, -17])
-        self.gp_prior_sigma = np.array([5.7, 1.5, 3.5, 5])
+        self.gp_prior_sigma = np.array([5.7, 1.5, 5.5, 5])
 
 
 
