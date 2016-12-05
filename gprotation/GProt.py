@@ -30,7 +30,11 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     Run the MCMC
     """
 
-    print("total number of points = ", len(x))
+    if len(x) < 10:
+        print("Number of light curve sections = ", len(x))
+        print("Total number of points  = ", sum[len(i) for i in x])
+    else:
+        print("Total number of points  = ", len(x))
     theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
