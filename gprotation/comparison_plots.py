@@ -146,13 +146,13 @@ def mcmc_plots(truths, DIR):
 
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
                  fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
-    plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor="k",
+    plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor=".5",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=20, lw=.2, zorder=2)
 
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
-    plt.savefig(os.path.join(DIR, "compare_mcmc"))
+    plt.savefig(os.path.join(DIR, "compare_mcmc.pdf"))
 
     # make convergence plot.
     plt.clf()
@@ -188,7 +188,7 @@ def mcmc_plots(truths, DIR):
         if samples != None:
             plt.plot(np.log(np.ones(100) * true[i]), np.random.choice(samples,
                      100), "k.", ms=1)
-    plt.savefig(os.path.join(DIR, "compare_mcmc_samples"))
+    plt.savefig(os.path.join(DIR, "compare_mcmc_samples.pdf"))
     return (np.median((maxlike - true)**2))**.5, \
             (np.median((np.exp(lnp) - true)**2))**.5
 
@@ -216,7 +216,7 @@ def acf_plot(truths, DIR):
 
 #     plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
 #                  capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1)
-    plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor="k",
+    plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor=".5",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=20, lw=.2, zorder=2)
     cbar = plt.colorbar()
@@ -248,7 +248,7 @@ def pgram_plot(truths, DIR):
     plt.plot(np.log(xs), np.log(xs), "k-", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) - 2./3, "k--", alpha=.3, zorder=0)
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, zorder=0)
-    plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor="k",
+    plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor=".5",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=20, zorder=1, lw=.2)
     cbar = plt.colorbar()
@@ -258,7 +258,7 @@ def pgram_plot(truths, DIR):
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
-    plt.savefig(os.path.join(DIR, "compare_pgram"))
+    plt.savefig(os.path.join(DIR, "compare_pgram.pdf"))
     return (np.median((pgram - true)**2))**.5
 
 if __name__ == "__main__":
@@ -273,6 +273,6 @@ if __name__ == "__main__":
 #     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
 #     print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
 #     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+    print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
