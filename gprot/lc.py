@@ -71,7 +71,7 @@ class LightCurve(object):
 
         self._x = x.copy()
         self._y = y.copy()
-        self._yerr = y.copy()
+        self._yerr = yerr.copy()
 
         self._x_full = x.copy()
         self._y_full = y.copy()
