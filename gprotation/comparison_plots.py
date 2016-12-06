@@ -142,7 +142,7 @@ def mcmc_plots(truths, DIR):
     plt.xlim(0, 4)
     plt.ylim(0, 6)
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
-    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period,~GP~Method})$")
 
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
                  fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
@@ -224,7 +224,7 @@ def acf_plot(truths, DIR):
     plt.xlim(0, 4)
     plt.ylim(0, 6)
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
-    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period~ACF~Method})$")
     plt.savefig(os.path.join(DIR, "compare_acf.pdf"))
     return (np.median((acfs - true)**2))**.5
 
@@ -257,7 +257,7 @@ def pgram_plot(truths, DIR):
     plt.ylim(0, 6)
     plt.xlabel("$\mathrm{Injected~Period~(Days)}$")
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
-    plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.ylabel("$\ln(\mathrm{Recovered~Period~LS~Periodogram~method})$")
     plt.savefig(os.path.join(DIR, "compare_pgram.pdf"))
     return (np.median((pgram - true)**2))**.5
 
