@@ -122,7 +122,7 @@ class GPRotModel(object):
         # p_init = self.plims[1] / 1.5
         # lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
 
-        lnpr = np.sum(lnGauss(np.array(theta[:4]), 
+        lnpr = np.sum(lnGauss(np.array(theta[:-1]), 
                               self.gp_prior_mu, self.gp_prior_sigma))
 
         return lnpr
