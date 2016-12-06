@@ -72,8 +72,8 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
     assert p_init < np.exp(p_max), "p_init > p_max"
 
     # fast settings
-#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-    burnin, nwalkers, nruns, full_run = 500, 12, 3, 100
+#     burnin, nwalkers, nruns, full_run = 500, 12, 3, 100
+    burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
 #     xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
 
     trths = [None, None, None, None, None]
@@ -113,7 +113,7 @@ if __name__ == "__main__":
 #     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 #     results = pool.map(recover, range(len(truths.N.values[m])))
 
-    recover(32)
+#     recover(32)
 
-#     for i in range(len(truths.N.values[m])):
-# 	    recover(i)
+    for i in range(len(truths.N.values[m][:100])):
+	    recover(i)
