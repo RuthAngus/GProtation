@@ -31,7 +31,7 @@ def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
                 resultsdir='results', quarters=None, clever=True,
                 bestchunk=None, pmax=None, filter=False, tag=None, 
-                noexp2=False, **kwargs):
+                altmodel=False, **kwargs):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -68,7 +68,7 @@ def get_model(i, aigrain=True, kepler=False,
         except TypeError:
             pmax = np.log(bestchunk)
 
-    if noexp2:
+    if altmodel:
         mod = GPRotModel2(lc, pmax=pmax)
     else:
         mod = GPRotModel(lc, pmax=pmax)
@@ -180,7 +180,7 @@ if __name__=='__main__':
                         help="Test, don't actually run. Flag has no effect if sampler " + 
                              "is set to emcee3.")
 
-    parser.add_argument('--noexp2', action='store_true')
+    parser.add_argument('--altmodel', action='store_true')
     
 
     args = vars(parser.parse_args())
