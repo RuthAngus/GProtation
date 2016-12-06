@@ -30,11 +30,12 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     Run the MCMC
     """
 
-    if len(x) < 10:
+    try:
+        print("Total number of points  = ", sum([len(i) for i in x]))
         print("Number of light curve sections = ", len(x))
-        print("Total number of points  = ", sum[len(i) for i in x])
-    else:
+    except TypeError:
         print("Total number of points  = ", len(x))
+
     theta_init = np.log([np.exp(-12), np.exp(7), np.exp(-1), np.exp(-17),
                          p_init])
     runs = np.zeros(nruns) + full_run
@@ -150,7 +151,10 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
 	autocorrelation time.
     """
     converged = False
-    acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
+    try:
+        acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
+    except emcee3.autocorr.AutocorrError:
+        return None, None, None, None
     mean_acorr.append(np.mean(acorr_t))
     mean_ind = len(flat) / np.mean(acorr_t)
     mean_diff = None
