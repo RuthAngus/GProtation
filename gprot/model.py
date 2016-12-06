@@ -31,6 +31,9 @@ class GPRotModel(object):
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
+    _default_gp_prior_mu = (-13, 6.2, -1.4, -17)
+    _default_gp_prior_sigma = (5.7, 1.5, 3.5, 5)
+
     def __init__(self, lc, name=None, pmin=None, pmax=None):
 
         self.lc = lc
@@ -45,10 +48,8 @@ class GPRotModel(object):
         self.pmax = pmax
 
         # Default gaussian for GP param priors
-        self.gp_prior_mu = np.array([-13, 6.2, -1.4, -17])
-        self.gp_prior_sigma = np.array([5.7, 1.5, 3.5, 5])
-
-
+        self.gp_prior_mu = np.array(self._default_gp_prior_mu)
+        self.gp_prior_sigma = np.array(self._default_gp_prior_sigma)
 
     @property
     def ndim(self):
@@ -143,7 +144,7 @@ class GPRotModel(object):
         k = self.gp_kernel(theta)
         gp = george.GP(k, solver=george.HODLRSolver)
 
-        sigma = np.exp(theta[3])
+        sigma = np.exp(theta[-2])
         gp.compute(x, np.sqrt(sigma + yerr**2)) # is this correct?
         return gp
 
@@ -195,3 +196,24 @@ class GPRotModel(object):
         post_file = '{}post_equal_weights.dat'.format(basename)
         data = np.loadtxt(post_file)
         return pd.DataFrame(data[:,:-1], columns=cls.param_names)
+
+class GPRotModel2(GPRotModel):
+    """ Taking out expsq part of the kernel just for kicks.
+    """
+    # log bounds
+    _bounds = ((-20., 0.), 
+               (-10., 15.), 
+               (-20., 5.), 
+               (-0.69, 4.61)) # 0.5 - 100d range
+
+    param_names = ('ln_A', 'ln_G', 'ln_sigma', 'ln_period')
+    _default_gp_prior_mu = (-13, -1.4, -17)
+    _default_gp_prior_sigma = (5.7, 3.5, 5)
+
+    def gp_kernel(self, theta):
+        A = np.exp(theta[0])
+        G = np.exp(theta[1])
+        sigma = np.exp(theta[2])
+        P = np.exp(theta[3])
+        return A * ExpSine2Kernel(G, P) + WhiteKernel(sigma)        
+
