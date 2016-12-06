@@ -11,7 +11,8 @@
 \newcommand{\oxford}{2}
 \newcommand{\uw}{3}
 \newcommand{\princeton}{4}
-\newcommand{\nlightcurves}{333}
+\newcommand{\naigrain}{333}
+\newcommand{\nmcquillan}{100}
 \newcommand{\Kepler}{{\it Kepler}}
 \newcommand{\kepler}{\Kepler}
 \newcommand{\corot}{{\it CoRoT}}
@@ -30,6 +31,9 @@
 \newcommand{\logg}{log \emph{g}}
 \newcommand{\dnu}{$\Delta \nu$}
 \newcommand{\numax}{$\nu_{\mathrm{max}}$}
+\newcommand{\acfRMS}{1.45}
+\newcommand{\pgramRMS}{1.10}
+\newcommand{\mcmcRMS}{0.87}
 
 \begin{document}
 
@@ -42,13 +46,14 @@
    \& Daniel Foreman-Mackey\altaffilmark{\uw}
 }
 
-\altaffiltext{\columbia}{Simons Fellow, Columbia University, NY, NY,
-ruthangus@gmail.com}
+\altaffiltext{\columbia}{Simons Fellow, Department of Astronomy, Columbia
+University, NY, NY, RuthAngus@gmail.com}
 \altaffiltext{\oxford}{Subdepartment of Astrophysics, University of Oxford,
-OX1 3RH, UK}
+UK}
 \altaffiltext{\uw}{Department of Astronomy, University of Washington, Seattle,
 WA}
-\altaffiltext{\princeton}{Department of Astronomy, Princeton University}
+\altaffiltext{\princeton}{Department of Astronomy, Princeton University,
+Princeton, NJ}
 
 \begin{abstract}
 The light curves of spotted, rotating stars are often non-sinusoidal and
@@ -63,23 +68,32 @@ Instead, we use an appropriate {\it effective} model: a Gaussian Process (GP)
 with a quasi-periodic covariance kernel function.
 By modelling the light curve with a GP, a highly flexible semi-parametric
 function, we avoid the necessity of choosing a `best fitting' functional form,
-whilst sampling directly from the posterior probability distribution function
+whilst sampling directly from the posterior Probability Density Function (PDF)
 of the periodic parameter and marginalising over the other kernel
 hyperparameters.
-We used \nlightcurves\ simulated light curves with a range of rotation periods
+We used \naigrain\ simulated light curves with a range of rotation periods
 to test the GP model.
 We attempted to recover the rotation periods using three methods: our GP
-method, a sine-fitting periodogram method and an autocorrelation function
-method.
-The posterior probability distribution of the rotation period parameter was
-sampled using the affine invariant ensemble Markov Chain Monte Carlo (MCMC)
-sampler {\tt emcee} \citep{Foreman-Mackey2013}, and the GP operations were
-performed using the {\tt george} python package \citep{George}.
+method, a sine-fitting periodogram method and an AutoCorrelation Function
+(ACF) method.
+The posterior PDF of the rotation period parameter was sampled using the
+affine invariant ensemble Markov Chain Monte Carlo (MCMC) sampler {\tt emcee}
+\citep{Foreman-Mackey2013}, and the GP operations were performed using the
+{\tt george} python package \citep{George}.
 Rotation periods inferred via this method are more precise and accurate than
 the periodogram and ACF methods.
-Furthermore, the improvement is expected to be even more dramatic when applied
-to real, noisy {\it Kepler} light curves, since the GP method is well suited
-to modelling rotation signals and correlated noise simultaneously.
+Furthermore, rotation periods are inferred probabilistically, allowing them to
+be easily incorporated into follow-on studies, inferring stellar ages or
+characterising star-planet interactions for example.
+In addition, unlike the sine-fitting periodogram and ACF methods, the
+posterior PDF samples allow for proper characterisation of uncertainties.
+This method eliminates the need to define a heuristic detection criterion such
+as are often used in the literature: a light curve that does not contain a
+rotation signal will return the prior PDF.
+
+% Furthermore, the improvement is expected to be even more dramatic when applied
+% to real, noisy {\it Kepler} light curves, since the GP method is well suited
+% to modelling rotation signals and correlated noise simultaneously.
 
 \end{abstract}
 
@@ -277,7 +291,7 @@ covariance kernel function.}
 
 In order to test the GP method we attempted to the measure rotation periods of
 a set of simulated light curves.
-We used \nlightcurves\ light curves generated for the \citet{Aigrain2015}
+We used \naigrain\ light curves generated for the \citet{Aigrain2015}
 `hare and hounds' rotation period recovery experiment.
 These light curves were simulated by placing dark, circular spots with slowly
 evolving size, on the surface of bright, rotating spheres, ignoring
@@ -287,9 +301,9 @@ ability of participating teams to recover both the stellar rotation periods
 and the rotational shear: the amplitude of surface differential rotation.
 % Since we are not interested in recovering differential rotation we only used
 % those light curves simulated {\it without} differential rotation, of which
-% there are \nlightcurves.
+% there are \naigraincurves.
 For the purpose of demonstrating that our method can recover rotation periods,
-we selected only the \nlightcurves\ out of the 1000 without differential
+we selected only the \naigrain\ out of the 1000 without differential
 rotation.
 We opted to use only solid-body rotators because differential rotation may
 produce some additional scatter in the rotation period measurements recovered.
@@ -318,7 +332,7 @@ distribution of rotation periods in the \citet{Aigrain2015} sample.
 \begin{table*}
 \begin{center}
 \caption{Ranges and distributions of parameters used to simulate light curves
-in \citet{aigrain2015}}
+in \citet{Aigrain2015}}
 \begin{tabular}{lcc}
 \hline\hline
     Parameter & Range & Distribution \\
@@ -353,7 +367,7 @@ days.}
 \end{center}
 \end{figure}
 
-We attempted to recover the rotation periods of these \nlightcurves\ light
+We attempted to recover the rotation periods of these \naigrain\ light
 curves using three rotation period recovery methods: the ACF method, the LS
 periodogram method and the GP method.
 
@@ -402,21 +416,36 @@ function.
 This is related to the fact that ACF period detection is a non-probabilistic
 method, another drawback of ACF periods.
 
-We applied the ACF method to the sample of \nlightcurves\ simulated light
+We applied the ACF method to the sample of \naigrain\ simulated light
 curves.
 Periods measured using the ACF method are plotted against the original
 rotation period values used to generate the light curves in figure
 \ref{fig:compare_acf}.
 The $2\times$ and $1/2\times$ harmonic lines are shown as dashed lines.
+The RMS scatter about the $x=y$ line for rotation periods measured using the
+ACF method is \acfRMS.
 The agreement between the injected and recovered rotation periods is good in
 general, however twice the true rotation period is often found.
 In addition, some rotation periods are drastically over- and underestimated.
+Of the points clustered close to the $x=y$ line, more slightly below it than
+above it, \ie\ rotation periods are preferentially underestimated.
+This is a feature of the peak position measurement method that is performed on
+the ACF.
+ACFs of stellar light curves are, like the QP kernel function in equation
+\ref{eq:QP}, periodic functions added to decaying exponentials.
+In such functions the peak positions can be shifted towards the left, the
+short period end, because the decaying exponential raises the left side of
+each peak more than the right.
+It is possible to model this effect, however the standard practice is to
+simply measure the peak position without taking it into account.
+We adopt the standard practice approach here in order to provide a comparison
+between our new method and the current standard procedure.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_acf.png}
+\includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
 \caption[ACF results.]
-{The `true' rotation periods used to generate \nlightcurves\ simulated light
+{The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using the ACF technique.}
 \label{fig:compare_acf}
 \end{center}
@@ -426,15 +455,17 @@ curves vs the rotation periods measured using the ACF technique.}
 
 For each simulated light curve, a Lomb-Scargle (LS) periodogram
 \citep{Lomb1976, Scargle1982} was computed over a grid of 10,000 periods,
-evenly spaced in frequency, between 1 and 100 days.
+evenly spaced in frequency, between 1 and 100 days\footnote{LS periodograms
+were calculated using the gatspy Python module:
+\url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.}
 The period of the highest peak in the periodogram was adopted as the rotation
 period.
 The resulting recovered rotation periods are plotted as a function of the true
 periods in figure \ref{fig:pgram_compare}.
 These recovered rotation periods are in general more accurate than the ACF
 results: they do not systematically over or under predict rotation period.
-They are however less precise than the ACF results---the 8.03 day RMS of
-residuals is five times larger.
+The RMS scatter for rotation periods measured using the LS periodogram
+technique is \pgramRMS.
 The longer-period measurements provide the dominant contribution to this RMS.
 % We believe that the unsuccessful recoveries occurring preferentially for
 % shorter rotation periods are produced by additional, longer timescale
@@ -448,9 +479,9 @@ The longer-period measurements provide the dominant contribution to this RMS.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_pgram.png}
+\includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
 \caption[LS periodogram results.]
-{The `true' rotation periods used to generate \nlightcurves\ simulated light
+{The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using a LS periodogram technique.}
 \label{fig:pgram_compare}
 \end{center}
@@ -543,18 +574,18 @@ logarithms of the GP model parameters.}
 \begin{tabular}{lcc}
 Parameter & Mean & Standard Deviation \\
     \hline
-    $A$ & -13 & 2.7 \\
-    $l$ & 6.2 & 1.5 \\
-    $\Gamma$ & -1.4 & 1.5 \\
-    Rotation period, $P_{rot}$ & ACF period & ACF period $\times 2$ \\
-    $\sigma$ & -17 & 5 \\
+    $\ln(A)$ & -13 & 2.7 \\
+    $\ln(l)$ & 6.2 & 1.5 \\
+    $\ln(\Gamma)$ & -1.4 & 1.5 \\
+    $\ln$(Rotation period, $P_{rot}$) & $\ln$(ACF period) &
+                2 $\times \ln$(ACF period) \\
+    $\ln\sigma$ & -17 & 5 \\
 \end{tabular}
 \end{center}
 \end{table*}
 \label{tab:priors}
 The parameter positions were also initialised at the means of these
 distributions during MCMC posterior exploration.
-
 In addition, we set the following bounds on the rotation period and the $l$
 parameter.
 \begin{eqnarray}
@@ -567,7 +598,7 @@ We limit rotation periods to be greater than half a day because we are chiefly
 interested in rotation of FGK stars which are likely to be greater than this
 lower limit, however this restriction could be relaxed in principle.
 We also limit the rotation periods to be less than half of the total timespan
-of the data since this is the longest period we expect to reliable recover.
+of the data since this is the longest period we expect to reliably recover.
 We prevent $\ln(l)$ from falling beneath zero both because we expect that
 astrophysical signals in light curves should have longer correlation
 timescales than this and in practice we found that if $l$ is unrestricted, it
@@ -593,78 +624,66 @@ We randomly subsampled the data, retaining an average of four data points per
 day.
 This allowed us to recover periods down to half a day --- the minimum
 timescale of interest for this project, whilst reducing computational costs.
+In order to reduce computation time the light curves were split into small
+sections and the likelihood for each section calculated individually, then
+summed.
+The matrix operations scale as $N\ln(N)^2$ where $N$ is the number of data
+points in the light curve, however the likelihood calculation scales linearly
+with the number of light curve sections used.
+By adding together likelihoods of individial sections, the likelihood
+evaluation scales as $mn\ln(n)^2$, where $n$ is the number of data points per
+section and $m$ is the number of sections.
+This method therefore significantly reduces computation time.
+We split the simulated light curves into sections, 200 days long.
 The {\tt george} \citep{George} python package was used to implement the GP
 model which uses the fast matrix solver, HODLR \citep{Ambikasaran2014}.
 Matrix operations performed with HODLR scale as $N \log ^2 (N)$, where $N$ is
 the number of data points.
-We used {\tt emcee} \citep{Foreman-Mackey2013}, an affine invariant ensemble
-sampler to explore the posterior PDFs of the model parameters.
+We used {\tt emcee} \citep{Foreman-Mackey2013}, an affine invariant
+\citep{Goodman2010} ensemble sampler to explore the posterior PDFs of the
+model parameters.
 The rotation period was taken as the sample with the maximum likelihood value.
 The resulting measured rotation periods are compared to the true rotation
 periods in figure \ref{fig:compare_mcmc}.
 
-The marginal posterior distributions of the QP kernel hyperparameters for an
-example noise-free light curve  with a 14.4 day rotation period, are shown in
-figure \ref{fig:gp_posteriors}.
-The light curve itself with the best fit GP model is shown in figure
-\ref{fig:demo_lc_GP}.
-
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/demo_lc_GP.pdf}
-\caption{A simulated light curve with a rotation period of 14.4 days.
-The pink curve shows the GP model with the best-fit parameters.
-The marginal posteriors of the GP hyper-parameters used to produce this fit
-are shown in figure \ref{fig:gp_posteriors}.}
-\label{fig:demo_lc_GP}
+\includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
+\caption{The `true' rotation periods used to generate \naigrain\
+simulated light curves vs the rotation periods measured using the ACF
+technique.}
+\label{fig:compare_mcmc}
 \end{center}
 \end{figure*}
 
+The marginal posterior distributions of the QP kernel hyperparameters for the
+example simulated light curve with in figure \ref{fig:demo_lc}, are shown in
+figure \ref{fig:gp_posteriors}.
+
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/demo_triangle.pdf}
-\caption{Marginal posterior PDFs of the QP GP model parameters. $\sigma$ is an
+\includegraphics[width=6in, clip=true]{figures/0002_triangle.png}
+\caption{(Place holder - to be updated.
+Marginal posterior PDFs of the QP GP model parameters. $\sigma$ is an
 additional white noise term added to the diagonal elements of the covariance
 matrix. It is the fraction by which the observational uncertainties have been
-underestimated. If the errorbars reported on the data are too small, this
-parameter will be non-zero. Since this light curve was simulated without
-noise, this parameter is very close to zero.
-The true rotation period of this star is 14.4 days.}
+underestimated. If the uncertainties reported on the data are too small, this
+parameter will be non-zero.
+The true rotation period of this star is ... ($\exp(...)$) days.}
 \label{fig:gp_posteriors}
 \end{center}
 \end{figure*}
 
 \subsection{Real \kepler\ data}
 
-The noise-free light curves were injected into real \kepler\ light curves in
-order to test the performance of the GP method in a realistic case.
-Ideally, simulated light curves would have been injected into the \kepler\
-pixel-level data, then the same detrending method that is applied to the
-\kepler\ light curves would be applied to these light curves before attempting
-to measure rotation periods for these stars.
-However, since this work is designed to be more of a demonstration of the
-overall efficacy of the GP periodogram, rather than the development of a
-\Kepler\ specific method, this is beyond the scope of our demonstrations.
-
-Unfortunately, automating the GP method so that it can run on large numbers of
-real \kepler\ light curves is difficult.
-The added noise reduces the acceptance fraction within the MCMC chains,
-significantly increasing the required time for convergence.
-Despite this, the method works well on individual targets where chains can be
-run for a long time and subsampling can be reduced.
-We used a simulated, noisy light curve from \citet{Aigrain2015} that was
-generated by injecting a noise-free simulation into a real \kepler\ light
-curve in order to preserve realistic \kepler\ noise properties.
-
-\kepler\ light curves are big data and extracting the maximum amount of
-information from them requires either large numbers of CPU hours, or using
-work-arounds.
-One feature of \kepler\ light curves that works to our advantage is that they
+We applied our method to \nmcquillan\ stars with rotation periods previously
+measured by \citet{Mcquillan2014}.
+A feature of \kepler\ light curves that works to our advantage is that they
 are naturally broken up into smaller time units by quarterly (three month)
 breaks.
-Splitting the data set into quarters, rather than modelling the entire time
-series contiguously speeds up the computation time as inverting several
-small matrices is faster than inverting one large one.
+As explained above, splitting the data set into quarters, rather than
+modelling the entire time series contiguously speeds up the computation time
+as inverting several small matrices is faster than inverting one large one.
 The \kepler\ quarter divisions are natural places to split the time series
 because the spacecraft rotates by ninety degrees every quarter (three months),
 placing each star on a new CCD module.
@@ -686,41 +705,9 @@ However, since there are seventeen quarters this would lead to thirty-seven
 parameters, and in the interest of minimising computation time (adding
 parameters leads to longer MCMC burn in and convergence time), we choose to
 use global parameters only.
-Unfortunately, the application of this method to noisy test cases is still
-under development and cannot provide results here.
-We hope to develop this method further and apply it to real light curves in
-the near future.
 
-% The marginal posterior distributions of the QP kernel hyperparameters for an
-% example noisy light curve  with a ... day rotation period, are shown in
-% figure \ref{fig:gp_posteriors}.
-% The light curve itself with the best fit GP model is shown in figure
-% \ref{fig:demo_lc_GP}.
-
-% \begin{figure*}
-% \begin{center}
-% \includegraphics[width=6in, clip=true]{figures/demo_lc_GP.pdf}
-% \caption{A simulated light curve with a rotation period of 14.4 days.
-% The pink curve shows the GP model with the best-fit parameters.
-% The marginal posteriors of the GP hyper-parameters used to produce this fit
-% are shown in figure \ref{fig:gp_posteriors}.}
-% \label{fig:demo_lc_GP}
-% \end{center}
-% \end{figure*}
-
-% \begin{figure*}
-% \begin{center}
-% \includegraphics[width=6in, clip=true]{figures/demo_triangle.pdf}
-% \caption{Marginal posterior PDFs of the QP GP model parameters. $\sigma$ is an
-% additional white noise term added to the diagonal elements of the covariance
-% matrix. It is the fraction by which the observational uncertainties have been
-% underestimated. If the errorbars reported on the data are too small, this
-% parameter will be non-zero. Since this light curve was simulated without
-% noise, this parameter is very close to zero.
-% The true rotation period of this star is 14.4 days.}
-% \label{fig:gp_posteriors}
-% \end{center}
-% \end{figure*}
+Our results show good agreement with the \citet{Mcquillan2014} measurements,
+as shown in ... %\ref{fig:mcquillan}.
 
 \section{Discussion}
 \label{sec:discussion}
@@ -729,6 +716,10 @@ The main drawback of the GP method is computation time.
 Because GPs are so expensive to compute, it is necessary to come up with
 shortcuts in order to perform inference on \kepler\ light curves, each of
 which compromises accuracy.
+These shortcuts may only be necessary when working with a large number of
+stars (of order hundreds or thousands).
+If only interested in single or small numbers of targets it may be possible to
+reduce the extremity of these shortcuts or to avoid them altogether.
 The shortcuts that we employ here include:
 \begin{itemize}
 \item{Initialisation.
@@ -737,47 +728,21 @@ the closer they are to the maximum likelihood parameters the shorter the MCMC
 burn-in time.
 Using the ACF period to initialise is not ideal as results will not be fully
 independent of the ACF period unless MCMC chains are run for an infinitely
-long time.} \item{Subsampling.
+long time.}
+\item{Subsampling.
 Not only is some information always lost by subsampling, but the choice of
 subsampling frequency will also effect the results.
-We chose to retain only 20 data points per period --- based on the ACF
-period --- which, again means that our results are not independent of the ACF
-results.}
+We choose to retain an average of only 4 data points per day, based on the
+range of rotation periods we are interested in.}
 \item{Priors.
-We chose to use uniform, bounded priors to reduce parameter space and
-therefore convergence time.
-Unfortunately, if the true period lies outside the bounded region, it will
-never be found.}
+We choose to place a Gaussian prior in log-space over the rotation period
+parameter where the standard deviation is twice the log of the ACF rotation
+period.
+Unfortunately however, if the true period is far different to the ACF period,
+the MCMC chains will take a long time to reach the correct value.
+In practice we found that the introduction of a Gaussian prior improved
+results compared with a broad prior that was uniform in log-space.}
 \end{itemize}
-
-These shortcuts are only necessary when working with a large number of stars
-(of order hundreds or thousands).
-If only interested in single or small numbers of targets it may be possible to
-reduce the extremity of these shortcuts or to avoid them altogether.
-
-\subsection{The ACF method}
-The main advantage of the ACF method over the GP method is speed: it is
-extremely fast and therefore useful to get a quick estimate of a period.
-We have demonstrated that the ACF method may produce rotation periods that are
-slightly systematically biased towards lower rotation periods.
-This effect comes from the process of extracting the period from the ACF
-itself: typically superimposed onto a decaying exponential, that first peak in
-the ACF gets shifted towards faster periods.
-One may be able to get around this by modelling the ACF as a sum of a cosine
-and exponential function (a similar function to GP kernel function) but
-in practice ACFs tend to have a more complicated structure and it is not
-possible to model them with a simple function.
-This observation leads to the idea of modelling the ACF with a Gaussian
-processes, which then logically progresses to a using a Gaussian process with
-a Gaussian process kernel function.
-Although this may be an attractive idea, in practice a GP would not
-necessarily produce a positive semi-definite covariance kernel\footnote{One
-that can be inverted; a necessary regression operation.}.
-An alternative approach may be to correct for rotation period bias after the
-peak position has been measured by inferring a correction factor.
-Yet another approach could be to measure the mean separation between adjacent
-peaks in the ACF: the first peak should be most strongly affected by the
-exponential decay, the second peak less so, and so on.
 
 \subsection{Initialisation}
 Using the ACF to initialise the MCMC chains is not ideal because, of course,
@@ -788,11 +753,16 @@ would eventually sample the entire posterior PDF of the period parameter,
 however in practice this is likely to be an issue.
 The only way to get around this problem is to run the MCMC chains for as long
 as possible, or, alternatively to use a sampler that is designed to move
-around the parameter space much more quickly than {\tt emcee}; nested sampling
-for example.
+around the parameter space much more quickly than {\tt emcee}.
+% We implemented a version of our code using nested sampling but the results
+% were not as good as the {\tt emcee} method.
+% We believe this to be due to the initialisation --- there is no initialisation
+% in nested sampling, samples are drawn directly from the prior.
+% In a problem with a multimodal posterior PDF such as inferring periods,
+% initialising MCMC chains close to the maximum likelihood value may lead to a
+% more rapid convergence.
 We chose to use the ACF periods rather than the periodogram periods to
-initialise as, although there was some systematic bias present in these
-results, that bias was small and there were fewer large outliers.
+initialise the results since there were fewer large outliers.
 
 \subsection{Kernel function choice and interpretation of hyper-parameters}
 The QP kernel function represents a simplistic effective model of a stellar
@@ -839,8 +809,9 @@ take minutes.
 Clearly, stellar rotation periods are well represented by the $P$ parameter in
 our QP kernel function, as evidenced by the its impressive ability to recover
 the true rotation periods from the simulated light curves in this work.
-However, it is not clear whether the QP kernel function is the {\it best}
-function to use.
+However, it may not be the {\it best} function to use.
+It is, after all, an approximation to the shape of the covariance matrix of a
+real stellar light curve.
 There may be an alternative function which is better suited to capturing
 stellar variability and is able to recover periods even more precisely than
 the QP kernel.
@@ -850,15 +821,31 @@ lifetime or differential surface rotation.
 This is beyond the scope of this work but we hope that these questions will be
 answered in the near future.
 
-\subsection{Future work}
-The next stages of improving this method are listed as follows:
+Not all \kepler\ light curves show evidence of stellar rotation.
+In some cases perhaps the star has few or no active regions, it is rotating
+pole-on, or it rotates so slowly that the \kepler\ data detrending pipeline
+removes any signal.
+In other cases there may be another source of variability present in the light
+curve, generating a false period detection.
+These sources may be physical: \eg\ binary star interactions, intra-pixel
+contamination from other astrophysical objects, pulsating variable stars,
+asteroseismic oscillations in giants and even stellar activity cycles.
+For some of these there is little we can do save attempt to eliminate these
+astrophysical false positives via alternative methods, \eg\ apply colour cuts
+to avoid giant contamination.
+For some however, like the variable stars, they may have distinctive
+hyperparameters that identify them, for example long coherence timescales.
+Testing this is beyond the scope of this paper but may be an interesting
+follow-up study.
+As well as astrophysical contamination, there may also be instrumental sources
+of contaminating variability: \eg\ temperature variations or pointing shifts
+of the \kepler\ spacecraft.
+These are unlikely to be periodic and, again, may produce unusual combinations
+of hyperparameters.
+This is something that we hope to test in future.
+In addition to this, there are several other aspects of the GP method we hope
+to test in future, listed as follows:.
 \begin{itemize}
-\item{To optimise the tradeoff between computational efficiency and accuracy.
-We have performed limited tests to explore the optimum subsampling strategy
-and prior bounds.
-These should be explored more thoroughly in future.
-For example, it would be useful to know how the precision and accuracy of the
-recovered rotation period varies as a function of subsampling frequency}
 \item{To perform model selection with different kernel functions. Again, these
 tests have not been performed due to the cost of calculating the fully
 marginalised likelihood with GPs. This calculation may be prohibitively
@@ -897,9 +884,14 @@ Using a GP model it may be possible to do this via model selection: \ie\ are
 the data better described by a periodic model, or a non-periodic model?
 There is more than one way to implement such a model comparison, one way could
 be to use a sum of two kernel functions: one periodic and one non-periodic,
-each with its own amplitude parameter.
-If there is periodicity in the data, the amplitude of the periodic kernel will
-be larger than the amplitude of the non-periodic kernel and vice versa.}
+each with its own amplitude parameter.}
+\item{To attempt to detect differential rotation.
+We did not test our code on the light curves simulated with differential
+rotation in \citet{Aigrain2015} since we were only interested in recovering
+the most precise measurements of rotation period possible.
+In future we intend to investigate the possibility of recovering
+differential rotation by searching for close double peaks in the posterior
+PDFs of stars' rotation periods.}
 \item{To build in a noise model for \kepler\ data.
 Another huge advantage of the GP method is, because it is a {\it generative}
 model of the data, the rotation period signal can be modelled at the same time
@@ -913,29 +905,42 @@ parameters of interest will insure that the periodic signal is preserved.}
 
 \section{Conclusions}
 
-We simulated \nlightcurves\ noise-free, \kepler-like light curves using a spot
-model and attempted to recover the rotation periods used to generate them.
-Three methods were compared: a LS periodogram method, an ACF method and our GP
-method.
+We used the \naigrain\ simulated \kepler-like light curves for solid-body
+rotation from \citet{Aigrain2015} and attempted to recover the rotation
+periods used to generate them.
+Three methods were compared: a Lomb-Scargle periodogram method, an
+autocorrelation function method and a new Gaussian process method.
 The GP method produced the most precise and accurate rotation periods of the
 three techniques.
 This is because a GP is a semi-parametric model that is well suited to signals
-that are non-sinusoidal and quasi-periodic, because it does not require the
-assumption of regular time sampling and because a full posterior PDF of the
-rotation period parameter is produced.
-Not only this, unlike the other two methods, the GP method provides accurate
-rotation period uncertainties.
+that are non-sinusoidal and quasi-periodic.
+Not only this, unlike the other two methods, the GP method provides posterior
+PDF samples of rotation periods, allowing characterisation of uncertainties.
+Note that the posterior PDFs are often non-Gaussian, being bi- or multimodal.
+In these cases it is therefore misleading to report a 1$\sigma$ or 16th and
+84th percentiles as uncertainties.
+Rather, it is better to incorporate posterior PDF samples into analyses which
+require uncertainty propagation.
 
-The main drawback of this method is the computation time.
-We demonstrated that the GP method is capable of recovering signals from
-noise-free light curves, but were unable to automate the GP method for light
-curves with realistic noise properties.
-It may be that this method must remain a `boutique' method: ideal for small
-numbers of targets but not well suited to the entire \kepler\ catalogue.
-We continue to develop this method and remain hopeful that we can, eventually
-infer a probabilistic rotation period for thousands of \kepler\ stars.
+Because rotation periods are inferred probabilistically with the GP method,
+this allows them to be easily incorporated into follow-on studies; inferring
+stellar ages or characterising star-planet interactions for example.
+This the GP method also eliminates the need to define a heuristic detection
+criterion such as are often used in the literature: a light curve that does
+not contain a rotation signal will return the prior PDF.
+
+The main drawback of the GP method is the computation time.
 
 % acknowledgements
+This research was funded by the Simons Foundation and the Leverhulme Trust.
+Some of the data presented in this paper were obtained from the Mikulski
+Archive for Space Telescopes (MAST).
+STScI is operated by the Association of Universities for Research in
+Astronomy, Inc., under NASA contract NAS5-26555.
+Support for MAST for non-HST data is provided by the NASA Office of Space
+Science via grant NNX09AF08G and by other grants and contracts.
+This paper includes data collected by the Kepler mission. Funding for the
+Kepler mission is provided by the NASA Science Mission directorate.
 
 \bibliographystyle{plainnat}
 \bibliography{GProtation}

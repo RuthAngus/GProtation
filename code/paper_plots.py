@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
-import simple_acf as sa
 from acf import Kepler_ACF
 import simple_acf as sa
 
@@ -27,7 +26,7 @@ def acf_demo(x, y):
     yerr = np.ones_like(y) * 1e-5
     # period, err, lags, acf = Kepler_ACF.corr_run(x, y, yerr, 25)
     period, acf, lags, rvar = sa.simple_acf(x, y)
-
+    print("measured period = ", period)
     plt.clf()
     plt.plot(lags, acf, "k")
     plt.axvline(period, color="CornFlowerBlue")
@@ -54,6 +53,6 @@ if __name__ == "__main__":
     FIG_DIR = "/Users/ruthangus/projects/GProtation/documents/figures"
     x, y = np.genfromtxt(os.path.join(DATA_DIR,
                                       "final/lightcurve_0025.txt")).T
-    x, y = x[:10000], y[:10000]
+    x, y = x, y
     lc_demo(x, y)
     acf_demo(x, y)
