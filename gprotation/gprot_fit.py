@@ -36,6 +36,11 @@ class fit(object):
 
     def gp_fit(self, burnin=1000, nwalkers=16, nruns=5, full_run=1000,
                nsets=None):
+        """
+        param nsets: (int or None)
+            The number of light curve sets.
+            If None the entire light curve will be used.
+        """
 
         # set initial period
         p_init = self.acf_period
