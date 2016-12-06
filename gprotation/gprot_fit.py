@@ -13,7 +13,7 @@ from gatspy.periodic import LombScargle
 
 class fit(object):
 
-    def __init__(self, x, y, yerr, id, RESULTS_DIR="results", lc_size=200,
+    def __init__(self, x, y, yerr, id=0, RESULTS_DIR="results", lc_size=200,
                  ppd=4):
 
         self.x = x
@@ -67,6 +67,20 @@ class fit(object):
         return self.x[~m], self.y[~m], self.yerr[~m]
 
     def make_gaps(self, x, y, yerr, points_per_day):
+        """
+        Randomly subsample the light curve.
+
+        param x: (array)
+            The time array.
+        param y: (array)
+            The flux array.
+        param yerr: (array)
+            The flux uncertainty array.
+        param points_per_day: (int)
+            The mean number of data points to keep per day.
+
+        Returns subsampled x, y and yerr arrays.
+        """
         nkeep = points_per_day * (x[-1] - x[0])
         m = np.zeros(len(x), dtype=bool)
         l = np.random.choice(np.arange(len(x)), nkeep)
