@@ -58,7 +58,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
 
     # Initialize
     walker = Emcee3Model(mod)
-    ndim = 5
+    ndim = mod.ndim
 
 
     if sample_directory is not None:
