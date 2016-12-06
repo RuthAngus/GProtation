@@ -70,7 +70,7 @@ def fill_gaps(x, y, yerr, cadence=1766./86400, make_uniform=True):
     return new_x, new_y, new_yerr, i_new
 
 def bandpass_filter(x, y, yerr, pmin=0.5, pmax=100, cadence=1766./86400,
-                    edge=2000, order=3):
+                    edge=2000, order=3, zero_fill=False):
     x, y, yerr, i_new = fill_gaps(x, y, yerr)
 
     # Sampling and cutoff frequencies
@@ -80,6 +80,11 @@ def bandpass_filter(x, y, yerr, pmin=0.5, pmax=100, cadence=1766./86400,
 
     yfilt = butter_bandpass_filter(y, lowcut, highcut, fs, order=order) 
 
-    return (np.delete(x, i_new), 
-            np.delete(yfilt, i_new), 
-            np.delete(yerr, i_new))
+    if zero_fill:
+        if len(i_new) > 0:
+            yfilt[i_new] = 0
+        return x, yfilt, yerr
+    else:
+        return (np.delete(x, i_new), 
+                np.delete(yfilt, i_new), 
+                np.delete(yerr, i_new))

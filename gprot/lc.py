@@ -12,6 +12,7 @@ from pkg_resources import resource_filename
 
 from .filter import sigma_clip, bandpass_filter
 from .plots import tableau20
+from .acf import acf
 
 qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
                           delim_whitespace=True, index_col=0)
@@ -51,7 +52,8 @@ class LightCurve(object):
     def df(self):
         return pd.DataFrame({'x':self.x, 'y':self.y, 'yerr':self.yerr})
 
-    def bandpass_filter(self, pmin=0.5, pmax=100, cadence=None, edge=2000):
+    def bandpass_filter(self, pmin=0.5, pmax=100, cadence=None, edge=2000,
+                        zero_fill=False):
         """Applies a Butterworth bandpass filter to data
 
         Replaces lightcurve data with new filtered, edge-cropped data.
@@ -64,7 +66,7 @@ class LightCurve(object):
 
         x, y, yerr = bandpass_filter(self._x_full,
                                      self._y_full,
-                                     self._yerr_full)
+                                     self._yerr_full, zero_fill=zero_fill)
         x = x[edge:-edge]
         y = y[edge:-edge]
         yerr = yerr[edge:-edge]
@@ -83,6 +85,28 @@ class LightCurve(object):
 
         if self.sub is not None:
             self.subsample(self.sub)
+
+    def acf(self, maxlag=100, filter=True):
+        if filter:
+            x, y, yerr = bandpass_filter(self._x_full,
+                                         self._y_full,
+                                         self._yerr_full, zero_fill=True)
+        else:
+            x, y = self.x, self.y
+
+        lags, ac = acf(x, y)
+
+        return lags, ac
+
+    def plot_acf(self, truth=None, **kwargs):
+        lags, ac = self.acf(**kwargs)
+
+        fig, ax = plt.subplots(1,1)
+        ax.plot(lags, ac, 'k')
+        if truth is not None:
+            ax.axvline(truth, c='r', ls=':')
+
+        return fig
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):
