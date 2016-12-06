@@ -185,7 +185,7 @@ if __name__=='__main__':
 
     args = vars(parser.parse_args())
 
-    pool = schwimmbad.choose_pool(mpi=args.pop('mpi'), processes=args.pop('n_cores'))
+    args['pool'] = schwimmbad.choose_pool(mpi=args.pop('mpi'), processes=args.pop('n_cores'))
 
     stars = args.pop('stars')
     sampler = args.pop('sampler')
