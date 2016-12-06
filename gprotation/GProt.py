@@ -66,6 +66,7 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     sampler = emcee3.Sampler(moves)
 
     print("burning in...")
+    total_start = time.time()
     ensemble = sampler.run(ensemble, burnin)
 
     flat = sampler.get_coords(flat=True)
@@ -102,6 +103,11 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         print("Converged?", conv)
         if conv:
             break
+
+    total_end = time.time()
+    total_time = total_end - total_start
+    print("Total time taken = ", total_time/60., "minutes", total_time/3600.,
+          "hours")
 
 #     col = "b"
 #     if conv:
