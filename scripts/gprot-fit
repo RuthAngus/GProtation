@@ -81,19 +81,8 @@ def get_model(i, aigrain=True, kepler=False,
     return mod
 
 def _fit_emcee3(i, **kwargs):
-                # aigrain=True, kepler=False,
-                # ndays=None, subsample=40, chunksize=200, 
-                # daterange=None, debug=False, resultsdir='results', 
-                # quarters=None, clever=True, bestchunk=None, 
-                # filter=False, tag=None, **kwargs):
-
     mod = get_model(i, **kwargs)
     fit_emcee3(mod, **kwargs)
-    # mod = get_model(i, aigrain=aigrain, kepler=kepler,
-    #                 ndays=ndays, subsample=subsample, chunksize=chunksize,
-    #                 daterange=daterange, resultsdir=resultsdir, quarters=quarters,
-    #                 clever=clever, bestchunk=bestchunk, filter=filter, tag=tag)
-    # fit_emcee3(mod, resultsdir=resultsdir, **kwargs)
 
 def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
                 ndays=None, subsample=40, chunksize=200, 
@@ -197,27 +186,8 @@ if __name__=='__main__':
                 fit_polychord(ix, **args)
             elif sampler=='emcee3':
                 _fit_emcee3(ix, **args)
-                            # ndays=args.ndays, subsample=args.subsample,
-                            # chunksize=args.chunksize, targetn=args.targetn,
-                            # iter_chunksize=args.iter_chunksize, 
-                            # nwalkers=args.nwalkers,
-                            # verbose=args.verbose, maxiter=args.maxiter, 
-                            # overwrite=args.overwrite, pool=pool,
-                            # kepler=args.kepler, aigrain=args.aigrain,
-                            # daterange=args.daterange, mixedmoves=args.mixedmoves,
-                            # resultsdir=args.resultsdir, quarters=args.quarters,
-                            # clever=args.clever, bestchunk=args.bestchunk,
-                            # filter=args.filter, tag=args.tag)
             elif sampler=='mnest':
                 _fit_mnest(ix, **args)
-                        # test=args.test, verbose=args.verbose, 
-                        #   ndays=args.ndays, subsample=args.subsample,
-                        #   resultsdir=args.resultsdir, n_live_points=args.nlive,
-                        #   chunksize=args.chunksize, overwrite=args.overwrite,
-                        #   kepler=args.kepler, aigrain=args.aigrain,
-                        #   daterange=args.daterange, quarters=args.quarters,
-                        #   clever=args.clever, bestchunk=args.bestchunk,
-                        #   filter=args.filter, tag=args.tag)
 
         except:
             import traceback
