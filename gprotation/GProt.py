@@ -7,7 +7,6 @@ import numpy as np
 # from GProtation import make_plot, lnprob, Glnprob, Glnprob_split, \
 #         lnlike_split, Glnprior, MyModel
 from GProtation import make_plot, MyModel
-import Kepler_ACF
 import simple_acf as sa
 import h5py
 from gatspy.periodic import LombScargle
@@ -100,22 +99,23 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
                                      n_independent)
         mean_ind.append(ind_samp)
         mean_diff.append(diff)
-        print(conv)
+        print("Converged?", conv)
         if conv:
             break
 
-    col = "b"
-    if conv:
-        col = "r"
-    plt.clf()
-    plt.plot(autocorr_times, color=col)
-    plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
-    plt.clf()
-    plt.plot(mean_ind, color=col)
-    plt.savefig(os.path.join(RESULTS_DIR, "{0}_ind".format(id)))
-    plt.clf()
-    plt.plot(mean_diff, color=col)
-    plt.savefig(os.path.join(RESULTS_DIR, "{0}_diff".format(id)))
+#     col = "b"
+#     if conv:
+#         col = "r"
+#     if autocorr_times:
+#         plt.clf()
+#         plt.plot(autocorr_times, color=col)
+#         plt.savefig(os.path.join(RESULTS_DIR, "{0}_acorr".format(id)))
+#         plt.clf()
+#         plt.plot(mean_ind, color=col)
+#         plt.savefig(os.path.join(RESULTS_DIR, "{0}_ind".format(id)))
+#         plt.clf()
+#         plt.plot(mean_diff, color=col)
+#         plt.savefig(os.path.join(RESULTS_DIR, "{0}_diff".format(id)))
     return
 
 
@@ -154,7 +154,7 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     try:
         acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
     except emcee3.autocorr.AutocorrError:
-        return None, None, None, None
+        return converged, [], [], []
     mean_acorr.append(np.mean(acorr_t))
     mean_ind = len(flat) / np.mean(acorr_t)
     mean_diff = None
