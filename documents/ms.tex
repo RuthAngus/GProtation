@@ -727,6 +727,23 @@ use global parameters only.
 Our results show good agreement with the \citet{Mcquillan2014} measurements,
 as shown in ... %\ref{fig:mcquillan}.
 
+At this point it is important to highlight the following caveat.
+Our method has been tuned to reproduce the rotation periods of the
+\citet{Aigrain2015} simulated light curves.
+These light curves were simulated using a very good but still imperfect model.
+The input parameters and their distributions were chosen to be as realistic as
+possible given current observations.
+Unfortunately however, there are limited data on some of these parameters for
+stars other than the Sun: for example the distrubution of spot lifetimes or
+activity cycle length.
+Ensuring that we can recover the rotation periods of these simulated light
+curves does not necessarily ensure that we can recover the rotation periods of
+real \kepler\ light curves with equal accuracy and precision.
+Even using priors on the QP kernel parameters that have been derived from the
+\citet{Aigrain2015} sample may be dangerous.
+This caveat should be taken into consideration when this method is applied to
+real data.
+
 \section{Discussion}
 \label{sec:discussion}
 
@@ -795,7 +812,7 @@ Another valid choice would be a squared cosine function multiplied by a
 squared exponential,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
-\cos^2\left(\frac{2\pi}{P}\right)
+\cos\left(\frac{2\pi}{P}\right)
 \end{equation}
 \label{eq:cos_kernel}
 This function produces a positive semi-definite matrix and has the $P$
@@ -815,6 +832,8 @@ produce two brightness dips per rotation.
 If the covariance is forced to be negative for two data points that are
 separated by half a rotation period, those light curves with two peaks per
 rotation period may not be well modelled.
+In other words, we do not want to force anti-correlation of points that are
+$\frac{1}{2}$ a period apart.
 It would be very worthwhile to test this assumption and this alternative
 kernel function in future.
 If CPU time were not limited there may be some benefit to performing formal
