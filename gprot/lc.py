@@ -156,18 +156,18 @@ class LightCurve(object):
         # Evaluate quality by fitting exp*sin
         x, y = lags, ac
 
-        def fn(x, tau, T):
-            return np.exp(-x/tau)*np.cos(2*np.pi*x/T)
+        def fn(x, A, tau, T):
+            return A*np.exp(-x/tau)*np.cos(2*np.pi*x/T)
 
         def chisq(p):
-            tau = p
+            A, tau = p
 
-            mod = fn(x, tau, pbest)
+            mod = fn(x, A, tau, pbest)
             return ((mod - y)**2).sum()
 
-        fit = minimize(chisq, pbest)
+        fit = minimize(chisq, [1., pbest*2])
 
-        tau = fit.x[0]
+        tau = fit.x[1]
         quality =  1./ (fit.fun / len(lags) / maxheight) # bigger is better
 
         return pbest, maxheight, tau, quality
