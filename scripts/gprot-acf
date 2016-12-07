@@ -13,7 +13,7 @@ def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
     elif kepler:
         lc = KeplerLightCurve(i)
 
-    return lc.acf_prot(pmax=pmax)
+    return [lc.acf_prot(pmax=p) for p in pmax]
 
 class ProtWorker(object):
     """
@@ -32,7 +32,7 @@ if __name__=='__main__':
 
     parser.add_argument('stars', nargs='*', type=int, help='Stars to fit.')
     parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
-    parser.add_argument('--pmax', nargs='+', type=int, default=[10,30,100])
+    parser.add_argument('--pmax', nargs='+', type=int, default=[5,10,30,50,100])
 
     datagroup = parser.add_mutually_exclusive_group()
     datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
@@ -60,6 +60,13 @@ if __name__=='__main__':
 
     prots = pool.map(worker, stars)
 
-    for star, (p, h) in zip(stars, prots):
-        print('{} {:.3f} {:.3f}'.format(star, p, h))
+    sys.stdout.write('star ')
+    for p in args.pmax:
+        sys.stdout.write('prot_{0} height_{0} tau_{0} quality_{0} '.format(p))
+    sys.stdout.write('\n')
+    for star, results in zip(stars, prots):
 
+        sys.stdout.write('{} '.format(star))
+        for p, h, q, tau in results:
+            sys.stdout.write('{:.3f} {:.3f} {:.2e} {:.3f} '.format(p, h, q, tau))
+        sys.stdout.write('\n')

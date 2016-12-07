@@ -118,52 +118,58 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, pmin=0.5, pmax=[10, 30, 100], delta=0.02, lookahead=30,
+    def acf_prot(self, pmin=0.5, pmax=100, delta=0.02, lookahead=30,
                  peak_to_trough=True, maxpeaks=1):
         """Returns best guess of prot from ACF, and height of peak
 
         Just pick first peak.
         """
-        if not hasattr(pmax, '__iter__'):
-            pmax = [pmax]
+        lags, ac = self.acf(pmin=pmin, pmax=pmax)
 
-        # Try different provided pmaxes; keep prot with best height.
-        best_prot = np.nan
-        best_height = -np.inf
-        for pm in pmax:
-            lags, ac = self.acf(pmin=pmin, pmax=pm)
+        # make sure lookahead isn't too long if pmax is small
+        lookahead = min(lookahead, pmax)
 
-            # make sure lookahead isn't too long if pmax is small
-            lookahead = min(lookahead, pm)
+        maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
 
-            maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+        maxheight = -np.inf
+        pbest = np.nan
+        for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
+            if peak_to_trough:
+                # Calculate mean(peak-to-trough) height
+                h1 = yhi - ylo
+                try:
+                    h2 = yhi - mins[i+1][1]
+                    height = (h1+h2)/2.
+                except IndexError:
+                    height = h1
+            else:
+                height = yhi
+                print(i, height)
 
-            maxheight = -np.inf
-            pbest = np.nan
-            for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
-                if peak_to_trough:
-                    # Calculate mean(peak-to-trough) height
-                    h1 = yhi - ylo
-                    try:
-                        h2 = yhi - mins[i+1][1]
-                        height = (h1+h2)/2.
-                    except IndexError:
-                        height = h1
-                else:
-                    height = yhi
-                    print(i, height)
+            if height > maxheight:
+                pbest = xhi
+                maxheight = height
+            if i == maxpeaks-1:
+                break
 
-                if height > maxheight:
-                    pbest = xhi
-                    maxheight = height
-                if i == maxpeaks-1:
-                    break
+        # Evaluate quality by fitting exp*sin
+        x, y = lags, ac
 
-            if maxheight > best_height:
-                best_height = maxheight
-                best_prot = pbest
+        def fn(x, tau, T):
+            return np.exp(-x/tau)*np.cos(2*np.pi*x/T)
 
-        return best_prot, best_height        
+        def chisq(p):
+            tau = p
+
+            mod = fn(x, tau, pbest)
+            return ((mod - y)**2).sum()
+
+        fit = minimize(chisq, pbest)
+
+        tau = fit.x[0]
+        quality = fit.fun / len(lags) / maxheight
+
+        return pbest, maxheight, tau, quality
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):
