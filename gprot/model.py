@@ -208,7 +208,7 @@ class GPRotModel2(GPRotModel):
     param_names = ('ln_A', 'ln_l', 'ln_sigma', 'ln_period')
 
     _default_gp_prior_mu = (-13, 6.2, -17)
-    _default_gp_prior_sigma = (5.7, 3.5, 5)
+    _default_gp_prior_sigma = (7.7, 5.5, 5)
 
     def gp_kernel(self, theta):
         A = np.exp(theta[0])
