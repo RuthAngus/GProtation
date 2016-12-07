@@ -41,7 +41,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
                            np.log(mod.lc.sim_params.P_MAX))
     except AttributeError:
         pass
-    fig = corner_plot(df, true_period=true_period)
+    fig = corner_plot(df, mod, true_period=true_period)
     fig.savefig(figfile)
     print('Corner plot saved to {}.'.format(figfile))
 

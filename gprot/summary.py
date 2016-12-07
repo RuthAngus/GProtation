@@ -9,15 +9,11 @@ import corner
 
 from .model import GPRotModel, GPRotModel2
 
-def corner_plot(df, true_period=None, pct=0.99, altmodel=False, **kwargs):
+def corner_plot(df, mod, true_period=None, pct=0.99, **kwargs):
     """ Makes corner plot for basename
     """
-    if altmodel:
-        ndim = len(GPRotModel2.param_names)
-        labels = GPRotModel2.param_names
-    else:
-        ndim = len(GPRotModel.param_names)
-        labels = GPRotModel.param_names
+    ndim = len(mod.param_names)
+    labels = mod.param_names
 
     rng = [pct]*ndim
     truths = [None]*ndim
