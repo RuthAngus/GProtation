@@ -51,7 +51,7 @@ if __name__=='__main__':
     worker = ProtWorker(aigrain=args.aigrain, kepler=args.kepler)
     
     if args.file is not None:
-        stars = np.loadtxt(args.file)
+        stars = np.loadtxt(args.file, dtype=int)
     else:
         stars = args.stars
 
