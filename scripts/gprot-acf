@@ -29,6 +29,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Calculate ACF prots for given stars')
 
     parser.add_argument('stars', nargs='+', type=int, help='Stars to fit.')
+    parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
 
     datagroup = parser.add_mutually_exclusive_group()
     datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
@@ -49,8 +50,13 @@ if __name__=='__main__':
 
     worker = ProtWorker(aigrain=args.aigrain, kepler=args.kepler)
     
-    prots = pool.map(worker, args.stars)
+    if args.file is not None:
+        stars = np.loadtxt(args.file)
+    else:
+        stars = args.stars
 
-    for star, (p, h) in zip(args.stars, prots):
+    prots = pool.map(worker, stars)
+
+    for star, (p, h) in zip(stars, prots):
         print('{} {:.3f} {:.3f}'.format(star, p, h))
 
