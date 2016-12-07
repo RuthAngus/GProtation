@@ -7,28 +7,35 @@ from collections import OrderedDict
 
 import corner
 
-from .model import GPRotModel
+from .model import GPRotModel, GPRotModel2
 
-def corner_plot(df, true_period=None, pct=0.99, **kwargs):
+def corner_plot(df, true_period=None, pct=0.99, altmodel=False, **kwargs):
     """ Makes corner plot for basename
     """
+    if altmodel:
+        ndim = len(GPRotModel2.param_names)
+        labels = GPRotModel2.param_names
+    else:
+        ndim = len(GPRotModel.param_names)
+        labels = GPRotModel.param_names
+
+    rng = [pct]*ndim
+    truths = [None]*ndim
     if true_period is not None and len(true_period)==2:
         P1, P2 = true_period
-        rng = [pct, pct, pct, pct, (min(df['ln_period'].quantile(1-pct), P1)-0.01,
-                                    max(df['ln_period'].quantile(pct), P2)+0.01)]
-        fig = corner.corner(df, labels=GPRotModel.param_names, range=rng, **kwargs)
+        rng[-1] = (min(df['ln_period'].quantile(1-pct), P1)-0.01,
+                    max(df['ln_period'].quantile(pct), P2)+0.01)
+        fig = corner.corner(df, labels=labels, range=rng, **kwargs)
         axes = fig.get_axes()
         axes[-1].axvspan(P1, P2, color='g', alpha=0.3)
     elif true_period is not None:
-        rng = [pct, pct, pct, pct, (min(df['ln_period'].quantile(1-pct), true_period)-0.01,
-                                    max(df['ln_period'].quantile(pct), true_period)+0.01)]
-        truths = [None, None, None, None, true_period]
-        fig = corner.corner(df, labels=GPRotModel.param_names, range=rng,
+        rng[-1] = (min(df['ln_period'].quantile(1-pct), true_period)-0.01,
+                    max(df['ln_period'].quantile(pct), true_period)+0.01)
+        truths[-1] = true_period
+        fig = corner.corner(df, labels=labels, range=rng,
                         truths=truths, **kwargs)
     else:
-        rng = [pct, pct, pct, pct, pct]
-        truths = [None, None, None, None, None]
-        fig = corner.corner(df, labels=GPRotModel.param_names, range=rng, **kwargs)
+        fig = corner.corner(df, labels=labels, range=rng, **kwargs)
 
     return fig
 
@@ -60,3 +67,8 @@ def summarize_fits(directory, quantiles=[0.05,0.16,0.5,0.84,0.95],
         df['aigrain_p_mean'] = (df['aigrain_p_min'] + df['aigrain_p_max'])/2.
 
     return df
+
+def digest_acf(df):
+    """Picks best ACF prot, height, quality, tau
+    """
+    # interpret 
