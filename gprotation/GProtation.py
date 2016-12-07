@@ -17,6 +17,58 @@ import os
 import pandas as pd
 import time
 
+class MyModel(object):
+    """
+    Model for emcee3
+    """
+    def __init__(self, x, y, yerr, p_init, p_max):
+
+        self.p_init = p_init
+        self.p_max = p_max
+	self.x = x
+	self.y = y
+	self.yerr = yerr
+
+    def lnGauss(self, t, mu, sigma):
+        return -.5 * ((t - mu)**2/(.5 * sigma**2))
+
+    def Glnprior(self, theta):
+        """
+        theta = A, l, G, sigma, period
+        """
+        mu = np.array([-13, 6.2, -1.4, -17, self.p_init])
+        sigma = np.array([2.7, 1.5, 1.5, 5, self.p_init * 2])
+        if np.log(.5) < theta[4] < self.p_max and 0 < theta[1]:
+            return np.sum(self.lnGauss(theta, mu, sigma))
+        return -np.inf
+
+    def lnlike_split(self, theta):
+        return np.sum([self.lnlike(theta, self.x[i], self.y[i], self.yerr[i])
+                       for i in range(len(self.x))])
+
+    def lnlike(self, theta, xi, yi, yerri):
+        theta = np.exp(theta)
+        k = theta[0] * ExpSquaredKernel(theta[1]) \
+                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+        gp = george.GP(k, solver=george.HODLRSolver)
+        try:
+            gp.compute(xi, np.sqrt(theta[3]+yerri**2))
+        except (ValueError, np.linalg.LinAlgError):
+            return 10e25
+        return gp.lnlikelihood(yi, quiet=True)
+
+
+def lnlike(theta, x, y, yerr):
+    theta = np.exp(theta)
+    k = theta[0] * ExpSquaredKernel(theta[1]) \
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+    gp = george.GP(k, solver=george.HODLRSolver)
+    try:
+        gp.compute(x, np.sqrt(theta[3]+yerr**2))
+    except (ValueError, np.linalg.LinAlgError):
+        return 10e25
+    return gp.lnlikelihood(y, quiet=True)
+
 
 def lnprior(theta, plims):
     """
@@ -63,18 +115,6 @@ def Glnprob_split(theta, x, y, yerr, p_init, p_max):
     return prob, prob
 
 
-def lnlike(theta, x, y, yerr):
-    theta = np.exp(theta)
-    k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
-    gp = george.GP(k, solver=george.HODLRSolver)
-    try:
-        gp.compute(x, np.sqrt(theta[3]+yerr**2))
-    except (ValueError, np.linalg.LinAlgError):
-        return 10e25
-    return gp.lnlikelihood(y, quiet=True)
-
-
 def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
@@ -90,22 +130,25 @@ def neglnlike(theta, x, y, yerr):
 def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
-    nwalkers, nsteps, ndims = np.shape(sampler)
-    flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
-    mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                      zip(*np.percentile(flat, [16, 50, 84], axis=0)))
+    _, ndims = np.shape(sampler.get_coords(flat=True))
+    flat = sampler.get_coords(flat=True)
+    logprob = sampler.get_log_probability(flat=True)
+    mcmc_res = list(map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                      zip(*np.percentile(flat, [16, 50, 84], axis=0))))
     med = np.concatenate([np.array(mcmc_res[i]) for i in
                           range(len(mcmc_res))])
     print("median values = ", med[::3])
-    logprob = flat[:, -1]
     ml = logprob == max(logprob)
-    maxlike = flat[np.where(ml)[0][0], :][:-1]
+    maxlike = flat[np.where(ml)[0][0], :]
     print("max like = ", maxlike)
     print("\n", np.exp(np.array(maxlike[-1])), "period (days)", "\n")
     r = np.concatenate((maxlike, med))
 
     # calculate autocorrelation times
-    acorr_t = emcee.autocorr.integrated_time(flat)
+    try:
+        acorr_t = emcee.autocorr.integrated_time(flat, c=1)
+    except:
+        acorr_t = emcee.autocorr.integrated_time(flat)
 
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
@@ -128,21 +171,16 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print("Plotting traces")
         for i in range(ndims):
             plt.clf()
-            plt.plot(sampler[:, :, i].T, 'k-', alpha=0.3)
+            plt.plot(sampler.get_coords()[:, :, i].T, 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
             plt.savefig(os.path.join(RESULTS_DIR, "{0}_{1}.png".format(ID,
                         fig_labels[i])))
 
     if tri:
         DIR = "../code/simulations/kepler_diffrot_full/par/"
-        truths = pd.read_csv(os.path.join(DIR, "final_table.txt"),
-                             delimiter=" ")
-        true_p = np.log(truths.P_MIN.values[truths.N.values ==
-                                    int(filter(str.isdigit, ID))][0])
         print("Making triangle plot")
-        fig = corner.corner(flat[:, :-1], labels=fig_labels,
-                            quantiles=[.16, .5, .84], show_titles=True,
-                            truths=trths)
+        fig = corner.corner(flat, labels=fig_labels, quantiles=[.16, .5, .84],
+                            show_titles=True)
         fig.savefig(os.path.join(RESULTS_DIR, "{0}_triangle".format(ID)))
         print(os.path.join("{0}_triangle.png".format(ID)))
 
