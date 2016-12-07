@@ -7,15 +7,17 @@ import numpy as np
 
 from gprot.aigrain import AigrainLightCurve
 
-def get_prot(i, aigrain=True, kepler=False):
+def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
     if aigrain:
         lc = AigrainLightCurve(i)
     elif kepler:
         lc = KeplerLightCurve(i)
 
-    return lc.acf_prot()
+    return lc.acf_prot(pmax=pmax)
 
 class ProtWorker(object):
+    """
+    """
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
@@ -30,6 +32,7 @@ if __name__=='__main__':
 
     parser.add_argument('stars', nargs='*', type=int, help='Stars to fit.')
     parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
+    parser.add_argument('--pmax', nargs='+', type=int, default=[10,30,100])
 
     datagroup = parser.add_mutually_exclusive_group()
     datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
@@ -48,7 +51,7 @@ if __name__=='__main__':
 
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
 
-    worker = ProtWorker(aigrain=args.aigrain, kepler=args.kepler)
+    worker = ProtWorker(pmax=args.pmax, aigrain=args.aigrain, kepler=args.kepler)
     
     if args.file is not None:
         stars = np.loadtxt(args.file, dtype=int)

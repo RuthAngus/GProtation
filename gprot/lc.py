@@ -69,7 +69,8 @@ class LightCurve(object):
 
         x, y, yerr = bandpass_filter(self._x_full,
                                      self._y_full,
-                                     self._yerr_full, zero_fill=zero_fill)
+                                     self._yerr_full, zero_fill=zero_fill,
+                                     pmin=pmin, pmax=pmax)
         x = x[edge:-edge]
         y = y[edge:-edge]
         yerr = yerr[edge:-edge]
@@ -89,15 +90,16 @@ class LightCurve(object):
         if self.sub is not None:
             self.subsample(self.sub)
 
-    def acf(self, maxlag=100, filter=True, smooth=None):
+    def acf(self, pmin=0.5, pmax=100, filter=True, smooth=None):
         if filter:
             x, y, yerr = bandpass_filter(self._x_full,
                                          self._y_full,
-                                         self._yerr_full, zero_fill=True)
+                                         self._yerr_full, zero_fill=True,
+                                         pmin=pmin, pmax=pmax)
         else:
             x, y = self.x, self.y
 
-        lags, ac = acf(x, y)
+        lags, ac = acf(x, y, maxlag=pmax)
 
         if smooth is not None:
             cadence = np.median(np.diff(lags))
@@ -116,26 +118,52 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, maxlag=100, delta=0.02, lookahead=30):
+    def acf_prot(self, pmin=0.5, pmax=[10, 30, 100], delta=0.02, lookahead=30,
+                 peak_to_trough=True, maxpeaks=1):
         """Returns best guess of prot from ACF, and height of peak
 
-        Returns highest trough-to-peak-height peak of first three peaks.
+        Just pick first peak.
         """
-        lags, ac = self.acf(maxlag=maxlag)
+        if not hasattr(pmax, '__iter__'):
+            pmax = [pmax]
 
-        maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+        # Try different provided pmaxes; keep prot with best height.
+        best_prot = np.nan
+        best_height = -np.inf
+        for pm in pmax:
+            lags, ac = self.acf(pmin=pmin, pmax=pm)
 
-        maxheight = 0
-        pbest = np.nan
-        for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
-            height = yhi - ylo
-            if height > maxheight:
-                pbest = xhi
-                maxheight = height
-            if i == 2:
-                break
+            # make sure lookahead isn't too long if pmax is small
+            lookahead = min(lookahead, pm)
 
-        return pbest, maxheight        
+            maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+
+            maxheight = -np.inf
+            pbest = np.nan
+            for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
+                if peak_to_trough:
+                    # Calculate mean(peak-to-trough) height
+                    h1 = yhi - ylo
+                    try:
+                        h2 = yhi - mins[i+1][1]
+                        height = (h1+h2)/2.
+                    except IndexError:
+                        height = h1
+                else:
+                    height = yhi
+                    print(i, height)
+
+                if height > maxheight:
+                    pbest = xhi
+                    maxheight = height
+                if i == maxpeaks-1:
+                    break
+
+            if maxheight > best_height:
+                best_height = maxheight
+                best_prot = pbest
+
+        return best_prot, best_height        
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):
