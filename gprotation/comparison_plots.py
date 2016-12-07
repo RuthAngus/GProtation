@@ -62,6 +62,8 @@ def load_samples(id, RESULTS_DIR):
         return None
     with h5py.File(fname, "r") as f:
         samples = f["samples"][...]
+    if len(np.shape(samples)) < 3:  # if emcee3
+        return samples[:, 4]
     nwalkers, nsteps, ndims = np.shape(samples)
     return np.reshape(samples[:, :, 4], nwalkers * nsteps)
 
@@ -270,9 +272,9 @@ if __name__ == "__main__":
     m = truths.N.values != 17
     truths = truths.iloc[m]
 
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
-    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-    print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-    print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+    print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
+    print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
+    print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+#     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
