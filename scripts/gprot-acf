@@ -61,12 +61,14 @@ if __name__=='__main__':
     prots = pool.map(worker, stars)
 
     sys.stdout.write('star ')
-    for p in args.pmax:
-        sys.stdout.write('prot_{0} height_{0} tau_{0} quality_{0} '.format(p))
-    sys.stdout.write('\n')
+    sys.stdout.write('pmax prot height tau quality\n')
+    # for p in args.pmax:
+    #     sys.stdout.write('prot_{0} height_{0} tau_{0} quality_{0} '.format(p))
+    # sys.stdout.write('\n')
     for star, results in zip(stars, prots):
 
-        sys.stdout.write('{} '.format(star))
-        for p, h, q, tau in results:
-            sys.stdout.write('{:.3f} {:.3f} {:.2e} {:.3f} '.format(p, h, q, tau))
-        sys.stdout.write('\n')
+        # sys.stdout.write('{} '.format(star))
+        for i,(p, h, q, tau) in enumerate(results):
+            sys.stdout.write('{} {:.0f} {:.3f} {:.2e} {:.3f}\n'.format(star, args.pmax[i], 
+                                                                    p, h, q, tau))
+        # sys.stdout.write('\n')
