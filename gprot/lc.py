@@ -126,7 +126,7 @@ class LightCurve(object):
         maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
 
         maxheight = 0
-        pbest = None
+        pbest = np.nan
         for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
             height = yhi - ylo
             if height > maxheight:
