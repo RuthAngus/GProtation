@@ -104,7 +104,8 @@ class LightCurve(object):
         if smooth is not None:
             cadence = np.median(np.diff(lags))
             Nbox = smooth / cadence 
-            ac = convolve(ac, boxcar(Nbox)/float(Nbox), mode='reflect')
+            if Nbox >= 3:
+                ac = convolve(ac, boxcar(Nbox)/float(Nbox), mode='reflect')
 
         return lags, ac
 
@@ -124,7 +125,7 @@ class LightCurve(object):
 
         Just pick first peak.
         """
-        lags, ac = self.acf(pmin=pmin, pmax=pmax)
+        lags, ac = self.acf(pmin=pmin, pmax=pmax, smooth=pmax/20)
 
         # make sure lookahead isn't too long if pmax is small
         lookahead = min(lookahead, pmax)
