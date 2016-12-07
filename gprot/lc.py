@@ -6,19 +6,22 @@ import matplotlib.pyplot as plt
 from cycler import cycler
 
 from scipy.interpolate import UnivariateSpline
+from scipy.signal import boxcar
+from scipy.ndimage.filters import convolve
+from scipy.optimize import minimize
 
 from collections import OrderedDict
 from pkg_resources import resource_filename
 
 from .filter import sigma_clip, bandpass_filter
 from .plots import tableau20
-from .acf import acf
+from .acf import acf, peakdetect
 
 qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
                           delim_whitespace=True, index_col=0)
 
 class LightCurve(object):
-    def __init__(self, x, y, yerr, name=None, chunksize=200, sub=None):
+    def __init__(self, x, y, yerr, name=None, chunksize=None, sub=None):
         self._x = x.copy()
         self._y = y.copy()
         self._yerr = yerr.copy()
@@ -86,7 +89,7 @@ class LightCurve(object):
         if self.sub is not None:
             self.subsample(self.sub)
 
-    def acf(self, maxlag=100, filter=True):
+    def acf(self, maxlag=100, filter=True, smooth=None):
         if filter:
             x, y, yerr = bandpass_filter(self._x_full,
                                          self._y_full,
@@ -95,6 +98,11 @@ class LightCurve(object):
             x, y = self.x, self.y
 
         lags, ac = acf(x, y)
+
+        if smooth is not None:
+            cadence = np.median(np.diff(lags))
+            Nbox = smooth / cadence 
+            ac = convolve(ac, boxcar(Nbox)/float(Nbox), mode='reflect')
 
         return lags, ac
 
@@ -107,6 +115,27 @@ class LightCurve(object):
             ax.axvline(truth, c='r', ls=':')
 
         return fig
+
+    def acf_prot(self, maxlag=100, delta=0.02, lookahead=30):
+        """Returns best guess of prot from ACF, and height of peak
+
+        Returns highest trough-to-peak-height peak of first three peaks.
+        """
+        lags, ac = self.acf(maxlag=maxlag)
+
+        maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+
+        maxheight = 0
+        pbest = None
+        for i, ((xhi, yhi), (xlo, ylo)) in enumerate(zip(maxes, mins)):
+            height = yhi - ylo
+            if height > maxheight:
+                pbest = xhi
+                maxheight = height
+            if i == 2:
+                break
+
+        return pbest, maxheight        
 
     def best_sublc(self, ndays, npoints=600, 
                     flat_order=3, **kwargs):
