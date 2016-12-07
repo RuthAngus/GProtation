@@ -1,6 +1,6 @@
 from __future__ import print_function
 import numpy as np
-from GProt import calc_p_init, mcmc_fit
+from emcee2_GProt import calc_p_init, mcmc_fit
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
@@ -86,7 +86,8 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
 def recover(i):
 
-    RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
+    RESULTS_DIR = "results_emcee2"  # just 2 sets of 200 days
+#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -108,11 +109,11 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m])))
 # #     results = pool.map(recover, range(len(truths.N.values[m][:100])))
 
-    recover(2)
+#     recover(2)
 
 #     for i in range(len(truths.N.values[m])):
 # 	    recover(i)
