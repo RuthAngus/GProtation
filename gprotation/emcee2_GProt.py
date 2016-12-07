@@ -4,7 +4,7 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from GProtation import make_plot, lnprob, Glnprob, Glnprob_split
+from emcee2_GProtation import make_plot, lnprob, Glnprob, Glnprob_split
 import Kepler_ACF
 import simple_acf as sa
 import h5py
