@@ -31,7 +31,7 @@ def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
                 resultsdir='results', quarters=None, clever=True,
                 bestchunk=None, pmax=None, filter=False, tag=None, 
-                altmodel=False, nochunks=False, **kwargs):
+                altmodel=False, nochunks=False, npoints=600, **kwargs):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -53,7 +53,7 @@ def get_model(i, aigrain=True, kepler=False,
         lc.bandpass_filter()
 
     if clever and bestchunk is None:
-        lc.make_best_chunks()
+        lc.make_best_chunks(npoints=npoints)
     
     if bestchunk is not None:
         lc.make_best_chunks(bestchunk)
@@ -125,6 +125,7 @@ if __name__=='__main__':
                         help='Subsample in a tiered way but use whole light curve. ' +
                              'Supersedes "quarters", "subsample", and "daterange", ' + 
                              'arguments.')
+    parser.add_argument('--npoints', type=int, default=600)
     parser.add_argument('--filter', action='store_true')
     parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
     parser.add_argument('--tag', default=None)
