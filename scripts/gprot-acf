@@ -28,7 +28,7 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser(description='Calculate ACF prots for given stars')
 
-    parser.add_argument('stars', nargs='+', type=int, help='Stars to fit.')
+    parser.add_argument('stars', nargs='*', type=int, help='Stars to fit.')
     parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
 
     datagroup = parser.add_mutually_exclusive_group()
