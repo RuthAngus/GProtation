@@ -68,7 +68,7 @@ if __name__=='__main__':
     for star, results in zip(stars, prots):
 
         # sys.stdout.write('{} '.format(star))
-        for i,(p, h, q, tau) in enumerate(results):
-            sys.stdout.write('{} {:.0f} {:.3f} {:.2e} {:.3f}\n'.format(star, args.pmax[i], 
-                                                                    p, h, q, tau))
+        for i,(p, h, tau, q) in enumerate(results):
+            sys.stdout.write('{} {:.0f} {:.3f} {:.3f} {:.3f} {:.2f}\n'.format(star, args.pmax[i], 
+                                                                    p, h, tau, q))
         # sys.stdout.write('\n')
