@@ -21,7 +21,7 @@ qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'),
                           delim_whitespace=True, index_col=0)
 
 class LightCurve(object):
-    def __init__(self, x, y, yerr, name=None, chunksize=None, sub=None):
+    def __init__(self, x, y, yerr, name=None, chunksize=200, sub=None):
         self._x = x.copy()
         self._y = y.copy()
         self._yerr = yerr.copy()

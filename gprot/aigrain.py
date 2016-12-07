@@ -16,7 +16,7 @@ def get_true_period(i):
 
 class AigrainLightCurve(LightCurve):
     subdir = 'final'
-    def __init__(self, i, ndays=None, sub=None, rng=None, nsigma=5, 
+    def __init__(self, i, ndays=None, sub=40, rng=None, nsigma=5, 
                  quarters=None, **kwargs):
         self.i = i
 
