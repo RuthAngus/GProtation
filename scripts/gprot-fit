@@ -127,7 +127,7 @@ if __name__=='__main__':
                              'Supersedes "quarters", "subsample", and "daterange", ' + 
                              'arguments.')
     parser.add_argument('--npoints', type=int, default=600)
-    parser.add_argument('--acfprior', action='store_true', target='acf_prior')
+    parser.add_argument('--acf_prior', action='store_true')
     parser.add_argument('--filter', action='store_true')
     parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
     parser.add_argument('--tag', default=None)
