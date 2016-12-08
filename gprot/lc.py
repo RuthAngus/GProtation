@@ -99,7 +99,7 @@ class LightCurve(object):
         else:
             x, y = self.x, self.y
 
-        lags, ac = acf(x, y, maxlag=pmax)
+        lags, ac = acf(x, y, maxlag=2*pmax)
 
         if smooth is not None:
             cadence = np.median(np.diff(lags))
@@ -125,12 +125,16 @@ class LightCurve(object):
 
         Just pick first peak.
         """
-        lags, ac = self.acf(pmin=pmin, pmax=pmax, smooth=pmax/20)
+        lags, ac = self.acf(pmin=pmin, pmax=pmax, smooth=pmax/10)
 
         # make sure lookahead isn't too long if pmax is small
         lookahead = min(lookahead, pmax)
 
         maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+
+        # First max only counts if it's after a min.
+        if mins[0][0] > maxes[0][0]:
+            maxes.pop(0)
 
         maxheight = -np.inf
         pbest = np.nan
