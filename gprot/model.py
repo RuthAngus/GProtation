@@ -35,7 +35,7 @@ class GPRotModel(object):
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
     _default_gp_prior_mu = (-13, 6.2, -1.4, -17)
-    _default_gp_prior_sigma = (5.7, 1.5, 3.5, 5)
+    _default_gp_prior_sigma = (5.7, 1.5, 1.5, 5)
 
     _acf_pmax = (5,10,20,40,60,100)
     _acf_prior_width = 0.1
