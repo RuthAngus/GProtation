@@ -41,8 +41,8 @@ def run_my_fit(i):
         e2.gp_fit(x, y, yerr, "{}2".format(id), RESULTS_DIR)
 
     fit = gp.fit(x, y, yerr, kid, RESULTS_DIR)
-    fit.gp_fit(burnin=1000, nwalkers=16, nruns=5, full_run=1000, nsets=2)
-#     fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2)  # fast
+#     fit.gp_fit(burnin=1000, nwalkers=16, nruns=5, full_run=1000, nsets=2)
+    fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2)  # fast
 
 
 if __name__ == "__main__":

@@ -111,7 +111,7 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
           "hours")
 
     with open(os.path.join(RESULTS_DIR, "{0}_time.txt".format(id)), "w") as f:
-        f.write(total_time)
+        f.write("{}".format(total_time))
 
 #     col = "b"
 #     if conv:
