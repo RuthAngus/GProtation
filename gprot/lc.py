@@ -133,8 +133,11 @@ class LightCurve(object):
         maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
 
         # First max only counts if it's after a min.
-        if mins[0][0] > maxes[0][0]:
-            maxes.pop(0)
+        try:
+            if mins[0][0] > maxes[0][0]:
+                maxes.pop(0)
+        except IndexError:
+            pass
 
         maxheight = -np.inf
         pbest = np.nan
