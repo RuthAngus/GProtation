@@ -198,8 +198,11 @@ class GPRotModel(object):
             self._period_mixture = []
             wtot = 0
             for _, _, _, w in self.acf_results:
-                wtot += w
+                if np.isfinite(w):
+                    wtot += w
             for p, _, _, w in self.acf_results:
+                if not np.isfinite(w):
+                    continue
                 self._period_mixture.append((w/wtot, np.log(p), self.acf_prior_width))
 
         return self._period_mixture
