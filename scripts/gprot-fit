@@ -31,7 +31,8 @@ def get_model(i, aigrain=True, kepler=False,
                 ndays=None, subsample=40, chunksize=200, daterange=None,
                 resultsdir='results', quarters=None, clever=True,
                 bestchunk=None, pmax=None, filter=False, tag=None, 
-                altmodel=False, nochunks=False, npoints=600, **kwargs):
+                altmodel=False, nochunks=False, npoints=600, 
+                acf_prior=False, **kwargs):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -71,9 +72,9 @@ def get_model(i, aigrain=True, kepler=False,
             pmax = np.log(bestchunk)
 
     if altmodel:
-        mod = GPRotModel2(lc, pmax=pmax)
+        mod = GPRotModel2(lc, pmax=pmax, acf_prior=acf_prior)
     else:
-        mod = GPRotModel(lc, pmax=pmax)
+        mod = GPRotModel(lc, pmax=pmax, acf_prior=acf_prior)
     fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)
@@ -126,6 +127,7 @@ if __name__=='__main__':
                              'Supersedes "quarters", "subsample", and "daterange", ' + 
                              'arguments.')
     parser.add_argument('--npoints', type=int, default=600)
+    parser.add_argument('--acfprior', action='store_true', target='acf_prior')
     parser.add_argument('--filter', action='store_true')
     parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
     parser.add_argument('--tag', default=None)

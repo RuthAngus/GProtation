@@ -19,6 +19,9 @@ import pandas as pd
 def lnGauss(x, mu, sigma):
     return -0.5 * ((x - mu)**2/(sigma**2)) + np.log(1./np.sqrt(2*np.pi*sigma**2))
 
+def lnGauss_mixture(x, mix):
+    return np.log(np.sum([w*np.exp(lnGauss(x, mu, sig)) for w, mu, sig in mix]))
+
 class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
@@ -34,7 +37,11 @@ class GPRotModel(object):
     _default_gp_prior_mu = (-13, 6.2, -1.4, -17)
     _default_gp_prior_sigma = (5.7, 1.5, 3.5, 5)
 
-    def __init__(self, lc, name=None, pmin=None, pmax=None):
+    _acf_pmax = (5,10,20,40,60,100)
+    _acf_prior_width = 0.2
+
+    def __init__(self, lc, name=None, pmin=None, pmax=None,
+                 acf_prior=False):
 
         self.lc = lc
 
@@ -46,6 +53,8 @@ class GPRotModel(object):
             pmax = np.inf
         self.pmin = pmin
         self.pmax = pmax
+
+        self.acf_prior = acf_prior
 
         # Default gaussian for GP param priors
         self.gp_prior_mu = np.array(self._default_gp_prior_mu)
@@ -77,7 +86,7 @@ class GPRotModel(object):
     @property
     def bounds(self):
         return self._bounds
-    
+
     def sample_from_prior(self, N, seed=None):
         """
         Returns N x ndim array of prior samples
@@ -98,12 +107,7 @@ class GPRotModel(object):
 
             samples[:, i] = vals
 
-        loP, hiP = self.bounds[-1]
-        if self.pmin > loP:
-            loP = self.pmin
-        if self.pmax < hiP:
-            hiP = self.pmax
-        samples[:, -1] = np.random.random(N) * (hiP - loP) + loP
+        samples[:, -1] = self.sample_period_prior(N)
 
         return samples
 
@@ -125,7 +129,80 @@ class GPRotModel(object):
         lnpr = np.sum(lnGauss(np.array(theta[:-1]), 
                               self.gp_prior_mu, self.gp_prior_sigma))
 
+        lnpr += self.lnprior_period(theta[-1])
+
         return lnpr
+
+    def lnprior_period(self, p):
+        if not self.acf_prior:
+            return 0
+        else:
+            return lnGauss_mixture(p, self.period_mixture)
+
+    def sample_period_prior(self, N):
+        loP, hiP = self.bounds[-1]
+        if self.pmin > loP:
+            loP = self.pmin
+        if self.pmax < hiP:
+            hiP = self.pmax
+        if not self.acf_prior:
+            vals = np.random.random(N) * (hiP - loP) + loP
+        else:
+            vals = np.empty(N)
+            u = np.random.random(N)
+            lo = 0
+            for w, mu, sig in self.period_mixture:
+                hi = lo + w
+                ok = (u > lo) & (u < hi)
+                n = ok.sum()
+
+                # Make sure periods are in range
+                newvals = np.inf*np.ones(n)
+                m = (newvals < loP) | (newvals > hiP)
+                nbad = m.sum()
+                while nbad > 0:
+                    rn = np.random.randn(nbad)
+                    newvals[m] = rn*sig + mu
+                    m = (newvals < loP) | (newvals > hiP)
+                    nbad = m.sum()
+
+                vals[ok] = newvals
+                lo += w
+
+        return vals
+
+    @property
+    def acf_results(self):
+        if not hasattr(self, '_acf_results'):
+            self._calc_acf()
+        return self._acf_results
+
+    @property
+    def acf_pmax(self):
+        return self._acf_pmax
+
+    @property
+    def acf_prior_width(self):
+        return self._acf_prior_width
+
+    def _calc_acf(self):
+        self._acf_results = [self.lc.acf_prot(pmax=p) for p in self.acf_pmax]
+
+    @property
+    def period_mixture(self):
+        """Gaussian mixture describing period prior
+
+        list of (weight, mu, sigma)
+        """
+        if not hasattr(self, '_period_mixture'):
+            self._period_mixture = []
+            wtot = 0
+            for _, _, _, w in self.acf_results:
+                wtot += w
+            for p, _, _, w in self.acf_results:
+                self._period_mixture.append((w/wtot, np.log(p), self.acf_prior_width))
+
+        return self._period_mixture
 
     def gp_kernel(self, theta):
         A = np.exp(theta[0])
