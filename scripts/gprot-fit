@@ -140,9 +140,9 @@ if __name__=='__main__':
     parser.add_argument('-n', '--ndays', default=None, type=int,
                         help='Number of days (from beginning) of light curve ' +
                              'to use for fitting.')
-    parser.add_argument('--subsample', default=40, type=int, 
+    parser.add_argument('--subsample', default=30, type=int, 
                         help='subsampling factor.')
-    parser.add_argument('--chunksize', default=200, type=int,
+    parser.add_argument('--chunksize', default=300, type=int,
                         help='Size (in number of points) of the chunks into which ' +
                              'to split light curve.')
     parser.add_argument('--nwalkers', default=500, type=int,
