@@ -8,6 +8,6 @@ setup(name='gprotation',
       author_email='ruthangus@gmail.com',
       license='MIT',
       packages=['gprotation'],
-      install_requires=['numpy', 'matplotlib', 'pandas', 'h5py',
+      install_requires=['numpy', 'matplotlib', 'pandas', 'h5py', 'emcee',
                         'emcee3', 'gatspy', 'george', 'corner'],
       zip_safe=False)

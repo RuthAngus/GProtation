@@ -4,18 +4,14 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+
+import os
+
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
-import glob
 import emcee
 import corner
-import h5py
-import subprocess
-import scipy.optimize as spo
-import time
-import os
-import pandas as pd
-import time
 
 
 def lnprior(theta, plims):
@@ -25,8 +21,8 @@ def lnprior(theta, plims):
     theta = A, l, Gamma, s, P
     """
     if -20 < theta[0] < 20 and theta[4] < theta[1] and -20 < theta[2] < 20 \
-    and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1] \
-    and theta[4] < 4.61:
+            and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1] \
+            and theta[4] < 4.61:
         return 0.
     return -np.inf
 
@@ -66,7 +62,7 @@ def Glnprob_split(theta, x, y, yerr, p_init, p_max):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+        * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
     gp = george.GP(k, solver=george.HODLRSolver)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
@@ -78,7 +74,7 @@ def lnlike(theta, x, y, yerr):
 def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
+        * ExpSine2Kernel(theta[2], theta[4])
     gp = george.GP(k)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
@@ -86,14 +82,14 @@ def neglnlike(theta, x, y, yerr):
         return 10e25
     return -gp.lnlikelihood(y, quiet=True)
 
-# make various plots
+
 def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
     nwalkers, nsteps, ndims = np.shape(sampler)
     flat = np.reshape(sampler, (nwalkers * nsteps, ndims))
     mcmc_res = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                      zip(*np.percentile(flat, [16, 50, 84], axis=0)))
+                   zip(*np.percentile(flat, [16, 50, 84], axis=0)))
     med = np.concatenate([np.array(mcmc_res[i]) for i in
                           range(len(mcmc_res))])
     print("median values = ", med[::3])
@@ -138,7 +134,8 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         truths = pd.read_csv(os.path.join(DIR, "final_table.txt"),
                              delimiter=" ")
         true_p = np.log(truths.P_MIN.values[truths.N.values ==
-                                    int(filter(str.isdigit, ID))][0])
+                                            int(filter(str.isdigit, ID))][0])
+        trths[-1] = true_p
         print("Making triangle plot")
         fig = corner.corner(flat[:, :-1], labels=fig_labels,
                             quantiles=[.16, .5, .84], show_titles=True,
@@ -160,7 +157,7 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
-                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
         gp.compute(x-x[0], yerr)
         xs = np.linspace((x-x[0])[0], (x-x[0])[-1], 1000)

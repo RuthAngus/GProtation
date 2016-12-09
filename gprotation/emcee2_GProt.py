@@ -4,16 +4,19 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-from emcee2_GProtation import make_plot, lnprob, Glnprob, Glnprob_split
-import simple_acf as sa
+import pandas as pd
+import matplotlib.pyplot as plt
 import h5py
-from gatspy.periodic import LombScargle
+import pyfits
+
 import os
 import time
+
 import emcee
-import pyfits
-import matplotlib.pyplot as plt
-import pandas as pd
+from gatspy.periodic import LombScargle
+
+from emcee2_GProtation import make_plot, Glnprob_split
+import simple_acf as sa
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
@@ -53,7 +56,6 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     print("total = ", (tm * nwalkers * np.sum(runs) + tm * nwalkers *
                        burnin)/60, "mins")
 
-
     # Run MCMC.
     if parallel:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, Glnprob_split,
@@ -88,7 +90,7 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), :-1] = \
             np.array(sampler.chain)
         sample_array[:, sum(runs[:i]):sum(runs[:(i+1)]), -1] = \
-                np.array(sampler.blobs).T
+            np.array(sampler.blobs).T
         f = h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)), "w")
         data = f.create_dataset("samples",
                                 np.shape(sample_array[:, :sum(runs[:(i+1)]),
@@ -100,13 +102,13 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
         with h5py.File(os.path.join(RESULTS_DIR, "{0}.h5".format(id)),
                        "r") as f:
             samples = f["samples"][...]
-        results = make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
-                            traces=True, tri=True, prediction=True)
+        make_plot(samples, x, y, yerr, id, RESULTS_DIR, truths,
+                  traces=True, tri=True, prediction=True)
         _, nsteps, _ = np.shape(samples)
         flat = np.reshape(samples[:, :, :5], (nwalkers*nsteps, ndim))
         conv, autocorr_times, ind_samp, diff = \
-                evaluate_convergence(flat, autocorr_times, diff_threshold,
-                                     n_independent)
+            evaluate_convergence(flat, autocorr_times, diff_threshold,
+                                 n_independent)
         mean_ind.append(ind_samp)
         mean_diff.append(diff)
         print(conv)
