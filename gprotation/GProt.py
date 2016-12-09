@@ -9,7 +9,6 @@ import pandas as pd
 import os
 import time
 import h5py
-import pyfits
 
 import emcee3
 from gatspy.periodic import LombScargle
