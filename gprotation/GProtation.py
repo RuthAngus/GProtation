@@ -4,18 +4,14 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
+
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
-import glob
-import emcee
+import emcee3
 import corner
-import h5py
-import subprocess
-import scipy.optimize as spo
-import time
-import os
-import pandas as pd
-import time
+
 
 class MyModel(object):
     """
@@ -25,9 +21,9 @@ class MyModel(object):
 
         self.p_init = p_init
         self.p_max = p_max
-	self.x = x
-	self.y = y
-	self.yerr = yerr
+        self.x = x
+        self.y = y
+        self.yerr = yerr
 
     def lnGauss(self, t, mu, sigma):
         return -.5 * ((t - mu)**2/(.5 * sigma**2))
@@ -49,7 +45,7 @@ class MyModel(object):
     def lnlike(self, theta, xi, yi, yerri):
         theta = np.exp(theta)
         k = theta[0] * ExpSquaredKernel(theta[1]) \
-                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
         try:
             gp.compute(xi, np.sqrt(theta[3]+yerri**2))
@@ -61,7 +57,7 @@ class MyModel(object):
 def lnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+        * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
     gp = george.GP(k, solver=george.HODLRSolver)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
@@ -77,8 +73,8 @@ def lnprior(theta, plims):
     theta = A, l, Gamma, s, P
     """
     if -20 < theta[0] < 20 and theta[4] < theta[1] and -20 < theta[2] < 20 \
-    and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1] \
-    and theta[4] < 4.61:
+            and -20 < theta[3] < 20 and plims[0] < theta[4] < plims[1] \
+            and theta[4] < 4.61:
         return 0.
     return -np.inf
 
@@ -118,7 +114,7 @@ def Glnprob_split(theta, x, y, yerr, p_init, p_max):
 def neglnlike(theta, x, y, yerr):
     theta = np.exp(theta)
     k = theta[0] * ExpSquaredKernel(theta[1]) \
-            * ExpSine2Kernel(theta[2], theta[4])
+        * ExpSine2Kernel(theta[2], theta[4])
     gp = george.GP(k)
     try:
         gp.compute(x, np.sqrt(theta[3]+yerr**2))
@@ -126,7 +122,7 @@ def neglnlike(theta, x, y, yerr):
         return 10e25
     return -gp.lnlikelihood(y, quiet=True)
 
-# make various plots
+
 def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
               tri=False, prediction=True):
 
@@ -134,7 +130,7 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     flat = sampler.get_coords(flat=True)
     logprob = sampler.get_log_probability(flat=True)
     mcmc_res = list(map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                      zip(*np.percentile(flat, [16, 50, 84], axis=0))))
+                        zip(*np.percentile(flat, [16, 50, 84], axis=0))))
     med = np.concatenate([np.array(mcmc_res[i]) for i in
                           range(len(mcmc_res))])
     print("median values = ", med[::3])
@@ -146,9 +142,9 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
 
     # calculate autocorrelation times
     try:
-        acorr_t = emcee.autocorr.integrated_time(flat, c=1)
+        acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
     except:
-        acorr_t = emcee.autocorr.integrated_time(flat)
+        acorr_t = emcee3.autocorr.integrated_time(flat)
 
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],
@@ -177,7 +173,6 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
                         fig_labels[i])))
 
     if tri:
-        DIR = "../code/simulations/kepler_diffrot_full/par/"
         print("Making triangle plot")
         fig = corner.corner(flat, labels=fig_labels, quantiles=[.16, .5, .84],
                             show_titles=True)
@@ -198,7 +193,7 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print("plotting prediction")
         theta = np.exp(np.array(maxlike))
         k = theta[0] * ExpSquaredKernel(theta[1]) \
-                * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
+            * ExpSine2Kernel(theta[2], theta[4]) + WhiteKernel(theta[3])
         gp = george.GP(k, solver=george.HODLRSolver)
         gp.compute(x-x[0], yerr)
         xs = np.linspace((x-x[0])[0], (x-x[0])[-1], 1000)

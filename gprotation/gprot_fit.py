@@ -1,14 +1,14 @@
 from __future__ import print_function
 import numpy as np
-from GProt import mcmc_fit
+import matplotlib.pyplot as plt
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
-from multiprocessing import Pool
-import h5py
 import math
-import simple_acf as sa
+
 from gatspy.periodic import LombScargle
+
+from GProt import mcmc_fit
+import simple_acf as sa
 
 
 class fit(object):

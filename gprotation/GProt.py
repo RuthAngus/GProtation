@@ -4,19 +4,18 @@
 # coding: utf-8
 from __future__ import print_function
 import numpy as np
-# from GProtation import make_plot, lnprob, Glnprob, Glnprob_split, \
-#         lnlike_split, Glnprior, MyModel
-from GProtation import make_plot, MyModel
-import simple_acf as sa
-import h5py
-from gatspy.periodic import LombScargle
-import os
-import time
-import emcee
-import pyfits
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
+import time
+import h5py
+import pyfits
+
 import emcee3
+from gatspy.periodic import LombScargle
+
+from GProtation import make_plot, MyModel
+import simple_acf as sa
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
