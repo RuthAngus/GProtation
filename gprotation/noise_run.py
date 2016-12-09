@@ -4,7 +4,6 @@ import numpy as np
 import os
 import gprot_fit as gp
 import matplotlib.pyplot as plt
-import gprot_fit as gp
 import emcee2_recover_suzannes as e2
 
 def noise_fit(id, RESULTS_DIR, emcee2=False):
