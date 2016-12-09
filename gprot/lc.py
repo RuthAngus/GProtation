@@ -217,7 +217,7 @@ class LightCurve(object):
         if 'sub' not in kwargs:
             kwargs['sub'] = window//npoints
 
-        return LightCurve(x, y, yerr,
+        return LightCurve(x, y, yerr, chunksize=None,
                           name=newname, **kwargs)        
 
     def make_best_chunks(self, ndays=[800, 200, 50], seed=None, **kwargs):

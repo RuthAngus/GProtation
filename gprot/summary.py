@@ -67,4 +67,5 @@ def summarize_fits(directory, quantiles=[0.05,0.16,0.5,0.84,0.95],
 def digest_acf(df):
     """Picks best ACF prot, height, quality, tau
     """
-    # interpret 
+    
+
