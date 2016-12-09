@@ -75,9 +75,7 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 #     burnin, nwalkers, nruns, full_run = 2, 12, 2, 50
 #     xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
 
-    l = truths.N.values == int(sid)
-    true_period = truths.P_MIN.values[l]
-    trths = [None, None, None, None, np.log(true_period)]
+    trths = [None, None, None, None, None]
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
