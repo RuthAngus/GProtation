@@ -57,7 +57,13 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR):
 
 
 def load_samples(id, RESULTS_DIR):
-    fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
+    try:
+        fname = os.path.join(RESULTS_DIR,
+                             "{0}.h5".format(str(int(id)).zfill(4)))
+    except IOError:
+        fname = os.path.join(RESULTS_DIR,
+                             "{0}.h5".format(str(int(id)).zfill(9)))
+
     if not os.path.exists(fname):
         return None
     with h5py.File(fname, "r") as f:
@@ -75,15 +81,19 @@ def make_new_df(truths, R_DIR):
     """
     m = truths.DELTA_OMEGA.values == 0
 
-#     for i, id in enumerate(truths.N.values[m]):
-#         sid = str(int(i)).zfill(4)
-#         acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
-#                                                              RESULTS_DIR)
-
     # get column names
     mfname2 = os.path.join(R_DIR, "0002_mcmc_results.txt")
-    apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.txt")
-    mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
+    print(mfname2)
+    print(os.path.exists(mfname2))
+    if os.path.exists(mfname2):
+        apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.txt")
+        mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
+        zf = 4
+    else:
+        mfname2 = os.path.join(R_DIR, "000000002_mcmc_results.txt")
+        apfname2 = os.path.join(R_DIR, "000000002_acf_pgram_results.txt")
+        mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
+        zf = 9
 
     # assemble master data frame
     mcols, acols = mdf2.columns.values, adf2.columns.values
@@ -92,7 +102,7 @@ def make_new_df(truths, R_DIR):
     Ns = []
     n = 0
     for i, id in enumerate(truths.N.values[m]):
-        sid = str(int(id)).zfill(4)
+        sid = str(int(id)).zfill(zf)
         mfname = os.path.join(R_DIR, "{0}_mcmc_results.txt".format(sid))
         afname = os.path.join(R_DIR, "{0}_acf_pgram_results.txt".format(sid))
         if os.path.exists(mfname) and os.path.exists(afname):
@@ -272,12 +282,12 @@ if __name__ == "__main__":
     m = truths.N.values != 17
     truths = truths.iloc[m]
 
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+    print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
+    print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
+    print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee2"))
     print("acf sigma rms = ", acf_plot(truths, "results_emcee2"))
     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee2"))
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+#     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))

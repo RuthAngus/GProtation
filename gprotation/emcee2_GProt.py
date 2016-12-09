@@ -5,7 +5,6 @@
 from __future__ import print_function
 import numpy as np
 from emcee2_GProtation import make_plot, lnprob, Glnprob, Glnprob_split
-import Kepler_ACF
 import simple_acf as sa
 import h5py
 from gatspy.periodic import LombScargle

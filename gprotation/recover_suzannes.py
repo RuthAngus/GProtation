@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import h5py
 import math
+import gprot_fit as gp
 
 
 def make_lists(xb, yb, yerrb, l):
@@ -67,18 +68,12 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
         p_init = 40
     elif p_init < .5:
         p_init = 10
-    burnin, nwalkers, nruns, full_run = 1000, 16, 5, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
-    # fast settings
-#     burnin, nwalkers, nruns, full_run = 500, 12, 3, 100
-#     burnin, nwalkers, nruns, full_run = 2, 12, 5, 50
-#     xb[0], yb[0], yerrb[0] = xb[0][::100], yb[0][::100], yerrb[0][::100]
-
-    trths = [None, None, None, None, None]
-#     trths = [None, None, None, None, np.log(truths.P_MIN.values[m][i])]
-#     mcmc_fit(xb[0], yb[0], yerrb[0], p_init, p_max, sid, RESULTS_DIR,
+    l = truths.N.values == int(sid)
+    true_period = truths.P_MIN.values[l]
+    trths = [None, None, None, None, np.log(true_period)]
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
@@ -100,7 +95,9 @@ def recover(i):
     x, y = load_suzanne_lcs(sid, DATA_DIR)
     yerr = np.ones_like(y) * 1e-5
 
-    gp_fit(x, y, yerr, sid, RESULTS_DIR)
+    fit = gp.fit(x, y, yerr, sid, RESULTS_DIR)
+    fit.gp_fit(burnin=1000, nwalkers=17, nruns=5, full_run=1000, nsets=2)
+#     fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2)  # fast
 
 
 if __name__ == "__main__":
@@ -109,11 +106,12 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-#     pool = Pool()
-#     results = pool.map(recover, range(len(truths.N.values[m][:100])))
+    pool = Pool()
+    results = pool.map(recover, range(len(truths.N.values[m][:100])))
+
 #     results = pool.map(recover, range(len(truths.N.values[m])))
 
 #     recover(32)
 
-    for i in range(len(truths.N.values[m][:100])):
-	    recover(i)
+#     for i in range(len(truths.N.values[m][:100])):
+# 	    recover(i)
