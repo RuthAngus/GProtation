@@ -1,12 +1,13 @@
 from __future__ import print_function
 import numpy as np
-from emcee2_GProt import calc_p_init, mcmc_fit
-import pandas as pd
-import os
 import matplotlib.pyplot as plt
-from multiprocessing import Pool
+import pandas as pd
 import h5py
+
+import os
 import math
+
+from emcee2_GProt import calc_p_init, mcmc_fit
 
 
 def make_lists(xb, yb, yerrb, l):
@@ -29,13 +30,6 @@ def make_gaps(x, y, yerr, points_per_day):
         m[i] = True
     inds = np.argsort(x[m])
     return x[m][inds], y[m][inds], yerr[m][inds]
-
-
-def load_suzanne_lcs(id, DATA_DIR):
-    sid = str(int(id)).zfill(4)
-    x, y = np.genfromtxt(os.path.join(DATA_DIR,
-                                      "lightcurve_{0}.txt".format(sid))).T
-    return x - x[0], y - 1
 
 
 def sigma_clip(x, y, yerr, nsigma):
@@ -79,40 +73,3 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
     mcmc_fit(xb[:2], yb[:2], yerrb[:2], p_init, p_max, sid, RESULTS_DIR,
              truths=trths, burnin=burnin, nwalkers=nwalkers, nruns=nruns,
              full_run=full_run, diff_threshold=.5, n_independent=1000)
-
-
-def recover(i):
-
-    RESULTS_DIR = "results_emcee2"  # just 2 sets of 200 days
-    if not os.path.exists(RESULTS_DIR):
-        os.makedirs(RESULTS_DIR)
-
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
-    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
-    m = truths.DELTA_OMEGA.values == 0
-
-    id = truths.N.values[m][i]
-    sid = str(int(id)).zfill(4)
-    print(id, i, "of", len(truths.N.values[m]))
-    x, y = load_suzanne_lcs(sid, DATA_DIR)
-    yerr = np.ones_like(y) * 1e-5
-
-    gp_fit(x, y, yerr, sid, RESULTS_DIR)
-
-
-if __name__ == "__main__":
-
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
-    truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
-    m = truths.DELTA_OMEGA.values == 0
-
-    pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m])))
-
-# #     results = pool.map(recover, range(len(truths.N.values[m][:100])))
-
-#     recover(2)
-
-#     for i in range(len(truths.N.values[m])):
-# 	    recover(i)
