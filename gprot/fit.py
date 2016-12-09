@@ -87,7 +87,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         coords_init = mod.sample_from_prior(nwalkers)
 
     if pool is None:
-        from emcee3.pool import DefaultPool
+        from emcee3.pools import DefaultPool
         pool = DefaultPool()
 
     ensemble = emcee3.Ensemble(walker, coords_init, pool=pool)

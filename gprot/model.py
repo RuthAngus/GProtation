@@ -27,15 +27,15 @@ class GPRotModel(object):
     """
     # log bounds
     _bounds = ((-20., 0.), 
-               (-0.69, 20.), 
-               (-10., 10.), 
-               (-20., 5.), 
+               (2, 20.), 
+               (-10., 5.), 
+               (-20., 0.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
 
-    _default_gp_prior_mu = (-13, 6.2, -1.4, -17)
-    _default_gp_prior_sigma = (5.7, 1.5, 1.5, 5)
+    _default_gp_prior_mu = (-13, 7.2, -2.3, -17)
+    _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
 
     _acf_pmax = (5,10,20,40,60,100)
     _acf_prior_width = 0.1
