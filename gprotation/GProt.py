@@ -174,19 +174,6 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     return converged, mean_acorr, mean_ind, mean_diff
 
 
-def load_k2_data(epic_id, DATA_DIR):
-    hdulist = \
-        pyfits.open(os.path.join(
-            DATA_DIR,
-            "hlsp_everest_k2_llc_{0}-c04_kepler_v1.0_lc.fits"
-            .format(epic_id)))
-    time, flux = hdulist[1].data["TIME"], hdulist[1].data["FLUX"]
-    out = hdulist[1].data["OUTLIER"]
-    m = np.isfinite(time) * np.isfinite(flux) * (out < 1)
-    med = np.median(flux[m])
-    return time[m], flux[m]/med - 1
-
-
 def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
     if not clobber and os.path.exists(fname):
