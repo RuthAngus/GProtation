@@ -98,7 +98,7 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
         print("Plotting traces")
         for i in range(ndims):
             plt.clf()
-            plt.plot(sampler.get_coords()[:, :, i].T, 'k-', alpha=0.3)
+            plt.plot(sampler.get_coords()[:, :, i], 'k-', alpha=0.3)
             plt.ylabel(fig_labels[i])
             plt.savefig(os.path.join(RESULTS_DIR, "{0}_{1}.png".format(ID,
                         fig_labels[i])))
