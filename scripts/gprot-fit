@@ -54,7 +54,7 @@ def get_model(i, aigrain=True, kepler=False,
         lc.bandpass_filter()
 
     if clever and bestchunk is None:
-        lc.make_best_chunks(npoints=npoints)
+        lc.make_best_chunks(npoints=npoints, chunksize=chunksize)
     
     if bestchunk is not None:
         lc.make_best_chunks(bestchunk)

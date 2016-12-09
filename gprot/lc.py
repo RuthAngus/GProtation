@@ -179,7 +179,7 @@ class LightCurve(object):
 
         return pbest, maxheight, tau, quality
 
-    def best_sublc(self, ndays, npoints=600, 
+    def best_sublc(self, ndays, npoints=600, chunksize=300,
                     flat_order=3, **kwargs):
         """Returns new sub-LightCurve, choosing ndays with maximum RMS variation 
         """
@@ -217,7 +217,7 @@ class LightCurve(object):
         if 'sub' not in kwargs:
             kwargs['sub'] = window//npoints
 
-        return LightCurve(x, y, yerr, chunksize=None,
+        return LightCurve(x, y, yerr, chunksize=chunksize,
                           name=newname, **kwargs)        
 
     def make_best_chunks(self, ndays=[800, 200, 50], seed=None, **kwargs):
