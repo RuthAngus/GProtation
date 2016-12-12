@@ -162,7 +162,10 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     try:
         acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
     except emcee3.autocorr.AutocorrError:
-        return converged, [], [], []
+        try:
+            acorr_t = emcee3.autocorr.integrated_time(flat)
+        except emcee3.autocorr.AutocorrError:
+            return converged, [], [], []
     mean_acorr.append(np.mean(acorr_t))
     mean_ind = len(flat) / np.mean(acorr_t)
     mean_diff = None
