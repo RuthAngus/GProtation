@@ -42,9 +42,10 @@ def run_my_fit(i):
 	return
 
     fit = gp.fit(x, y, yerr, kid, RESULTS_DIR)
-#     fit.gp_fit(burnin=1000, nwalkers=16, nruns=5, full_run=1000, nsets=2)
-    fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2,
-               p_max=np.log(100))  # fast
+    fit.gp_fit(burnin=1000, nwalkers=16, nruns=5, full_run=1000, nsets=2,
+               p_max=np.log(100))
+#     fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2,
+#                p_max=np.log(100))  # fast
 
 
 if __name__ == "__main__":
@@ -53,9 +54,8 @@ if __name__ == "__main__":
     stars = np.genfromtxt(os.path.join(ruth2,
                           "code/data/NGC6819_members.txt")).T
 
-    for i in range(100):
-        run_my_fit(i)
+#     for i in range(100):
+#         run_my_fit(i)
 
-#     pool = Pool()
-#     pool.map(run_my_fit, range(100))
-#     pool.map(run_my_fit, range(2))
+    pool = Pool()
+    pool.map(run_my_fit, range(100))

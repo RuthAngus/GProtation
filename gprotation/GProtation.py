@@ -74,8 +74,11 @@ def make_plot(sampler, xb, yb, yerrb, ID, RESULTS_DIR, trths, traces=False,
     # calculate autocorrelation times
     try:
         acorr_t = emcee3.autocorr.integrated_time(flat, c=1)
-    except:
-        acorr_t = emcee3.autocorr.integrated_time(flat)
+    except emcee3.autocorr.AutocorrError:
+        try:
+            acorr_t = emcee3.autocorr.integrated_time(flat)
+        except emcee3.autocorr.AutocorrError:
+            acorr_t = [[], [], [], [], []]
 
     # save data
     df = pd.DataFrame({"N": [ID], "A_max": [r[0]], "l_max": [r[1]],

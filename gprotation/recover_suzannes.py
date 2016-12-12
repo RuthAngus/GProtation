@@ -45,6 +45,7 @@ def sigma_clip(x, y, yerr, nsigma):
     m = np.abs(y - med) > (nsigma * std)
     return x[~m], y[~m], yerr[~m]
 
+
 def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
     # sigma clip
@@ -81,8 +82,7 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
 def recover(i):
 
-#     RESULTS_DIR = "results_sigma"  # just 2 sets of 200 days
-    RESULTS_DIR = "results_emcee3"  # just 2 sets of 200 days
+    RESULTS_DIR = "results_emcee3_move"
     DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
 
     DIR = "../code/simulations/kepler_diffrot_full/par/"
@@ -96,8 +96,7 @@ def recover(i):
     yerr = np.ones_like(y) * 1e-5
 
     fit = gp.fit(x, y, yerr, sid, RESULTS_DIR)
-    fit.gp_fit(burnin=1000, nwalkers=17, nruns=5, full_run=1000, nsets=2)
-#     fit.gp_fit(burnin=2, nwalkers=12, nruns=2, full_run=50, nsets=2)  # fast
+    fit.gp_fit(burnin=1000, nwalkers=20, nruns=10, full_run=1000, nsets=2)
 
 
 if __name__ == "__main__":
@@ -108,10 +107,3 @@ if __name__ == "__main__":
 
     pool = Pool()
     results = pool.map(recover, range(len(truths.N.values[m][:100])))
-
-#     results = pool.map(recover, range(len(truths.N.values[m])))
-
-#     recover(32)
-
-#     for i in range(len(truths.N.values[m][:100])):
-# 	    recover(i)

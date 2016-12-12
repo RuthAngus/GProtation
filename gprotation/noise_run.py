@@ -14,10 +14,11 @@ def noise_fit(id, RESULTS_DIR, emcee2=False):
     yerr = np.ones_like(y) * 1e-5
 
     if emcee2:
-        e2.gp_fit(x, y, yerr, "{}2".format(id), RESULTS_DIR)
+        e2.gp_fit(x, y, yerr, "{}2".format(id), RESULTS_DIR, burnin=5000,
+                  nwalkers=20, nruns=10, full_run=2000)
     else:  # emcee 3
         fit = gp.fit(x, y, yerr, id, RESULTS_DIR)
-        fit.gp_fit(burnin=5000, nwalkers=16, nruns=10, full_run=1000, nsets=1)
+        fit.gp_fit(burnin=5000, nwalkers=20, nruns=10, full_run=2000, nsets=1)
 
 
 def noisy_sinusoid(period, amp, id, RESULTS_DIR, emcee2=False):
@@ -41,3 +42,5 @@ if __name__ == "__main__":
     noise_fit(0, RESULTS_DIR, emcee2=True)
 #     noisy_sinusoid(10, 1e-3, 1, RESULTS_DIR)
 #     noisy_sinusoid(10, 1e-3, 1, RESULTS_DIR, emcee2=True)
+#     noise_fit(3, RESULTS_DIR)  # moves
+#     noisy_sinusoid(10, 1e-3, 3, RESULTS_DIR)  # moves
