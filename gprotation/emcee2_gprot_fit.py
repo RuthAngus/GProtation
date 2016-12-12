@@ -38,7 +38,8 @@ def sigma_clip(x, y, yerr, nsigma):
     m = np.abs(y - med) > (nsigma * std)
     return x[~m], y[~m], yerr[~m]
 
-def gp_fit(x, y, yerr, sid, RESULTS_DIR):
+def gp_fit(x, y, yerr, sid, RESULTS_DIR, p_max=None, burnin=1000, nwalkers=14,
+           nruns=5, full_run=2000, nsets=1):
 
     # sigma clip
     x, y, yerr = sigma_clip(x, y, yerr, 5)
@@ -56,12 +57,12 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
     # set initial period
     p_init = acf_period
-    p_max = np.log((xb[0][-1] - xb[0][0]) / 2.)
+    if not p_max:
+        p_max = np.log((xb[0][-1] - xb[0][0]) / 2.)
     if p_init > np.exp(p_max):
         p_init = 40
     elif p_init < .5:
         p_init = 10
-    burnin, nwalkers, nruns, full_run = 1000, 16, 5, 1000
 
     assert p_init < np.exp(p_max), "p_init > p_max"
 
