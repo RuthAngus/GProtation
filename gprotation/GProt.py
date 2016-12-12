@@ -60,9 +60,9 @@ def mcmc_fit(x, y, yerr, p_init, p_max, id, RESULTS_DIR, truths, burnin=500,
     model = emcee3.SimpleModel(mod.lnlike_split, mod.Glnprior)
     p0 = [theta_init + 1e-4 * np.random.rand(ndim) for i in range(nwalkers)]
     ensemble = emcee3.Ensemble(model, p0)
-#     moves = emcee3.moves.KDEMove()
-#     sampler = emcee3.Sampler(moves)
-    sampler = emcee3.Sampler()
+    moves = emcee3.moves.KDEMove()
+    sampler = emcee3.Sampler(moves)
+#     sampler = emcee3.Sampler()
 
     print("burning in...")
     total_start = time.time()
