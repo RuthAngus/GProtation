@@ -106,4 +106,4 @@ if __name__ == "__main__":
     m = truths.DELTA_OMEGA.values == 0
 
     pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m][:100])))
+    results = pool.map(recover, range(len(truths.N.values[m])))
