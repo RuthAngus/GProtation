@@ -4,6 +4,7 @@ import re
 import numpy as np
 import pandas as pd
 import time
+import logging
 
 from collections import OrderedDict
 
