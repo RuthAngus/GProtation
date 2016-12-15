@@ -120,6 +120,11 @@ class GPRotModel(object):
                 return -np.inf
         if theta[-1] < self.pmin or theta[-1] > self.pmax:
             return -np.inf
+
+        # Don't let SE correlation length be shorter than P.
+        if theta[1] < theta[-1]:
+            return -np.inf
+
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
 
@@ -196,6 +201,7 @@ class GPRotModel(object):
         """
         if not hasattr(self, '_period_mixture'):
             self._period_mixture = []
+            ln2 = np.log(2)
             wtot = 0
             for _, _, _, w in self.acf_results:
                 if np.isfinite(w):
@@ -204,11 +210,10 @@ class GPRotModel(object):
                 if not np.isfinite(w):
                     continue
                 wi = w/wtot
-                # add 80% at this period, and 10% at twice and half
-                self._period_mixture.append((0.8*wi, np.log(p), self.acf_prior_width))
-                ln2 = np.log(2)
-                self._period_mixture.append((0.1*wi, np.log(p)-ln2, self.acf_prior_width))
-                self._period_mixture.append((0.1*wi, np.log(p)+ln2, self.acf_prior_width))
+                # add 90% at this period, and 5% at twice and half
+                self._period_mixture.append((0.9*wi, np.log(p), self.acf_prior_width))
+                self._period_mixture.append((0.05*wi, np.log(p)-ln2, self.acf_prior_width))
+                self._period_mixture.append((0.05*wi, np.log(p)+ln2, self.acf_prior_width))
 
         return self._period_mixture
 
