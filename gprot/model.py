@@ -37,7 +37,7 @@ class GPRotModel(object):
     _default_gp_prior_mu = (-13, 7.2, -2.3, -17)
     _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
 
-    _acf_pmax = (5,10,20,40,60,100)
+    _acf_pmax = (3,5,10,30,50,100)
     _acf_prior_width = 0.1
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,

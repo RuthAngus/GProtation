@@ -32,6 +32,9 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     prior_df = pd.DataFrame({'mu':mod.gp_prior_mu,
                              'sigma':mod.gp_prior_sigma})
     prior_df.to_hdf(samplefile, 'gp_prior')
+    if mod.acf_prior:
+        period_prior_df = pd.DataFrame(mod.period_mixture, columns=['w','mu','sigma'])
+        period_prior_df.to_hdf(samplefile, 'period_prior')
 
     print('Samples, light curve, and prior saved to {}.'.format(samplefile))
     figfile = os.path.join(resultsdir, '{}.png'.format(mod.name))
