@@ -124,8 +124,8 @@ class KeplerLightCurve(LightCurve):
                 hdu_data = f[1].data
                 t = hdu_data["time"]
 
-                f = hdu_data["pdc_sap_flux"]
-                f_e = hdu_data["pdc_sap_flux_err"]
+                f = hdu_data["pdcsap_flux"]
+                f_e = hdu_data["pdcsap_flux_err"]
                 q = hdu_data["sap_quality"]
 
                 # Keep only good points, median-normalize and mean-subtract flux
