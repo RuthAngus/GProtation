@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import re
 import numpy as np
 import pandas as pd
-import time
+from time import sleep
 import logging
 
 from collections import OrderedDict
@@ -123,9 +123,9 @@ class KeplerLightCurve(LightCurve):
                     kois = []
                 done = True
             except APIError:
-                wait = time.sleep(np.random.random() * wait_time)
+                wait = sleep(np.random.random() * wait_time)
                 logging.warning('APIError received; waiting {:.2f} seconds before trying again...')
-                time.sleep(wait)
+                sleep(wait)
                 i += 1
                 if i == max_tries:
                     logging.error('Tried {} times to contact kplr API and failed.'.format(max_tries))
