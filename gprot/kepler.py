@@ -123,7 +123,7 @@ class KeplerLightCurve(LightCurve):
                     kois = []
                 done = True
             except APIError:
-                wait = sleep(np.random.random() * wait_time)
+                wait = np.random.random() * wait_time
                 logging.warning('APIError received; waiting {:.2f} seconds before trying again...')
                 sleep(wait)
                 i += 1
