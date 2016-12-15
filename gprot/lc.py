@@ -96,7 +96,7 @@ class LightCurve(object):
         if filter:
             if self._x_full is None:
                 self._get_data()
-                
+
             x, y, yerr = bandpass_filter(self._x_full,
                                          self._y_full,
                                          self._yerr_full, zero_fill=True,
@@ -181,6 +181,7 @@ class LightCurve(object):
 
         tau = fit.x[1]
         quality =  1./ (fit.fun / len(lags) / maxheight) # bigger is better
+        quality *= tau/pbest # enhance quality for long decay timescales.
 
         return pbest, maxheight, tau, quality
 
