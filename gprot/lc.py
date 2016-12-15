@@ -124,7 +124,7 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, pmin=0.5, pmax=100, delta=0.02, lookahead=30,
+    def acf_prot(self, pmin=0.1, pmax=100, delta=0.02, lookahead=30,
                  peak_to_trough=True, maxpeaks=1):
         """Returns best guess of prot from ACF, and height of peak
 
