@@ -124,7 +124,7 @@ class KeplerLightCurve(LightCurve):
                 done = True
             except APIError:
                 wait = np.random.random() * wait_time
-                logging.warning('APIError received; waiting {:.2f} seconds before trying again...')
+                logging.warning('APIError received; waiting {:.2f} seconds before trying again...'.format(wait))
                 sleep(wait)
                 i += 1
                 if i == max_tries:
