@@ -90,7 +90,7 @@ class LightCurve(object):
         if self.sub is not None:
             self.subsample(self.sub)
 
-    def acf(self, pmin=0.5, pmax=100, filter=True, smooth=None):
+    def acf(self, pmin=0.1, pmax=100, filter=True, smooth=None):
         """Filters with pmax = pmax, then returns ACF up to lag=2*pmax
         """
         if filter:
