@@ -91,6 +91,8 @@ class LightCurve(object):
             self.subsample(self.sub)
 
     def acf(self, pmin=0.5, pmax=100, filter=True, smooth=None):
+        """Returns ACF up to lag=2*pmax
+        """
         if filter:
             x, y, yerr = bandpass_filter(self._x_full,
                                          self._y_full,

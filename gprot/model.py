@@ -38,7 +38,7 @@ class GPRotModel(object):
     _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
 
     _acf_pmax = (5,10,20,40,60,100)
-    _acf_prior_width = 0.2
+    _acf_prior_width = 0.1
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
                  acf_prior=False):
@@ -203,7 +203,12 @@ class GPRotModel(object):
             for p, _, _, w in self.acf_results:
                 if not np.isfinite(w):
                     continue
-                self._period_mixture.append((w/wtot, np.log(p), self.acf_prior_width))
+                wi = w/wtot
+                # add 80% at this period, and 10% at twice and half
+                self._period_mixture.append((0.8*wi, np.log(p), self.acf_prior_width))
+                ln2 = np.log(2)
+                self._period_mixture.append((0.1*wi, np.log(p)-ln2, self.acf_prior_width))
+                self._period_mixture.append((0.1*wi, np.log(p)+ln2, self.acf_prior_width))
 
         return self._period_mixture
 
