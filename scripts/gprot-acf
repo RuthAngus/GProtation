@@ -6,6 +6,7 @@ import logging
 import numpy as np
 
 from gprot.aigrain import AigrainLightCurve
+from gprot.kepler import KeplerLightCurve
 
 def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
     if aigrain:
