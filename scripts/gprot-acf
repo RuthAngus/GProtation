@@ -48,6 +48,8 @@ if __name__=='__main__':
                        action="store_true", help="Run with MPI.")
 
     args = parser.parse_args()
+    if args.kepler:
+        args.aigrain = False
 
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
 
