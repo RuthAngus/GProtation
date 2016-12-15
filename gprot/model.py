@@ -28,7 +28,7 @@ class GPRotModel(object):
     # log bounds
     _bounds = ((-20., 0.), 
                (2, 20.), 
-               (-10., 5.), 
+               (-10., 3.), 
                (-20., 0.), 
                (-0.69, 4.61)) # 0.5 - 100d range
 
