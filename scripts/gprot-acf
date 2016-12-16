@@ -9,12 +9,15 @@ from gprot.aigrain import AigrainLightCurve
 from gprot.kepler import KeplerLightCurve
 
 def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
-    if aigrain:
-        lc = AigrainLightCurve(i)
-    elif kepler:
-        lc = KeplerLightCurve(i)
+    try:
+        if aigrain:
+            lc = AigrainLightCurve(i)
+        elif kepler:
+            lc = KeplerLightCurve(i)
 
-    return [lc.acf_prot(pmax=p) for p in pmax]
+        return [lc.acf_prot(pmax=p) for p in pmax]
+    except:
+        return [[np.nan]*4 for p in pmax]
 
 class ProtWorker(object):
     """
@@ -26,10 +29,7 @@ class ProtWorker(object):
     def __call__(self, i):
         if self.verbose:
             print(i)
-        try:
-            return get_prot(i, **self.kwargs)
-        except:
-            return [np.nan]*4
+        return get_prot(i, **self.kwargs)
 
 if __name__=='__main__':
     import argparse
