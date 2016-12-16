@@ -15,12 +15,17 @@ import scipy.optimize as spo
 import time
 import os
 import pandas as pd
+from scipy.misc import logsumexp
 
 def lnGauss(x, mu, sigma):
     return -0.5 * ((x - mu)**2/(sigma**2)) + np.log(1./np.sqrt(2*np.pi*sigma**2))
 
 def lnGauss_mixture(x, mix):
-    return np.log(np.sum([w*np.exp(lnGauss(x, mu, sig)) for w, mu, sig in mix]))
+    w = mix[:, 0]
+    mu = mix[:, 1]
+    sigma = mix[:, 2]
+    return logsumexp(lnGauss(x, mu, sigma), b=w)
+    # return np.log(np.sum([w*np.exp(lnGauss(x, mu, sig)) for w, mu, sig in mix]))
 
 class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
@@ -214,6 +219,7 @@ class GPRotModel(object):
                 self._period_mixture.append((0.9*wi, np.log(p), self.acf_prior_width))
                 self._period_mixture.append((0.05*wi, np.log(p)-ln2, self.acf_prior_width))
                 self._period_mixture.append((0.05*wi, np.log(p)+ln2, self.acf_prior_width))
+            self._period_mixture = np.array(self._period_mixture)
 
         return self._period_mixture
 
