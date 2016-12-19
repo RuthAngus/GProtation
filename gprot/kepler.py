@@ -108,28 +108,16 @@ class KeplerLightCurve(LightCurve):
             client = kplr.API()
 
         # Query kplr API to get KOI/KIC info.
-        # Hackishly try to make it work for lots of requests at once (e.g. on cluster)
-        max_tries = 10
-        wait_time = 5
-        done = False
-        i = 0
-        while not done:
-            try:
-                if self.is_koi:
-                    star = client.koi(self.koinum + 0.01)                
-                    kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
-                else:
-                    star = client.star(self.kepid)
-                    kois = []
-                done = True
-            except APIError:
-                wait = np.random.random() * wait_time
-                logging.warning('APIError received; waiting {:.2f} seconds before trying again...'.format(wait))
-                sleep(wait)
-                i += 1
-                if i == max_tries:
-                    logging.error('Tried {} times to contact kplr API and failed.'.format(max_tries))
-                    raise 
+        try:
+            if self.is_koi:
+                star = client.koi(self.koinum + 0.01)                
+                kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
+            else:
+                star = client.star(self.kepid)
+                kois = []
+        except APIError:
+            raise
+            self.no_kplr = True
 
         # Get a list of light curve datasets.
         lcs = star.get_light_curves(short_cadence=False, clobber=clobber)

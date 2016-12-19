@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-import os, glob
+import os, glob, re
 import numpy as np
 import pandas as pd
 from collections import OrderedDict
@@ -42,7 +42,7 @@ def summarize_fits(directory, quantiles=[0.05,0.16,0.5,0.84,0.95],
     for name in names:
         try:
             name = int(name)
-        except TypeError:
+        except ValueError:
             pass
         d[name] = OrderedDict()
         sample_file = os.path.join(directory, '{}.h5'.format(name))

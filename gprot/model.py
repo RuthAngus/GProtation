@@ -198,6 +198,9 @@ class GPRotModel(object):
     def _calc_acf(self):
         self._acf_results = [self.lc.acf_prot(pmax=p) for p in self.acf_pmax]
 
+    def _lnp_in_bounds(self, lnp):
+        return lnp > self.bounds[-1][0] and lnp < self.bounds[-1][1]
+
     @property
     def period_mixture(self):
         """Gaussian mixture describing period prior
@@ -208,7 +211,7 @@ class GPRotModel(object):
             self._period_mixture = []
             ln2 = np.log(2)
             wtot = 0
-            for _, _, _, w in self.acf_results:
+            for p, _, _, w in self.acf_results:
                 if np.isfinite(w):
                     wtot += w
             for p, _, _, w in self.acf_results:
@@ -216,9 +219,15 @@ class GPRotModel(object):
                     continue
                 wi = w/wtot
                 # add 90% at this period, and 5% at twice and half
-                self._period_mixture.append((0.9*wi, np.log(p), self.acf_prior_width))
-                self._period_mixture.append((0.05*wi, np.log(p)-ln2, self.acf_prior_width))
-                self._period_mixture.append((0.05*wi, np.log(p)+ln2, self.acf_prior_width))
+                lnp = np.log(p)
+                lnplo = lnp - ln2
+                lnphi = lnp + ln2
+                if self._lnp_in_bounds(lnp):
+                    self._period_mixture.append((0.9*wi, lnp, self.acf_prior_width))
+                if self._lnp_in_bounds(lnplo):
+                    self._period_mixture.append((0.05*wi, lnplo, self.acf_prior_width))
+                if self._lnp_in_bounds(lnphi):
+                    self._period_mixture.append((0.05*wi, lnphi, self.acf_prior_width))
             self._period_mixture = np.array(self._period_mixture)
 
         return self._period_mixture
