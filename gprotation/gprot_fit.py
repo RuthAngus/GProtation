@@ -1,14 +1,14 @@
 from __future__ import print_function
 import numpy as np
-from GProt import mcmc_fit
+import matplotlib.pyplot as plt
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
-from multiprocessing import Pool
-import h5py
 import math
-import simple_acf as sa
+
 from gatspy.periodic import LombScargle
+
+from GProt import mcmc_fit
+import simple_acf as sa
 
 
 class fit(object):
@@ -35,7 +35,7 @@ class fit(object):
         self.acf_period, _, self.pgram_period, _ = self.calc_p_init()
 
     def gp_fit(self, burnin=1000, nwalkers=16, nruns=5, full_run=1000,
-               nsets=None):
+               nsets=None, p_max=None):
         """
         param nsets: (int or None)
             The number of light curve sets.
@@ -44,12 +44,16 @@ class fit(object):
 
         # set initial period
         p_init = self.acf_period
-        p_max = np.log((self.xb[0][-1] - self.xb[0][0]) / 2.)
+        if not p_max:
+            p_max = np.log((self.xb[0][-1] - self.xb[0][0]) / 2.)
         if p_init > np.exp(p_max):
             p_init = 40
         elif p_init < .5:
             p_init = 10
-        assert p_init < np.exp(p_max), "p_init > p_max"
+        if p_init > np.exp(p_max):
+            p_init = np.exp(p_max) - 1
+        assert p_init < np.exp(p_max), "p_init > p_max, p_init = {0} " \
+                "p_max = {1}".format(p_init, np.exp(p_max))
 
         trths = [None, None, None, None, None]
         if nsets:  # for running on a specific number of sets.
@@ -81,7 +85,7 @@ class fit(object):
 
         Returns subsampled x, y and yerr arrays.
         """
-        nkeep = points_per_day * (x[-1] - x[0])
+        nkeep = points_per_day * int(x[-1] - x[0])
         m = np.zeros(len(x), dtype=bool)
         l = np.random.choice(np.arange(len(x)), nkeep)
         for i in l:
