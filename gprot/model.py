@@ -126,7 +126,7 @@ class GPRotModel(object):
         if theta[-1] < self.pmin or theta[-1] > self.pmax:
             return -np.inf
 
-        Don't let SE correlation length be shorter than P.
+        # Don't let SE correlation length be shorter than P.
         if theta[1] < theta[-1]:
             return -np.inf
 
