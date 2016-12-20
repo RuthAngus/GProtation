@@ -579,19 +579,20 @@ Sampling the posterior described above presents several challenges:
 to perform inference on large numbers of light curves\footnote{All computational
 times cited in this section are based on evaluations on a 
 single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.}.  The matrix operations
-necessary to evaluate the GP likelihood (using the fast matrix solver 
+necessary to evaluate the GP likelihood\footnote{These operations use 
+the fast matrix solver 
 HODLR \citep{Ambikasaran2014}, implemented in the {\tt george} \citep{George} 
-python package) scale as $N\ln(N)^2$, where $N$ is
+python package.} scale as $N\ln(N)^2$, where $N$ is
 the number of data points in the light curve.
 
 \item The flexibility of this GP model allows for insidious kinds of 
-posterior multimodality and "over-fitting"--like behavior.  For example, 
+posterior multimodality and ``over-fitting''--like behavior.  For example, 
 if $l$ is small,  the non-periodic factor in the covariance kernel may dominate, 
 allowing for a good fit to the data without requiring any 
 periodic covariance structure---even if
 clear periodic structure is present.  Additionally, if $\Gamma$ is too large,
-then [explain in more technical terms that "the GP gets way too wiggly and
-overfits the data without caring about the periodicity." ]
+then [explain in more technical terms that ``the GP gets way too wiggly and
+overfits the data without caring about the periodicity.'' ]
 
 \item In some cases, the posterior may also be multi-modal in period---that is, 
 there may be significant posterior density at half or twice the true period $P$.
@@ -599,7 +600,7 @@ This is related to how the ACF method must guard against identifying periods
 at half or twice the true period. 
 \end{itemize}
 
-We address the first of these difficulties in two distinct ways: subsampling
+We address the difficulty of computational speed in two distinct ways: subsampling
 the data and splitting the light curve into independent sections.  
 To subsample, we randomly select 1/30th of the points in the full light curve (an 
 average of $\sim$1.5 points per day).  This decreases the likelihood evaluation 
@@ -624,7 +625,11 @@ constraining the allowed ranges of the parameters, after discovering
 that some regions of parameter space (such as large values of $A$ and $\Gamma$
 and small values of $l$) tended to allow fits that ignored the desired
 periodicity.  The priors we used for this work are listed in
-table \ref{tab:priors}.  
+table \ref{tab:priors}.  We note that we do not have any particular
+quantitative justification for the use of these priors,
+except that they produce good results for this particular test set of 
+light curves.  We thus caution that other data sets might have different
+noise properties, potentially requiring modifications to these priors.
 % We note that our default prior for period is 
 % log-uniform between the bounds, but that we were also able to 
 % further improve our results by using an ACF-inspired prior.
@@ -642,9 +647,6 @@ time.  When convergence is achieved, we drop the first two autocorrelation
 lengths in the chain as a burn-in, and randomly choose 5000 samples as 
 representative of the posterior.  This fitting process takes several hours 
 for a typical simulated light curve.
-
-Figure \ref{fig:compare_mcmc} summarizes the results of this MCMC fitting procedure
-compared to the injected ``true'' stellar rotation periods. 
 
 \begin{table*}
 \begin{center}
@@ -673,6 +675,8 @@ technique.}
 \end{center}
 \end{figure*}
 
+Figure \ref{fig:compare_mcmc} summarizes the results of this MCMC fitting procedure
+compared to the injected ``true'' stellar rotation periods. 
 The marginal posterior distributions of the QP kernel hyperparameters for the
 example simulated light curve with in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
