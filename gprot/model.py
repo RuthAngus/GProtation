@@ -127,8 +127,8 @@ class GPRotModel(object):
             return -np.inf
 
         # Don't let SE correlation length be shorter than P.
-        if theta[1] < theta[-1]:
-            return -np.inf
+        # if theta[1] < theta[-1]:
+        #     return -np.inf
 
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
