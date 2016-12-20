@@ -3,10 +3,13 @@ from __future__ import print_function, division
 import re
 import numpy as np
 import pandas as pd
+from time import sleep
+import logging
 
 from collections import OrderedDict
 
 import kplr
+from kplr.api import APIError
 
 from .lc import LightCurve, qtr_times
 
@@ -31,7 +34,7 @@ class KeplerLightCurve(LightCurve):
         (Approximate) number of points in each subchunk of the light curve.
     """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
-                 quarters=None, normalized=True, careful_stitching=True):
+                 quarters=None, normalized=True, careful_stitching=False):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -104,12 +107,17 @@ class KeplerLightCurve(LightCurve):
         if client is None:
             client = kplr.API()
 
-        if self.is_koi:
-            star = client.koi(self.koinum + 0.01)
-            kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
-        else:
-            star = client.star(self.kepid)
-            kois = []
+        # Query kplr API to get KOI/KIC info.
+        try:
+            if self.is_koi:
+                star = client.koi(self.koinum + 0.01)                
+                kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
+            else:
+                star = client.star(self.kepid)
+                kois = []
+        except APIError:
+            raise
+            self.no_kplr = True
 
         # Get a list of light curve datasets.
         lcs = star.get_light_curves(short_cadence=False, clobber=clobber)
@@ -124,12 +132,12 @@ class KeplerLightCurve(LightCurve):
                 hdu_data = f[1].data
                 t = hdu_data["time"]
 
-                f = hdu_data["sap_flux"]
-                f_e = hdu_data["sap_flux_err"]
+                f = hdu_data["pdcsap_flux"]
+                f_e = hdu_data["pdcsap_flux_err"]
                 q = hdu_data["sap_quality"]
 
                 # Keep only good points, median-normalize and mean-subtract flux
-                m = np.logical_not(q)
+                m = np.logical_not(q) & np.isfinite(f) & np.isfinite(f_e)
 
                 if self.quarters is not None:
                     ok = False
@@ -152,6 +160,7 @@ class KeplerLightCurve(LightCurve):
                     ferr.append(f_e[m])
 
                 if self.careful_stitching:
+                    raise NotImplementedError('Do not use "careful_stitching option; not necessary')
                     # Use polynomial fit from last quarter to set level.
                     if p_last is not None:
                         t0 = time[-1][0]

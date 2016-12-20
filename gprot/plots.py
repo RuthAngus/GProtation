@@ -22,14 +22,18 @@ from emcee3.backends import HDFBackend
 from .model import GPRotModel, GPRotModel2
 
 def trace_plot(star, directory='mcmc_chains', kepler=False, thin=10):
-    filename = os.path.join(directory, '{}.h5'.format(star))
+    if kepler:
+        filename = os.path.join(directory, 'KOI-{}.h5'.format(star))
+    else:
+        filename = os.path.join(directory, '{}.h5'.format(star))
+
     b = HDFBackend(filename)
     coords = b.get_coords()
     ndim = coords.shape[-1]
     fig, axes = plt.subplots(ndim, 1, sharex=True, figsize=(8,8))
     for i,ax in enumerate(axes):
         ax.plot(coords[::thin, :, i], lw=1, alpha=0.2);
-        if i==ndim - 1:
+        if i==ndim - 1 and not kepler:
             from .aigrain import AigrainTruths
             truth = AigrainTruths().df
             ax.axhline(np.log(truth.ix[star, 'PEQ']), lw=1, color='r')        

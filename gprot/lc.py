@@ -90,10 +90,13 @@ class LightCurve(object):
         if self.sub is not None:
             self.subsample(self.sub)
 
-    def acf(self, pmin=0.5, pmax=100, filter=True, smooth=None):
-        """Returns ACF up to lag=2*pmax
+    def acf(self, pmin=0.1, pmax=100, filter=True, smooth=None):
+        """Filters with pmax = pmax, then returns ACF up to lag=2*pmax
         """
         if filter:
+            if self._x_full is None:
+                self._get_data()
+
             x, y, yerr = bandpass_filter(self._x_full,
                                          self._y_full,
                                          self._yerr_full, zero_fill=True,
@@ -121,7 +124,7 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, pmin=0.5, pmax=100, delta=0.02, lookahead=30,
+    def acf_prot(self, pmin=0.1, pmax=100, delta=0.02, lookahead=30,
                  peak_to_trough=True, maxpeaks=1):
         """Returns best guess of prot from ACF, and height of peak
 
@@ -178,6 +181,7 @@ class LightCurve(object):
 
         tau = fit.x[1]
         quality =  1./ (fit.fun / len(lags) / maxheight) # bigger is better
+        quality *= tau/pbest # enhance quality for long decay timescales.
 
         return pbest, maxheight, tau, quality
 
