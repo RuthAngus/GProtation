@@ -97,22 +97,19 @@ class GPRotModel(object):
         Returns N x ndim array of prior samples
         (within bounds)
         """
-        samples = np.empty((N, self.ndim))
+        samples = np.inf*np.ones((N, self.ndim))
 
         np.random.seed(seed)
-        for i in range(self.ndim - 1):
-            vals = np.inf*np.ones(N)
-            m = ~np.isfinite(vals)
+        m = np.ones(N, dtype=bool)
+        nbad = m.sum()
+        while nbad > 0:
+            rn = np.random.randn(N * (self.ndim-1)).reshape((N, self.ndim-1))
+            for i in range(self.ndim - 1):
+                samples[m, i] = rn[m, i]*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+            samples[m, -1] = self.sample_period_prior(nbad)
+            lnp = np.array([self.lnprior(theta) for theta in samples])
+            m = ~np.isfinite(lnp)
             nbad = m.sum()
-            while nbad > 0:
-                rn = np.random.randn(nbad)
-                vals[m] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
-                m = (vals < self.bounds[i][0]) | (vals > self.bounds[i][1])
-                nbad = m.sum()
-
-            samples[:, i] = vals
-
-        samples[:, -1] = self.sample_period_prior(N)
 
         return samples
 
