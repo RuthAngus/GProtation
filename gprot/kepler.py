@@ -34,7 +34,8 @@ class KeplerLightCurve(LightCurve):
         (Approximate) number of points in each subchunk of the light curve.
     """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
-                 quarters=None, normalized=True, careful_stitching=False):
+                 quarters=None, normalized=True, careful_stitching=False,
+                 sap=False):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -55,6 +56,7 @@ class KeplerLightCurve(LightCurve):
         self.nsigma = nsigma
         self.chunksize = chunksize
         self.normalized = normalized
+        self.sap = sap        
         self.careful_stitching = careful_stitching
 
         self._x = None
@@ -132,8 +134,12 @@ class KeplerLightCurve(LightCurve):
                 hdu_data = f[1].data
                 t = hdu_data["time"]
 
-                f = hdu_data["pdcsap_flux"]
-                f_e = hdu_data["pdcsap_flux_err"]
+                if self.sap:
+                    f = hdu_data['sap_flux']
+                    f_e = hdu_data['sap_flux_err']
+                else:
+                    f = hdu_data["pdcsap_flux"]
+                    f_e = hdu_data["pdcsap_flux_err"]
                 q = hdu_data["sap_quality"]
 
                 # Keep only good points, median-normalize and mean-subtract flux
@@ -160,7 +166,8 @@ class KeplerLightCurve(LightCurve):
                     ferr.append(f_e[m])
 
                 if self.careful_stitching:
-                    raise NotImplementedError('Do not use "careful_stitching option; not necessary')
+                    if not self.sap:
+                        raise NotImplementedError('Do not use "careful_stitching" option if not using SAP data.')
                     # Use polynomial fit from last quarter to set level.
                     if p_last is not None:
                         t0 = time[-1][0]

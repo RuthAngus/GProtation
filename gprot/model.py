@@ -127,8 +127,8 @@ class GPRotModel(object):
             return -np.inf
 
         # Don't let SE correlation length be shorter than P.
-        # if theta[1] < theta[-1]:
-        #     return -np.inf
+        if theta[1] < theta[-1]:
+            return -np.inf
 
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
@@ -148,6 +148,28 @@ class GPRotModel(object):
             return 0
         else:
             return lnGauss_mixture(p, self.period_mixture)
+
+    def plot_period_prior(self, ax=None, log=False, truth=None, **kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        ps = np.linspace(self.bounds[-1][0], self.bounds[-1][1], 1000)
+        lnp = np.array([self.lnprior_period(p) for p in ps])
+
+        if log:
+            ax.plot(ps, lnp, **kwargs)
+        else:
+            ax.plot(ps, np.exp(lnp - lnp.max()), **kwargs)
+
+        if truth is not None:
+            ax.axvline(truth, c='r', ls=':')
+
+        ax.set_xlabel('log(period)')
+        ax.set_ylabel('Probability density')
+        ax.set_yticks([])
+        return fig
 
     def sample_period_prior(self, N):
         loP, hiP = self.bounds[-1]
