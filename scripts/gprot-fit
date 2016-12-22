@@ -1,0 +1,200 @@
+#!/usr/bin/env python
+
+import sys, os
+import logging
+
+import numpy as np
+import matplotlib
+matplotlib.use('agg')
+
+from gprot.model import GPRotModel, GPRotModel2
+from gprot.config import POLYCHORD
+from gprot.fit import fit_mnest, fit_emcee3
+
+def fit_polychord(i, test=False, nlive=1000):
+    raise NotImplementedError
+
+    sys.path.append(POLYCHORD)
+    import PyPolyChord.PyPolyChord as PolyChord
+
+    lc = AigrainLightCurve(i)
+    mod = GPRotModel(lc)
+    basename = str(i)
+    if test:
+        print('Will run polychord on star {}...'.format(i))
+    else:
+        _ = PolyChord.run_nested_sampling(mod.polychord_lnpost, 5, 0,
+                        prior=mod.polychord_prior,
+                        file_root=basename, n_live_points=nlive)    
+
+def get_model(i, aigrain=True, kepler=False,
+                ndays=None, subsample=40, chunksize=200, daterange=None,
+                resultsdir='results', quarters=None, clever=True,
+                bestchunk=None, pmax=None, filter=False, tag=None, 
+                altmodel=False, nochunks=False, npoints=600, 
+                acf_prior=False, **kwargs):
+    if not aigrain and not kepler:
+        raise ValueError('Must specify either --aigrain or --kepler.')
+        sys.exit(1)
+    if clever:
+        quarters = None
+        daterange = None
+        subsample = None
+    if nochunks:
+        chunksize = None
+    if aigrain:
+        from gprot.aigrain import AigrainLightCurve
+        lc = AigrainLightCurve(i, ndays, subsample, chunksize=chunksize,
+                                quarters=quarters)
+    elif kepler:
+        from gprot.kepler import KeplerLightCurve
+        lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
+                                quarters=quarters)
+    if filter:
+        lc.bandpass_filter()
+
+    if clever and bestchunk is None:
+        lc.make_best_chunks(npoints=npoints, chunksize=chunksize)
+    
+    if bestchunk is not None:
+        lc.make_best_chunks(bestchunk)
+
+    if daterange is not None:
+        lc.restrict_range(daterange)
+
+    if tag is not None:
+        lc.name = lc.name + '_{}'.format(tag)
+
+    if pmax is None and bestchunk is not None:
+        try:
+            pmax = np.log(max(bestchunk))
+        except TypeError:
+            pmax = np.log(bestchunk)
+
+    if altmodel:
+        mod = GPRotModel2(lc, pmax=pmax, acf_prior=acf_prior)
+    else:
+        mod = GPRotModel(lc, pmax=pmax, acf_prior=acf_prior)
+    fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
+    if not os.path.exists(resultsdir):
+        os.makedirs(resultsdir)
+    figfilename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
+    fig.savefig(figfilename)
+    print('Light curve plot saved to {}.'.format(figfilename))
+    return mod
+
+def _fit_emcee3(i, **kwargs):
+    mod = get_model(i, **kwargs)
+    fit_emcee3(mod, **kwargs)
+
+def _fit_mnest(i, aigrain=True, kepler=False, daterange=None,
+                ndays=None, subsample=40, chunksize=200, 
+                resultsdir='results', quarters=None, clever=True, 
+                bestchunk=None, filter=False, tag=None, **kwargs):
+    mod = get_model(i, aigrain=aigrain, kepler=kepler,
+                    ndays=ndays, subsample=subsample, chunksize=chunksize,
+                    daterange=daterange, resultsdir=resultsdir, quarters=quarters,
+                    clever=clever, bestchunk=bestchunk, filter=filter, tag=tag)
+    basename = os.path.join('chains',str(i))
+    fit_mnest(mod, basename=basename, **kwargs)
+
+if __name__=='__main__':
+    import argparse
+    import schwimmbad
+
+    parser = argparse.ArgumentParser(description='Fit aigrain simulations or kepler light curves' +
+                                        'with GP rotation model.')
+
+    parser.add_argument('stars', nargs='+', type=int, help='Stars to fit.')
+
+    datagroup = parser.add_mutually_exclusive_group()
+    datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
+                       help="Use Aigrain simulations.")
+    datagroup.add_argument("--kepler", dest="kepler", action='store_true',
+                       help="Use Kepler data.")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--ncores", dest="n_cores", default=1,
+                       type=int, help="Number of processes (uses multiprocessing).")
+    group.add_argument("--mpi", dest="mpi", default=False,
+                       action="store_true", help="Run with MPI.")
+
+
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                        help='Have the sampler talk to you.')
+    parser.add_argument('--clever', action='store_true',
+                        help='Subsample in a tiered way but use whole light curve. ' +
+                             'Supersedes "quarters", "subsample", and "daterange", ' + 
+                             'arguments.')
+    parser.add_argument('--npoints', type=int, default=600)
+    parser.add_argument('--acf_prior', action='store_true')
+    parser.add_argument('--filter', action='store_true')
+    parser.add_argument('--bestchunk', nargs='+', type=int, default=None)
+    parser.add_argument('--tag', default=None)
+    parser.add_argument('--quarters', nargs='+', type=int, default=None)
+    parser.add_argument('--sampler', choices=['mnest', 'emcee3', 'polychord'],
+                            default='emcee3', 
+                        help='Which sampling method to use.')    
+    parser.add_argument('--resultsdir', default='results', 
+                        help='Directory in which to store results.')
+    parser.add_argument('-n', '--ndays', default=None, type=int,
+                        help='Number of days (from beginning) of light curve ' +
+                             'to use for fitting.')
+    parser.add_argument('--subsample', default=30, type=int, 
+                        help='subsampling factor.')
+    parser.add_argument('--chunksize', default=300, type=int,
+                        help='Size (in number of points) of the chunks into which ' +
+                             'to split light curve.')
+    parser.add_argument('--nwalkers', default=500, type=int,
+                        help='Number of walkers (for emcee3)')
+    parser.add_argument('--iter_chunksize', default=50, type=int,
+                        help='Number of emcee3 steps after which to check ' +
+                             'for convergence.')
+    parser.add_argument('--targetn', default=6, type=int, 
+                        help='Number of autocorrelation times after which to ' + 
+                             'say fit has converged.')
+    parser.add_argument('--nburn', default=2, type=int, 
+                        help='Number of autocorrelation times to toss out as burn-in.')
+    parser.add_argument('--maxiter', default=50, type=int,
+                        help='Maximum number of times to repeat <iter_chunksize> ' +
+                             'steps of emcee3.')
+    parser.add_argument('-o', '--overwrite', action='store_true', 
+                        help='Overwrite existing fit.  If this is not set and a ' +
+                             'fit has been done/started before, it will restart from ' +
+                             'previous stopping point.')
+    parser.add_argument('--daterange', nargs=2, type=float,
+                        help='Beginning and end of specified date range of fit.')
+    parser.add_argument('--mixedmoves', action='store_true', default=True,
+                        help='If this is set, then a 2:2:1 mix of KDEMove, DEMove ' +
+                             'and DESnookerMove are used in emcee3 fit. ' +
+                             'Otherwise, just KDEMove is used.')
+    parser.add_argument('--nlive', default=1000, type=int,
+                        help='Number of live points (for multinest)')
+    parser.add_argument('--test', action='store_true', 
+                        help="Test, don't actually run. Flag has no effect if sampler " + 
+                             "is set to emcee3.")
+
+    parser.add_argument('--altmodel', action='store_true')
+    parser.add_argument('--nochunks', action='store_true')
+
+    args = vars(parser.parse_args())
+
+    args['pool'] = schwimmbad.choose_pool(mpi=args.pop('mpi'), processes=args.pop('n_cores'))
+
+    stars = args.pop('stars')
+    sampler = args.pop('sampler')
+    N = len(stars)
+    for i,ix in enumerate(stars):
+        print('{} of {}: {}'.format(i+1, N, ix))
+        try:
+            if sampler=='polychord':
+                fit_polychord(ix, **args)
+            elif sampler=='emcee3':
+                _fit_emcee3(ix, **args)
+            elif sampler=='mnest':
+                _fit_mnest(ix, **args)
+
+        except:
+            import traceback
+            traceback.print_exc()
+            logging.error('Error with {}; traceback above.'.format(ix))

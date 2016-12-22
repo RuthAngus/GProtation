@@ -4,7 +4,7 @@ ocols = plot_colours()
 
 def params():
     plotpar = {'axes.labelsize': 18,
-               'text.fontsize': 10,
+               'font.size': 10,
                'legend.fontsize': 15,
                'xtick.labelsize': 18,
                'ytick.labelsize': 18,

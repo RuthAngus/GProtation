@@ -6,6 +6,7 @@
 \usepackage[section]{placeins}
 \usepackage{graphicx, subfigure}
 \usepackage{color}
+\usepackage{bm}
 
 \newcommand{\columbia}{1}
 \newcommand{\oxford}{2}
@@ -56,7 +57,7 @@ University, NY, NY, RuthAngus@gmail.com}
 UK}
 \altaffiltext{\uw}{Department of Astronomy, University of Washington, Seattle,
 WA}
-\altaffiltext{\princeton}{Department of Astronomy, Princeton University,
+\altaffiltext{\princeton}{Department of Astrophysical Sciences, Princeton University,
 Princeton, NJ}
 
 \begin{abstract}
@@ -525,13 +526,18 @@ curves vs the rotation periods measured using a LS periodogram technique.}
 
 \subsection{The GP method}
 
-In order to recover the rotation periods of the simulated light curves using
-Gaussian processes, we sampled the posterior PDFs of the kernel
-hyperparameters described in equation \ref{eq:QP}.
-The likelihood function for a GP is similar to the simple Gaussian likelihood
-function that is used for optimisation problems where the uncertainties are
-Gaussian and uncorrelated.
-The latter can be written
+In order to recover the rotation period of a simulated light curve using
+Gaussian processes, we sample the following posterior PDF:
+\begin{equation}
+p({\bm \theta}\,|\,y) \propto \mathcal L(y\,|\,{\bm \theta}) p({\bm \theta}),
+\end{equation}
+\label{eq:posterior}
+where $y$ are the light curve data, $\bm \theta$ are the hyperparameters 
+of the kernel described in equation \ref{eq:QP}, $\mathcal L$ is the 
+GP likelihood function, and $p({\bm \theta})$ is the prior on the 
+hyperparameters.  The GP likelihood is similar to the simple Gaussian likelihood
+function used for optimisation problems where the uncertainties are
+Gaussian and uncorrelated. The latter can be written
 \begin{equation}
 \ln \mathcal{L} = -\frac{1}{2}\sum_{n=1}^N\frac{(y_n-\mu)^2}{\sigma_n^2}
     - \frac{N}{2}\ln(2\pi\sigma_n^2),
@@ -571,102 +577,98 @@ noise.
 Here, the parameters describing the correlated noise are what we are
 interested in and our mean model is simply a straight line at $y=0$.
 
-One could either maximise this likelihood function in order to find the
-best-fit hyper-parameters of the covariance kernel function or, as in our
-approach, sample from the posterior PDFs of the hyper-parameters.
-The advantage of the maximum-likelihood method is that the best-fit parameters
-will be found much faster, but the uncertainities on the rotation period
-will not be constrained.
-In order to measure accurate uncertainties, the posterior PDFs of the
-parameters must be explored.
-Since obtaining accurate uncertainties on rotation periods is one of our main
-motivations for this method, we use MCMC despite the added computational
-expense.
+Sampling the posterior described above presents several challenges:
+\begin{itemize}
+\item Evaluating $\mathcal L$ for an entire \Kepler\ lightcurve 
+($\sim$40,000 points) takes about $\sim$5\,s--- too computationally expensive 
+to perform inference on large numbers of light curves\footnote{All computational
+times cited in this section are based on evaluations on a 
+single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.}.  The matrix operations
+necessary to evaluate the GP likelihood\footnote{These operations use 
+the fast matrix solver 
+HODLR \citep{Ambikasaran2014}, implemented in the {\tt george} \citep{George} 
+python package.} scale as $N\ln(N)^2$, where $N$ is
+the number of data points in the light curve.
 
-We use the ACF period as an initial guess for the rotation period (this
-decision is discussed further in section \textsection \ref{sec:discussion}).
-We use Gausssian distributions in the natural logarithm of all the parameters
-of our GP model.
-The means and variances of the priors used were learned during the development
-of this method.
-In early stages of development we used very broad priors on all the parameters
-uniform in log-space between -20 and 20.
-We then examined the distributions of the model parameters for `sucessful' and
-`unsuccessful' rotation period recoveries, where a recovery was termed
-successful if it lay within 10\% of the injected period.
-For the successful cases, the parameter distributions were narrow Gaussians.
-The parameter distributions of the unsuccessful cases were broad Gaussians
-with similar means.
-We adopted the means and standard deviations of the narrow Gaussians
-describing the parameter distributions of the successful cases to describe our
-Gaussian priors.
-The means and standard deviations of these $\ln$ Gaussian priors are given in
-table \ref{tab:priors}.
+\item The flexibility of this GP model allows for insidious kinds of 
+posterior multimodality and ``over-fitting''--like behavior.  For example, 
+if $l$ is small,  the non-periodic factor in the covariance kernel may dominate, 
+allowing for a good fit to the data without requiring any 
+periodic covariance structure---even if
+clear periodic structure is present.  Additionally, if $\Gamma$ is too large,
+then [explain in more technical terms that ``the GP gets way too wiggly and
+overfits the data without caring about the periodicity.'' ]
+
+\item In some cases, the posterior may also be multi-modal in period---that is, 
+there may be significant posterior density at half or twice the true period $P$.
+This is related to how the ACF method must guard against identifying periods 
+at half or twice the true period. 
+\end{itemize}
+
+We address the difficulty of computational speed in two distinct ways: subsampling
+the data and splitting the light curve into independent sections.  
+To subsample, we randomly select 1/30th of the points in the full light curve (an 
+average of $\sim$1.5 points per day).  This decreases the likelihood evaluation 
+time by a factor of about 50, down to about 100\,ms.
+We then split the light curve into equal-sized
+chunks containing approximately 300 points per section (corresponding to about
+200 days), and evaluate the log-likelihood as the sum of the log-likelihoods
+of the individual sections (all using the same parameters $\theta$).  This reduces
+computation time because the section-based likelihood evaluation scales as $mn\ln(n)^2$, where $n$ is the number of data points per section and $m$ is the number of sections.
+This method further reduces computation time for a typical light curve (subsampled
+by a factor of 30) by about a factor of two, to about 50\,ms.
+
+In order to manage the extreme flexibilty of the GP model and focus on 
+reliably retrieving the period parameter, we also impose priors
+on the non-period GP parameters that we 
+learned during the development of this method.  
+Beginning with very broad priors (uniform in log space between 
+-20 and 20) on all the parameters, we first explored what the 
+typical values of the non-period parameters tended to be when the 
+injected periods were successfully recovered.  We also experimented with
+constraining the allowed ranges of the parameters, after discovering 
+that some regions of parameter space (such as large values of $A$ and $\Gamma$
+and small values of $l$) tended to allow fits that ignored the desired
+periodicity.  The priors we used for this work are listed in
+table \ref{tab:priors}.  We note that we do not have any particular
+quantitative justification for the use of these priors,
+except that they produce good results for this particular test set of 
+light curves.  We thus caution that other data sets might have different
+noise properties, potentially requiring modifications to these priors.
+% We note that our default prior for period is 
+% log-uniform between the bounds, but that we were also able to 
+% further improve our results by using an ACF-inspired prior.
+
+To sample the posterior in a way that is sensitive to potential 
+multimodality, we use the \texttt{emcee3} MCMC sampler.
+We initialize 500 walkers with random samples from the prior 
+ and use a mix of different proposal distributions: 
+specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves. 
+[DFM: more words/citations here?]  
+We run fifty steps of the sampler at a time, checking for convergence after 
+each iteration, up to a maximum of fifty iterations.  We declare convergence if 
+the total effective chain length is at least 8$\times$ the maximum autocorrelation
+time.  When convergence is achieved, we drop the first two autocorrelation 
+lengths in the chain as a burn-in, and randomly choose 5000 samples as 
+representative of the posterior.  This fitting process takes several hours 
+for a typical simulated light curve.
 
 \begin{table*}
 \begin{center}
-\caption{Means and standard deviations of the Gaussian priors on the natural
-logarithms of the GP model parameters.}
+\caption{Priors and bounds on the natural logarithms of the GP model parameters.}
 \begin{tabular}{lcc}
-Parameter & Mean & Standard Deviation \\
+Parameter & Prior & Bounds\\
     \hline
-    $\ln(A)$ & -13 & 2.7 \\
-    $\ln(l)$ & 6.2 & 1.5 \\
-    $\ln(\Gamma)$ & -1.4 & 1.5 \\
-    $\ln$(Rotation period, $P_{rot}$) & $\ln$(ACF period) &
-                2 $\times \ln$(ACF period) \\
-    $\ln\sigma$ & -17 & 5 \\
+    $\ln A$ & $\mathcal N(-13, 5.7)$ & (-20, 0) \\
+    $\ln l$ & $\mathcal N(7.2, 1.2)$ & (2, 20) \\
+    $\ln \Gamma$ & $\mathcal N(-2.3, 1.4)$ & (-10, 3) \\
+    $\ln \sigma$ & $\mathcal N(-17, 5)$ & (-20, 0) \\
+    $\ln P $ & Uniform & ($\ln 0.5, \ln 100$) \\ 
 \end{tabular}
 \end{center}
 \end{table*}
 \label{tab:priors}
-The parameter positions were also initialised at the means of these
-distributions during MCMC posterior exploration.
-In addition, we set the following bounds on the rotation period and the $l$
-parameter.
-\begin{eqnarray}
- 	&	\ln(0.5) < \ln(P_{\mathrm{rot}}) < \ln(T/2) \\ \nonumber
-    &   0 < \ln(l) \\
-\end{eqnarray}
-\label{eq:priors}
-Where $T$ is the total timespan of the light curve.
-We limit rotation periods to be greater than half a day because we are chiefly
-interested in rotation of FGK stars which are likely to be greater than this
-lower limit, however this restriction could be relaxed in principle.
-We also limit the rotation periods to be less than half of the total timespan
-of the data since this is the longest period we expect to reliably recover.
-We prevent $\ln(l)$ from falling beneath zero both because we expect that
-astrophysical signals in light curves should have longer correlation
-timescales than this and in practice we found that if $l$ is unrestricted, it
-can occasionally wander towards a small value, resulting in an incorrect
-rotation period estimate.
 
-We subsampled the light curves in order to reduce computation time.
-We randomly subsampled the data, retaining an average of four data points per
-day.
-This allowed us to recover periods down to half a day --- the minimum
-timescale of interest for this project, whilst reducing computational costs.
-In order to reduce computation time the light curves were split into small
-sections and the likelihood for each section calculated individually, then
-summed.
-The matrix operations scale as $N\ln(N)^2$ where $N$ is the number of data
-points in the light curve, however the likelihood calculation scales linearly
-with the number of light curve sections used.
-By adding together likelihoods of individial sections, the likelihood
-evaluation scales as $mn\ln(n)^2$, where $n$ is the number of data points per
-section and $m$ is the number of sections.
-This method therefore significantly reduces computation time.
-We split the simulated light curves into sections, 200 days long.
-The {\tt george} \citep{George} python package was used to implement the GP
-model which uses the fast matrix solver, HODLR \citep{Ambikasaran2014}.
-Matrix operations performed with HODLR scale as $N \log ^2 (N)$, where $N$ is
-the number of data points.
-We used {\tt emcee} \citep{Foreman-Mackey2013}, an affine invariant
-\citep{Goodman2010} ensemble sampler to explore the posterior PDFs of the
-model parameters.
-The rotation period was taken as the sample with the maximum likelihood value.
-The resulting measured rotation periods are compared to the true rotation
-periods in figure \ref{fig:compare_mcmc}.
 
 \begin{figure*}
 \begin{center}
@@ -682,6 +684,8 @@ The uncertainties are the 16th and 84th percentiles.}
 \end{center}
 \end{figure*}
 
+Figure \ref{fig:compare_mcmc} summarizes the results of this MCMC fitting procedure
+compared to the injected ``true'' stellar rotation periods. 
 The marginal posterior distributions of the QP kernel hyperparameters for the
 example simulated light curve with in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
