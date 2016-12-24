@@ -6,22 +6,29 @@ import logging
 import numpy as np
 
 from gprot.aigrain import AigrainLightCurve
+from gprot.kepler import KeplerLightCurve
 
 def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
-    if aigrain:
-        lc = AigrainLightCurve(i)
-    elif kepler:
-        lc = KeplerLightCurve(i)
+    try:
+        if aigrain:
+            lc = AigrainLightCurve(i)
+        elif kepler:
+            lc = KeplerLightCurve(i)
 
-    return [lc.acf_prot(pmax=p) for p in pmax]
+        return [lc.acf_prot(pmax=p) for p in pmax]
+    except:
+        return [[np.nan]*4 for p in pmax]
 
 class ProtWorker(object):
     """
     """
-    def __init__(self, **kwargs):
+    def __init__(self, verbose=False, **kwargs):
         self.kwargs = kwargs
+        self.verbose = verbose
 
     def __call__(self, i):
+        if self.verbose:
+            print(i)
         return get_prot(i, **self.kwargs)
 
 if __name__=='__main__':
@@ -32,7 +39,8 @@ if __name__=='__main__':
 
     parser.add_argument('stars', nargs='*', type=int, help='Stars to fit.')
     parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
-    parser.add_argument('--pmax', nargs='+', type=int, default=[3,5,10,30,50,100])
+    parser.add_argument('--pmax', nargs='+', type=int, default=[1, 3,5,10,30,50,100])
+    parser.add_argument('--verbose', '-v', action='store_true')
 
     datagroup = parser.add_mutually_exclusive_group()
     datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
@@ -48,10 +56,13 @@ if __name__=='__main__':
                        action="store_true", help="Run with MPI.")
 
     args = parser.parse_args()
+    if args.kepler:
+        args.aigrain = False
 
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
 
-    worker = ProtWorker(pmax=args.pmax, aigrain=args.aigrain, kepler=args.kepler)
+    worker = ProtWorker(pmax=args.pmax, aigrain=args.aigrain, kepler=args.kepler,
+                        verbose=args.verbose)
     
     if args.file is not None:
         stars = np.loadtxt(args.file, dtype=int)

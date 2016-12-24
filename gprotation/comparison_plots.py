@@ -57,11 +57,19 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR):
 
 
 def load_samples(id, RESULTS_DIR):
-    fname = os.path.join(RESULTS_DIR, "{0}.h5".format(str(int(id)).zfill(4)))
+    try:
+        fname = os.path.join(RESULTS_DIR,
+                             "{0}.h5".format(str(int(id)).zfill(4)))
+    except IOError:
+        fname = os.path.join(RESULTS_DIR,
+                             "{0}.h5".format(str(int(id)).zfill(9)))
+
     if not os.path.exists(fname):
         return None
     with h5py.File(fname, "r") as f:
         samples = f["samples"][...]
+    if len(np.shape(samples)) < 3:  # if emcee3
+        return samples[:, 4]
     nwalkers, nsteps, ndims = np.shape(samples)
     return np.reshape(samples[:, :, 4], nwalkers * nsteps)
 
@@ -73,29 +81,25 @@ def make_new_df(truths, R_DIR):
     """
     m = truths.DELTA_OMEGA.values == 0
 
-#     for i, id in enumerate(truths.N.values[m]):
-#         sid = str(int(i)).zfill(4)
-#         acf_period, a_err, pgram_period, p_err = calc_p_init(x, y, yerr, sid,
-#                                                              RESULTS_DIR)
-
     # get column names
     mfname2 = os.path.join(R_DIR, "0002_mcmc_results.txt")
-    apfname2 = os.path.join(R_DIR, "0002_acf_pgram_results.txt")
-    mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
+    if os.path.exists(mfname2):
+        apfname2 = os.path.join(R_DIR, "000000002_acf_pgram_results.txt")
+        mdf2, adf2 = pd.read_csv(mfname2), pd.read_csv(apfname2)
+        zf = 4
 
     # assemble master data frame
     mcols, acols = mdf2.columns.values, adf2.columns.values
     mcmc = pd.DataFrame(data=np.zeros((0, len(mcols))), columns=mcols)
     acf_pgram = pd.DataFrame(data=np.zeros((0, len(acols))), columns=acols)
     Ns = []
-    n = 0
     for i, id in enumerate(truths.N.values[m]):
-        sid = str(int(id)).zfill(4)
-        mfname = os.path.join(R_DIR, "{0}_mcmc_results.txt".format(sid))
-        afname = os.path.join(R_DIR, "{0}_acf_pgram_results.txt".format(sid))
+        sid4 = str(int(id)).zfill(4)
+        sid9 = str(int(id)).zfill(9)
+        mfname = os.path.join(R_DIR, "{0}_mcmc_results.txt".format(sid4))
+        afname = os.path.join(R_DIR, "{0}_acf_pgram_results.txt".format(sid9))
         if os.path.exists(mfname) and os.path.exists(afname):
-            n += 1
-            Ns.append(int(sid))
+            Ns.append(int(sid9))
             mcmc = pd.concat([mcmc, pd.read_csv(mfname)], axis=0)
             acf_pgram = pd.concat([acf_pgram, pd.read_csv(afname)], axis=0)
 
@@ -144,6 +148,7 @@ def mcmc_plots(truths, DIR):
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period,~GP~Method})$")
 
+    print(len(true))
     plt.errorbar(np.log(true), np.log(maxlike), yerr=[lnerrp, lnerrm],
                  fmt="k.", zorder=1, capsize=0, ecolor=".8", alpha=.5, ms=.1)
     plt.scatter(np.log(true), np.log(maxlike), c=np.log(amp), edgecolor=".5",
@@ -207,6 +212,7 @@ def acf_plot(truths, DIR):
     acf_errs = truths_e.acf_period_err.values[m]
     amp = truths_e.AMP.values[m]
 
+    print(len(true))
     # acf plot
     plt.clf()
     xs = np.arange(0, 100, 1)
@@ -242,6 +248,7 @@ def pgram_plot(truths, DIR):
     pgram = truths_e.pgram_period.values[m]
     amp = truths_e.AMP.values[m]
 
+    print(len(true))
     # pgram plot
     plt.clf()
     xs = np.arange(0, 100, 1)
@@ -267,12 +274,15 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
     # remove 17 for now
-    m = truths.N.values != 17
-    truths = truths.iloc[m]
+#     m = truths.N.values != 17
+#     truths = truths.iloc[m]
 
 #     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_emcee3"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3"))
-    print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-    print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-    print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+    print("acf sigma rms = ", acf_plot(truths, "results_emcee3_move"))
+    print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3_move"))
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee2"))
+#     print("acf sigma rms = ", acf_plot(truths, "results_emcee2"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee2"))
+#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
+#     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
+#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))

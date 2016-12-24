@@ -1,6 +1,7 @@
 import os, sys
 import pandas as pd
 import numpy as np
+import logging
 
 import emcee3
 from emcee3.backends import Backend, HDFBackend

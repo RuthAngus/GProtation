@@ -15,12 +15,17 @@ import scipy.optimize as spo
 import time
 import os
 import pandas as pd
+from scipy.misc import logsumexp
 
 def lnGauss(x, mu, sigma):
     return -0.5 * ((x - mu)**2/(sigma**2)) + np.log(1./np.sqrt(2*np.pi*sigma**2))
 
 def lnGauss_mixture(x, mix):
-    return np.log(np.sum([w*np.exp(lnGauss(x, mu, sig)) for w, mu, sig in mix]))
+    w = mix[:, 0]
+    mu = mix[:, 1]
+    sigma = mix[:, 2]
+    return logsumexp(lnGauss(x, mu, sigma), b=w)
+    # return np.log(np.sum([w*np.exp(lnGauss(x, mu, sig)) for w, mu, sig in mix]))
 
 class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
@@ -37,8 +42,8 @@ class GPRotModel(object):
     _default_gp_prior_mu = (-13, 7.2, -2.3, -17)
     _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
 
-    _acf_pmax = (3,5,10,30,50,100)
-    _acf_prior_width = 0.1
+    _acf_pmax = (1,3,5,10,30,50,100)
+    _acf_prior_width = 0.2
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
                  acf_prior=False):
@@ -92,22 +97,19 @@ class GPRotModel(object):
         Returns N x ndim array of prior samples
         (within bounds)
         """
-        samples = np.empty((N, self.ndim))
+        samples = np.inf*np.ones((N, self.ndim))
 
         np.random.seed(seed)
-        for i in range(self.ndim - 1):
-            vals = np.inf*np.ones(N)
-            m = ~np.isfinite(vals)
+        m = np.ones(N, dtype=bool)
+        nbad = m.sum()
+        while nbad > 0:
+            rn = np.random.randn(N * (self.ndim-1)).reshape((N, self.ndim-1))
+            for i in range(self.ndim - 1):
+                samples[m, i] = rn[m, i]*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+            samples[m, -1] = self.sample_period_prior(nbad)
+            lnp = np.array([self.lnprior(theta) for theta in samples])
+            m = ~np.isfinite(lnp)
             nbad = m.sum()
-            while nbad > 0:
-                rn = np.random.randn(nbad)
-                vals[m] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
-                m = (vals < self.bounds[i][0]) | (vals > self.bounds[i][1])
-                nbad = m.sum()
-
-            samples[:, i] = vals
-
-        samples[:, -1] = self.sample_period_prior(N)
 
         return samples
 
@@ -143,6 +145,28 @@ class GPRotModel(object):
             return 0
         else:
             return lnGauss_mixture(p, self.period_mixture)
+
+    def plot_period_prior(self, ax=None, log=False, truth=None, **kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        ps = np.linspace(self.bounds[-1][0], self.bounds[-1][1], 1000)
+        lnp = np.array([self.lnprior_period(p) for p in ps])
+
+        if log:
+            ax.plot(ps, lnp, **kwargs)
+        else:
+            ax.plot(ps, np.exp(lnp - lnp.max()), **kwargs)
+
+        if truth is not None:
+            ax.axvline(truth, c='r', ls=':')
+
+        ax.set_xlabel('log(period)')
+        ax.set_ylabel('Probability density')
+        ax.set_yticks([])
+        return fig
 
     def sample_period_prior(self, N):
         loP, hiP = self.bounds[-1]
@@ -193,6 +217,9 @@ class GPRotModel(object):
     def _calc_acf(self):
         self._acf_results = [self.lc.acf_prot(pmax=p) for p in self.acf_pmax]
 
+    def _lnp_in_bounds(self, lnp):
+        return lnp > self.bounds[-1][0] and lnp < self.bounds[-1][1]
+
     @property
     def period_mixture(self):
         """Gaussian mixture describing period prior
@@ -203,7 +230,7 @@ class GPRotModel(object):
             self._period_mixture = []
             ln2 = np.log(2)
             wtot = 0
-            for _, _, _, w in self.acf_results:
+            for p, _, _, w in self.acf_results:
                 if np.isfinite(w):
                     wtot += w
             for p, _, _, w in self.acf_results:
@@ -211,9 +238,16 @@ class GPRotModel(object):
                     continue
                 wi = w/wtot
                 # add 90% at this period, and 5% at twice and half
-                self._period_mixture.append((0.9*wi, np.log(p), self.acf_prior_width))
-                self._period_mixture.append((0.05*wi, np.log(p)-ln2, self.acf_prior_width))
-                self._period_mixture.append((0.05*wi, np.log(p)+ln2, self.acf_prior_width))
+                lnp = np.log(p)
+                lnplo = lnp - ln2
+                lnphi = lnp + ln2
+                if self._lnp_in_bounds(lnp):
+                    self._period_mixture.append((0.9*wi, lnp, self.acf_prior_width))
+                if self._lnp_in_bounds(lnplo):
+                    self._period_mixture.append((0.05*wi, lnplo, self.acf_prior_width))
+                if self._lnp_in_bounds(lnphi):
+                    self._period_mixture.append((0.05*wi, lnphi, self.acf_prior_width))
+            self._period_mixture = np.array(self._period_mixture)
 
         return self._period_mixture
 
