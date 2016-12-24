@@ -7,6 +7,7 @@
 \usepackage{graphicx, subfigure}
 \usepackage{color}
 \usepackage{bm}
+\usepackage{enumerate}
 
 \newcommand{\columbia}{1}
 \newcommand{\oxford}{2}
@@ -613,7 +614,7 @@ computation time because the section-based likelihood evaluation scales as $mn\l
 This method further reduces computation time for a typical light curve (subsampled
 by a factor of 30) by about a factor of two, to about 50\,ms.
 
-In order to manage the extreme flexibilty of the GP model and focus on 
+In order to manage the great flexibilty of the GP model and focus on 
 reliably retrieving the period parameter, we also impose priors
 on the non-period GP parameters that we 
 learned during the development of this method.  
@@ -624,12 +625,16 @@ injected periods were successfully recovered.  We also experimented with
 constraining the allowed ranges of the parameters, after discovering 
 that some regions of parameter space (such as large values of $A$ and $\Gamma$
 and small values of $l$) tended to allow fits that ignored the desired
-periodicity.  The priors we used for this work are listed in
-table \ref{tab:priors}.  We note that we do not have any particular
+periodicity.  The priors and bounds we used for this work are listed in
+table \ref{tab:priors}.  We note that we do not have any specific
 quantitative justification for the use of these priors,
 except that they produce good results for this particular test set of 
 light curves.  We thus caution that other data sets might have different
-noise properties, potentially requiring modifications to these priors.
+noise properties, potentially requiring modifications to these priors
+on the non-period parameters.  For period, we tried two different methods:
+an uninformed (log-flat) prior between 0.5\,d and 100\,d, and an ACF-informed
+prior (details in Appendix.)
+
 % We note that our default prior for period is 
 % log-uniform between the bounds, but that we were also able to 
 % further improve our results by using an ACF-inspired prior.
@@ -646,7 +651,8 @@ the total effective chain length is at least 8$\times$ the maximum autocorrelati
 time.  When convergence is achieved, we drop the first two autocorrelation 
 lengths in the chain as a burn-in, and randomly choose 5000 samples as 
 representative of the posterior.  This fitting process takes several hours 
-for a typical simulated light curve.
+for a typical simulated light curve, though in some cases it may take 12
+hours or longer to converge.
 
 \begin{table*}
 \begin{center}
@@ -658,7 +664,7 @@ Parameter & Prior & Bounds\\
     $\ln l$ & $\mathcal N(7.2, 1.2)$ & (2, 20) \\
     $\ln \Gamma$ & $\mathcal N(-2.3, 1.4)$ & (-10, 3) \\
     $\ln \sigma$ & $\mathcal N(-17, 5)$ & (-20, 0) \\
-    $\ln P $ & Uniform & ($\ln 0.5, \ln 100$) \\ 
+    $\ln P $ & Uniform / ACF-based & ($\ln 0.5, \ln 100$) \\ 
 \end{tabular}
 \end{center}
 \end{table*}
@@ -675,8 +681,10 @@ technique.}
 \end{center}
 \end{figure*}
 
-Figure \ref{fig:compare_mcmc} summarizes the results of this MCMC fitting procedure
-compared to the injected ``true'' stellar rotation periods. 
+Figures \ref{fig:compare_mcmc_noprior} and \ref{fig:compare_mcmc_acfprior} 
+summarize the results of this MCMC fitting 
+procedure compared to the injected ``true'' stellar rotation periods, for the 
+uninformed and ACF-informed priors on period, respectively.
 The marginal posterior distributions of the QP kernel hyperparameters for the
 example simulated light curve with in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
@@ -982,6 +990,120 @@ Support for MAST for non-HST data is provided by the NASA Office of Space
 Science via grant NNX09AF08G and by other grants and contracts.
 This paper includes data collected by the Kepler mission. Funding for the
 Kepler mission is provided by the NASA Science Mission directorate.
+
+\appendix
+
+\section{An ACF-informed Prior for Rotation Period}
+
+The autocorrelation function (ACF) has proven to be very useful
+for measuring the rotation periods of stars from time-series
+photometry.  
+However, as discussed in the body of this paper, the
+ACF-based method has several shortcomings, 
+most notably the inability to deliver uncertainties, but also 
+the necessity of several heuristic choices, 
+such as a timescale on which to smooth the ACF, 
+how to define a peak, whether the first or second peak 
+gets selected, and what constitutes a secure detection.
+While this paper presents a new MCMC-based method
+that avoids these shortcomings, 
+it seems prudent to still use information available from the ACF.
+This Appendix describes how we use the ACF to define a prior on period.
+
+Our strategy here is not to attempt to decide which single
+peak in the ACF best represents the true rotation period,
+but rather to identify several \emph{candidate} periods and define
+a weighting scheme in order to create a non-commital, though useful, 
+multimodal prior.  While this procedure does not avoid heuristic choices, 
+the fact that its goal is simply to create a \emph{prior} for a 
+probabilitistically justified inference scheme rather than
+to identify a single correct period softens the potential impact 
+of these choices.
+
+As another innovation beyond what ACF methods in the literature have 
+presented, we also bandpass filter the light curves (using a 5th order
+Butterworth filter, as implemented in \texttt{SciPy}) before calculating the 
+autocorrelation.  This suppresses power on timescales shorter than a chosen 
+minimum period $P_{\rm min}$ and longer than a chosen maximum $P_{\rm max}$,
+producing a cleaner autocorrelation signal than an unfiltered light curve.
+
+We use the following procedure to construct a prior for rotation period
+given a light curve:
+\begin{enumerate}
+\item{For each value of $P_i$, where $i = \{1, 3, 5, 10, 30, 50, 100\}$\,d,
+we apply a bandpass filter to the light curve using $P_{\rm min}=0.1$\,d
+and $P_{\rm max} = P_i$.  We then calculate the ACF of the filtered 
+light curve out to a maximum lag of $2P_i$ and smooth it with a boxcar 
+filter of width $P_i/10$.}
+
+\item{We identify the time lag corresponding to the 
+first peak of each of these ACFs, as well as the first peak's
+trough-to-peak height, creating a set of candidate periods
+$T_i$ and heights $h_i$.}
+
+\item{We assign a quality metric $Q_i$ to each of these candidate
+periods, as follows.  First, we model the ACF as a 
+damped oscillator with fixed period $T_i$:
+\begin{equation}
+y = A e^{-t/\tau} \cos{\frac{2\pi t}{T_i} },
+\end{equation}
+where and $t$ is the lag time, 
+and find the best-fitting parameters $A_i$ and $\tau_i$ by a non-linear
+least squares minimization procedure.  We then define the
+following heuristic quality metric:
+\begin{equation}
+\label{eq:quality}
+Q_i = \left(\frac{\tau_i}{T_i}\right) \left(\frac{N_i h_i}{R_i}\right),
+\end{equation}
+where $h_i$ is the height of the ACF peak at $T_i$, 
+$N_i$ is the length of the lag vector in the ACF (directly proportional
+to the maximum allowed period $P_i$), 
+and $R_i$ is the sum of squared residuals between the 
+damped oscillator model and the actual ACF data.  The idea behind this 
+quality metric to give a candidate period a higher score if
+
+    \begin{enumerate}[(a)]
+
+    \item{it has many regular sinusoidal peaks, such that the decay
+        time $\tau_i$ is long compared to the oscillation period $T_i$,}
+    \item{the ACF peak height is high, and}
+    \item{the damped oscillator model is a good fit (in a $\chi^2$
+      sense) to the ACF, with extra bonus for being 
+      a good fit over more points (larger $N_i$, or longer $P_i$).}
+
+    \end{enumerate}
+}
+
+\item{Given this set of candidate periods $T_i$ and quality metrics $Q_i$,
+we finally construct a multimodal prior on the $P$ parameter of the GP
+model as a weighted mixture of Gaussians:
+\begin{equation}
+\label{eq:mixture}
+p(\ln P) = \frac {\displaystyle \sum_i Q_i \left(0.9\mathcal N(\ln T_i, 0.2) + 
+                                          0.05\mathcal N(\ln (T_i/2), 0.2) +
+                                          0.05\mathcal N(\ln (2 T_i), 0.2) \right)}
+                {\sum_i Q_i}.
+\end{equation}
+That is, in addition to taking the candidate periods themselves as mixture
+components, we also mix in twice and half each candidate period at a lower level, 
+which compensates for the possibility that the first peak in the ACF may actually 
+represent half or twice the actual rotation period.  The period width of 0.2 in 
+log space (corresponding to roughly 20\% uncertainty) is again a heuristic choice,
+balancing a healthy specificity with the desire to not have the results of 
+the inference overly determined by the ACF prior.
+}
+
+Incidentally, while we use the procedure described here to create a prior on 
+$P$ which we use while inferring the parameters of the quasi-periodic GP model,
+this same procedure may also be used in the service of a
+rotation-period estimating procedure all on its own, perhaps being even more 
+robust and accurate than the traditional ACF method.  We leave exploration of 
+this possibility to future work.
+
+\end{enumerate}
+
+
+
 
 \bibliographystyle{plainnat}
 \bibliography{GProtation}
