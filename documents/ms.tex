@@ -25,6 +25,7 @@
 \newcommand{\ktwo}{\Ktwo}
 \newcommand{\TESS}{{\it TESS}}
 \newcommand{\LSST}{{\it LSST}}
+\newcommand{\Wfirst}{{\it Wfirst}}
 \newcommand{\SDSS}{{\it SDSS}}
 \newcommand{\PLATO}{{\it PLATO}}
 \newcommand{\Teff}{$T_{\mathrm{eff}}$}
@@ -36,9 +37,9 @@
 \newcommand{\logg}{log \emph{g}}
 \newcommand{\dnu}{$\Delta \nu$}
 \newcommand{\numax}{$\nu_{\mathrm{max}}$}
-\newcommand{\acfRMS}{1.45}
-\newcommand{\pgramRMS}{1.10}
-\newcommand{\mcmcRMS}{0.87}
+\newcommand{\acfRMS}{9.27}
+\newcommand{\pgramRMS}{1.25}
+\newcommand{\mcmcRMS}{0.46}
 
 \begin{document}
 
@@ -95,7 +96,9 @@ posterior PDF samples allow for proper characterisation of uncertainties.
 This method eliminates the need to define a heuristic detection criterion such
 as are often used in the literature: a light curve that does not contain a
 rotation signal will return the prior PDF.
-
+Furthermore, the ACF method is not applicable to unevenly spaced data,
+therefore inappropriate for the ~$10^7$ stellar light curves expected to be
+produced by \LSST\ and \Wfirst.
 % Furthermore, the improvement is expected to be even more dramatic when applied
 % to real, noisy {\it Kepler} light curves, since the GP method is well suited
 % to modelling rotation signals and correlated noise simultaneously.
@@ -156,8 +159,10 @@ approximately periodic the ACF will display peaks located at the rotation
 period.
 A drawback of the ACF method however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
-ACFs for unevenly-spaced data.} which is not the case with \Kepler\ light
-curves (although in many cases it can be approximated as uniformly sampled).
+ACFs for unevenly-spaced data.} which is not exactly the case with \Kepler\
+light curves (although in many cases it can be approximated as uniformly
+sampled) and not nearly the case for future large-scale survey instruments,
+\LSST\ and \Wfirst.
 An ACF is also an operation performed on the data, not a generative model of
 the data and is therefore not inherently probabilistic.
 For this reason it is very difficult to estimate the uncertainty on an ACF
@@ -673,10 +678,14 @@ Parameter & Prior & Bounds\\
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
+% \includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_emcee3_13_12_2.png}
 \caption{The `true' rotation periods used to generate \naigrain\
-simulated light curves vs the rotation periods measured using the ACF
-technique.}
+simulated light curves vs the rotation periods measured using the GP
+technique.
+Since the posterior PDFs of rotation periods are often non-Gaussian,
+the points plotted here are the highest likelihood samples.
+The uncertainties are the 16th and 84th percentiles.}
 \label{fig:compare_mcmc}
 \end{center}
 \end{figure*}
