@@ -46,8 +46,8 @@
 
 \author{%
    Ruth Angus\altaffilmark{\columbia},
-   Suzanne Aigrain\altaffilmark{\oxford},
    Timothy Morton\altaffilmark{\princeton}
+   Suzanne Aigrain\altaffilmark{\oxford},
    \& Daniel Foreman-Mackey\altaffilmark{\uw}
 }
 
@@ -532,9 +532,9 @@ Gaussian processes, we sample the following posterior PDF:
 p({\bm \theta}\,|\,y) \propto \mathcal L(y\,|\,{\bm \theta}) p({\bm \theta}),
 \end{equation}
 \label{eq:posterior}
-where $y$ are the light curve data, $\bm \theta$ are the hyperparameters 
-of the kernel described in equation \ref{eq:QP}, $\mathcal L$ is the 
-GP likelihood function, and $p({\bm \theta})$ is the prior on the 
+where $y$ are the light curve data, $\bm \theta$ are the hyperparameters
+of the kernel described in equation \ref{eq:QP}, $\mathcal L$ is the
+GP likelihood function, and $p({\bm \theta})$ is the prior on the
 hyperparameters.  The GP likelihood is similar to the simple Gaussian likelihood
 function used for optimisation problems where the uncertainties are
 Gaussian and uncorrelated. The latter can be written
@@ -579,36 +579,36 @@ interested in and our mean model is simply a straight line at $y=0$.
 
 Sampling the posterior described above presents several challenges:
 \begin{itemize}
-\item Evaluating $\mathcal L$ for an entire \Kepler\ lightcurve 
-($\sim$40,000 points) takes about $\sim$5\,s--- too computationally expensive 
+\item Evaluating $\mathcal L$ for an entire \Kepler\ lightcurve
+($\sim$40,000 points) takes about $\sim$5\,s--- too computationally expensive
 to perform inference on large numbers of light curves\footnote{All computational
-times cited in this section are based on evaluations on a 
+times cited in this section are based on evaluations on a
 single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.}.  The matrix operations
-necessary to evaluate the GP likelihood\footnote{These operations use 
-the fast matrix solver 
-HODLR \citep{Ambikasaran2014}, implemented in the {\tt george} \citep{George} 
+necessary to evaluate the GP likelihood\footnote{These operations use
+the fast matrix solver
+HODLR \citep{Ambikasaran2014}, implemented in the {\tt george} \citep{George}
 python package.} scale as $N\ln(N)^2$, where $N$ is
 the number of data points in the light curve.
 
-\item The flexibility of this GP model allows for insidious kinds of 
-posterior multimodality and ``over-fitting''--like behavior.  For example, 
-if $l$ is small,  the non-periodic factor in the covariance kernel may dominate, 
-allowing for a good fit to the data without requiring any 
+\item The flexibility of this GP model allows for insidious kinds of
+posterior multimodality and ``over-fitting''--like behavior.  For example,
+if $l$ is small,  the non-periodic factor in the covariance kernel may dominate,
+allowing for a good fit to the data without requiring any
 periodic covariance structure---even if
 clear periodic structure is present.  Additionally, if $\Gamma$ is too large,
 then [explain in more technical terms that ``the GP gets way too wiggly and
 overfits the data without caring about the periodicity.'' ]
 
-\item In some cases, the posterior may also be multi-modal in period---that is, 
+\item In some cases, the posterior may also be multi-modal in period---that is,
 there may be significant posterior density at half or twice the true period $P$.
-This is related to how the ACF method must guard against identifying periods 
-at half or twice the true period. 
+This is related to how the ACF method must guard against identifying periods
+at half or twice the true period.
 \end{itemize}
 
 We address the difficulty of computational speed in two distinct ways: subsampling
-the data and splitting the light curve into independent sections.  
-To subsample, we randomly select 1/30th of the points in the full light curve (an 
-average of $\sim$1.5 points per day).  This decreases the likelihood evaluation 
+the data and splitting the light curve into independent sections.
+To subsample, we randomly select 1/30th of the points in the full light curve (an
+average of $\sim$1.5 points per day).  This decreases the likelihood evaluation
 time by a factor of about 50, down to about 100\,ms.
 We then split the light curve into equal-sized
 chunks containing approximately 300 points per section (corresponding to about
@@ -618,39 +618,39 @@ computation time because the section-based likelihood evaluation scales as $mn\l
 This method further reduces computation time for a typical light curve (subsampled
 by a factor of 30) by about a factor of two, to about 50\,ms.
 
-In order to manage the extreme flexibilty of the GP model and focus on 
+In order to manage the extreme flexibilty of the GP model and focus on
 reliably retrieving the period parameter, we also impose priors
-on the non-period GP parameters that we 
-learned during the development of this method.  
-Beginning with very broad priors (uniform in log space between 
--20 and 20) on all the parameters, we first explored what the 
-typical values of the non-period parameters tended to be when the 
+on the non-period GP parameters that we
+learned during the development of this method.
+Beginning with very broad priors (uniform in log space between
+-20 and 20) on all the parameters, we first explored what the
+typical values of the non-period parameters tended to be when the
 injected periods were successfully recovered.  We also experimented with
-constraining the allowed ranges of the parameters, after discovering 
+constraining the allowed ranges of the parameters, after discovering
 that some regions of parameter space (such as large values of $A$ and $\Gamma$
 and small values of $l$) tended to allow fits that ignored the desired
 periodicity.  The priors we used for this work are listed in
 table \ref{tab:priors}.  We note that we do not have any particular
 quantitative justification for the use of these priors,
-except that they produce good results for this particular test set of 
+except that they produce good results for this particular test set of
 light curves.  We thus caution that other data sets might have different
 noise properties, potentially requiring modifications to these priors.
-% We note that our default prior for period is 
-% log-uniform between the bounds, but that we were also able to 
+% We note that our default prior for period is
+% log-uniform between the bounds, but that we were also able to
 % further improve our results by using an ACF-inspired prior.
 
-To sample the posterior in a way that is sensitive to potential 
+To sample the posterior in a way that is sensitive to potential
 multimodality, we use the \texttt{emcee3} MCMC sampler.
-We initialize 500 walkers with random samples from the prior 
- and use a mix of different proposal distributions: 
-specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves. 
-[DFM: more words/citations here?]  
-We run fifty steps of the sampler at a time, checking for convergence after 
-each iteration, up to a maximum of fifty iterations.  We declare convergence if 
+We initialize 500 walkers with random samples from the prior
+ and use a mix of different proposal distributions:
+specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves.
+[DFM: more words/citations here?]
+We run fifty steps of the sampler at a time, checking for convergence after
+each iteration, up to a maximum of fifty iterations.  We declare convergence if
 the total effective chain length is at least 8$\times$ the maximum autocorrelation
-time.  When convergence is achieved, we drop the first two autocorrelation 
-lengths in the chain as a burn-in, and randomly choose 5000 samples as 
-representative of the posterior.  This fitting process takes several hours 
+time.  When convergence is achieved, we drop the first two autocorrelation
+lengths in the chain as a burn-in, and randomly choose 5000 samples as
+representative of the posterior.  This fitting process takes several hours
 for a typical simulated light curve.
 
 \begin{table*}
@@ -663,7 +663,7 @@ Parameter & Prior & Bounds\\
     $\ln l$ & $\mathcal N(7.2, 1.2)$ & (2, 20) \\
     $\ln \Gamma$ & $\mathcal N(-2.3, 1.4)$ & (-10, 3) \\
     $\ln \sigma$ & $\mathcal N(-17, 5)$ & (-20, 0) \\
-    $\ln P $ & Uniform & ($\ln 0.5, \ln 100$) \\ 
+    $\ln P $ & Uniform & ($\ln 0.5, \ln 100$) \\
 \end{tabular}
 \end{center}
 \end{table*}
@@ -685,7 +685,7 @@ The uncertainties are the 16th and 84th percentiles.}
 \end{figure*}
 
 Figure \ref{fig:compare_mcmc} summarizes the results of this MCMC fitting procedure
-compared to the injected ``true'' stellar rotation periods. 
+compared to the injected ``true'' stellar rotation periods.
 The marginal posterior distributions of the QP kernel hyperparameters for the
 example simulated light curve with in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
