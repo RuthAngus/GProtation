@@ -15,6 +15,10 @@
 \newcommand{\princeton}{4}
 \newcommand{\naigrain}{333}
 \newcommand{\nmcquillan}{100}
+\newcommand{\nkois}{1114}
+\newcommand{\nkoimcq}{271}
+\newcommand{\nkoigood}{222}
+\newcommand{\nkoibad}{49}
 \newcommand{\kepexample}{1430163}
 \newcommand{\kepexampleperiod}{4}
 \newcommand{\aigrainexampleperiod}{20.8}
@@ -714,6 +718,28 @@ The true rotation period of this star is ... ($\exp(...)$) days.}
 
 \section{Real \kepler\ data}
 \label{sec:kepler}
+
+In order to test this rotation period inference method on real data,
+we applied it to a set of \nkois\ \Kepler\ Object of Interest (KOI)
+host stars, \nkoimcq\ of which had rotation periods previously measured by 
+the ACF method by \citet{Mcquillan2013}.  We use the pipeline-corrected flux 
+(\texttt{pdcsap_flux} column in the \Kepler\ light curve table), median-normalized
+and unit-subtracted.  As with the simulated light curves, we randomly subsample each 
+light curve by a factor of 30 and split it into segments of about 300 points
+for the purposes of evaluating the likelihood.  We also follow the same MCMC
+fitting procedure as with the simulated data.
+
+Figure \ref{fig:kois} compares the periods inferred with the GP method to the
+ACF-based periods from \citet{Mcquillan2013} for the \nkoimcq\ overlapping KOIs.
+This comparison shows generally very good agreement, 
+with the exception of a cluster of stars in the lower right of the figure
+where the GP method does not recover the ACF period.  
+However, rather than being primarily evidence of weakness of the GP method,
+this cluster of nominal failures actually reveals an important advantage
+for this method---the possibility of quantitatively motivated quality assessment. 
+
+
+
 
 We applied our method to \nmcquillan\ stars with rotation periods previously
 measured by \citet{Mcquillan2014}.
