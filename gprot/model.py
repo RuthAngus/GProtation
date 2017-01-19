@@ -31,7 +31,7 @@ class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
     # log bounds
-    _bounds = ((-20., 0.), 
+    _default_bounds = ((-20., 0.), 
                (2, 20.), 
                (-10., 3.), 
                (-20., 0.), 
@@ -46,7 +46,9 @@ class GPRotModel(object):
     _acf_prior_width = 0.2
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
-                 acf_prior=False):
+                 acf_prior=False, 
+                 gp_prior_mu=None, gp_prior_sigma=None, 
+                 bounds=None):
 
         self.lc = lc
 
@@ -61,9 +63,20 @@ class GPRotModel(object):
 
         self.acf_prior = acf_prior
 
-        # Default gaussian for GP param priors
-        self.gp_prior_mu = np.array(self._default_gp_prior_mu)
-        self.gp_prior_sigma = np.array(self._default_gp_prior_sigma)
+        # GP param priors
+        if gp_prior_mu is None:
+            self.gp_prior_mu = np.array(self._default_gp_prior_mu)
+        else:
+            self.gp_prior_mu = np.array(gp_prior_mu)
+        if gp_prior_sigma is None:
+            self.gp_prior_sigma = np.array(self._default_gp_prior_sigma)
+        else:
+            self.gp_prior_sigma = np.array(gp_prior_sigma)
+
+        if bounds is None:
+            self._bounds = self._default_bounds
+        else:
+            self._bounds = bounds
 
     @property
     def ndim(self):

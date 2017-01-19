@@ -75,7 +75,12 @@ def get_model(i, aigrain=True, kepler=False,
     if altmodel:
         mod = GPRotModel2(lc, pmax=pmax, acf_prior=acf_prior)
     else:
-        mod = GPRotModel(lc, pmax=pmax, acf_prior=acf_prior)
+        if kepler:
+            from gprot.kepler import KeplerGPRotModel
+            mod = KeplerGPRotModel(lc, pmax=pmax, acf_prior=acf_prior)
+        else:
+            mod = GPRotModel(lc, pmax=pmax, acf_prior=acf_prior)
+    
     fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)

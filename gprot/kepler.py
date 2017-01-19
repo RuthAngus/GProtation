@@ -12,8 +12,25 @@ import kplr
 from kplr.api import APIError
 
 from .lc import LightCurve, qtr_times
+from .model import GPRotModel
 
 client = None
+
+class KeplerGPRotModel(GPRotModel):
+    """Parameters are A, l, G, sigma, period
+
+    Bounds and priors are adjusted based on population results
+    with the default settings.
+    """
+    _default_bounds = ((-20., 0.), 
+               (2, 8.), 
+               (0., 5.), 
+               (-20., 0.), 
+               (-0.69, 4.61)) 
+
+    _default_gp_prior_mu = (-13, 5.0, 1.9, -17)
+    _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
+
 
 class KeplerLightCurve(LightCurve):
     """
