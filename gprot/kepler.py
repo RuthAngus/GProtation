@@ -24,7 +24,7 @@ class KeplerGPRotModel(GPRotModel):
     """
     _default_bounds = ((-20., 0.), 
                (2, 8.), 
-               (0., 5.), 
+               (0., 3.), 
                (-20., 0.), 
                (-0.69, 4.61)) 
 
