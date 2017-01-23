@@ -10,9 +10,9 @@
 \usepackage{enumerate}
 
 \newcommand{\columbia}{1}
-\newcommand{\oxford}{2}
-\newcommand{\uw}{3}
-\newcommand{\princeton}{4}
+\newcommand{\oxford}{3j}
+\newcommand{\uw}{4}
+\newcommand{\princeton}{2}
 \newcommand{\naigrain}{333}
 \newcommand{\nmcquillan}{100}
 \newcommand{\nkois}{1114}
@@ -51,8 +51,8 @@
 
 \author{%
    Ruth Angus\altaffilmark{\columbia},
-   Suzanne Aigrain\altaffilmark{\oxford},
    Timothy Morton\altaffilmark{\princeton}
+   Suzanne Aigrain\altaffilmark{\oxford},
    \& Daniel Foreman-Mackey\altaffilmark{\uw}
 }
 
@@ -62,8 +62,8 @@ University, NY, NY, RuthAngus@gmail.com}
 UK}
 \altaffiltext{\uw}{Department of Astronomy, University of Washington, Seattle,
 WA}
-\altaffiltext{\princeton}{Department of Astrophysical Sciences, Princeton University,
-Princeton, NJ}
+\altaffiltext{\princeton}{Department of Astrophysical Sciences, Princeton
+University,  Princeton, NJ}
 
 \begin{abstract}
 The light curves of spotted, rotating stars are often non-sinusoidal and
@@ -101,8 +101,8 @@ This method eliminates the need to define a heuristic detection criterion such
 as are often used in the literature: a light curve that does not contain a
 rotation signal will return the prior PDF.
 Furthermore, the ACF method is not applicable to unevenly spaced data,
-therefore inappropriate for the ~$10^7$ stellar light curves expected to be
-produced by \LSST\ and \Wfirst.
+therefore it is inappropriate for the ~$10^7$ stellar light curves expected
+to be produced by \LSST\ unlike the GP method.
 % Furthermore, the improvement is expected to be even more dramatic when applied
 % to real, noisy {\it Kepler} light curves, since the GP method is well suited
 % to modelling rotation signals and correlated noise simultaneously.
@@ -165,8 +165,8 @@ A drawback of the ACF method however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
 ACFs for unevenly-spaced data.} which is not exactly the case with \Kepler\
 light curves (although in many cases it can be approximated as uniformly
-sampled) and not nearly the case for future large-scale survey instruments,
-\LSST\ and \Wfirst.
+sampled) and not nearly the case for the future large-scale survey instrument,
+\LSST.
 An ACF is also an operation performed on the data, not a generative model of
 the data and is therefore not inherently probabilistic.
 For this reason it is very difficult to estimate the uncertainty on an ACF
@@ -537,9 +537,9 @@ Gaussian processes, we sample the following posterior PDF:
 p({\bm \theta}\,|\,y) \propto \mathcal L(y\,|\,{\bm \theta}) p({\bm \theta}),
 \end{equation}
 \label{eq:posterior}
-where $y$ are the light curve data, $\bm \theta$ are the hyperparameters 
-of the kernel described in equation \ref{eq:QP}, $\mathcal L$ is the 
-GP likelihood function, and $p({\bm \theta})$ is the prior on the 
+where $y$ are the light curve data, $\bm \theta$ are the hyperparameters
+of the kernel described in equation \ref{eq:QP}, $\mathcal L$ is the
+GP likelihood function, and $p({\bm \theta})$ is the prior on the
 hyperparameters.  The GP likelihood is similar to the simple Gaussian likelihood
 function used for optimisation problems where the uncertainties are
 Gaussian and uncorrelated. The latter can be written
@@ -582,38 +582,37 @@ noise.
 Here, the parameters describing the correlated noise are what we are
 interested in and our mean model is simply a straight line at $y=0$.
 
-Sampling the posterior described above presents several challenges:
+Sampling the posterior PDF described above presents several challenges:
 \begin{itemize}
-\item Evaluating $\mathcal L$ for an entire \Kepler\ lightcurve 
-($\sim$40,000 points) takes about $\sim$5\,s--- too computationally expensive 
-to perform inference on large numbers of light curves\footnote{All computational
-times cited in this section are based on evaluations on a 
-single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.}.  The matrix operations
-necessary to evaluate the GP likelihood\footnote{These operations use 
-the fast matrix solver 
-HODLR \citep{Ambikasaran2014}, implemented in the {\tt george} \citep{George} 
-python package.} scale as $N\ln(N)^2$, where $N$ is
-the number of data points in the light curve.
+\item Evaluating $\mathcal L$ for an entire \Kepler\ lightcurve
+($\sim$40,000 points) takes about $\sim$5\,s--- too computationally expensive
+to perform inference on large numbers of light curves\footnote{All
+computational times cited in this section are based on evaluations on a
+single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.}.
+The matrix operations necessary to evaluate the GP likelihood\footnote{These
+operations use the fast matrix solver HODLR \citep{Ambikasaran2014},
+implemented in the {\tt george} \citep{George} python package.} scale as
+$N\ln(N)^2$, where $N$ is the number of data points in the light curve.
 
-\item The flexibility of this GP model allows for insidious kinds of 
-posterior multimodality and ``over-fitting''--like behavior.  For example, 
-if $l$ is small,  the non-periodic factor in the covariance kernel may dominate, 
-allowing for a good fit to the data without requiring any 
+\item The flexibility of this GP model allows for insidious kinds of
+posterior multimodality and ``over-fitting''--like behavior.  For example,
+if $l$ is small,  the non-periodic factor in the covariance kernel may
+dominate, allowing for a good fit to the data without requiring any
 periodic covariance structure---even if
 clear periodic structure is present.  Additionally, if $\Gamma$ is too large,
 then [explain in more technical terms that ``the GP gets way too wiggly and
 overfits the data without caring about the periodicity.'' ]
 
-\item In some cases, the posterior may also be multi-modal in period---that is, 
+\item In some cases, the posterior may also be multi-modal in period---that is,
 there may be significant posterior density at half or twice the true period $P$.
-This is related to how the ACF method must guard against identifying periods 
-at half or twice the true period. 
+This is related to how the ACF method must guard against identifying periods
+at half or twice the true period.
 \end{itemize}
 
 We address the difficulty of computational speed in two distinct ways: subsampling
-the data and splitting the light curve into independent sections.  
-To subsample, we randomly select 1/30th of the points in the full light curve (an 
-average of $\sim$1.5 points per day).  This decreases the likelihood evaluation 
+the data and splitting the light curve into independent sections.
+To subsample, we randomly select 1/30th of the points in the full light curve (an
+average of $\sim$1.5 points per day).  This decreases the likelihood evaluation
 time by a factor of about 50, down to about 100\,ms.
 We then split the light curve into equal-sized
 chunks containing approximately 300 points per section (corresponding to about
@@ -625,42 +624,41 @@ by a factor of 30) by about a factor of two, to about 50\,ms.
 
 In order to manage the great flexibilty of the GP model and focus on 
 reliably retrieving the period parameter, we also impose priors
-on the non-period GP parameters that we 
-learned during the development of this method.  
-Beginning with very broad priors (uniform in log space between 
--20 and 20) on all the parameters, we first explored what the 
-typical values of the non-period parameters tended to be when the 
+on the non-period GP parameters that we
+learned during the development of this method.
+Beginning with very broad priors (uniform in log space between
+-20 and 20) on all the parameters, we first explored what the
+typical values of the non-period parameters tended to be when the
 injected periods were successfully recovered.  We also experimented with
-constraining the allowed ranges of the parameters, after discovering 
+constraining the allowed ranges of the parameters, after discovering
 that some regions of parameter space (such as large values of $A$ and $\Gamma$
 and small values of $l$) tended to allow fits that ignored the desired
 periodicity.  The priors and bounds we used for this work are listed in
 table \ref{tab:priors}.  We note that we do not have any specific
 quantitative justification for the use of these priors,
-except that they produce good results for this particular test set of 
+except that they produce good results for this particular test set of
 light curves.  We thus caution that other data sets might have different
 noise properties, potentially requiring modifications to these priors
 on the non-period parameters.  For period, we tried two different methods:
 an uninformed (log-flat) prior between 0.5\,d and 100\,d, and an ACF-informed
 prior (details in Appendix.)
-
-% We note that our default prior for period is 
-% log-uniform between the bounds, but that we were also able to 
+% We note that our default prior for period is
+% log-uniform between the bounds, but that we were also able to
 % further improve our results by using an ACF-inspired prior.
 
-To sample the posterior in a way that is sensitive to potential 
+To sample the posterior in a way that is sensitive to potential
 multimodality, we use the \texttt{emcee3} MCMC sampler.
-We initialize 500 walkers with random samples from the prior 
- and use a mix of different proposal distributions: 
-specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves. 
-[DFM: more words/citations here?]  
-We run fifty steps of the sampler at a time, checking for convergence after 
-each iteration, up to a maximum of fifty iterations.  We declare convergence if 
+We initialize 500 walkers with random samples from the prior
+ and use a mix of different proposal distributions:
+specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves.
+[DFM: more words/citations here?]
+We run fifty steps of the sampler at a time, checking for convergence after
+each iteration, up to a maximum of fifty iterations.  We declare convergence if
 the total effective chain length is at least 8$\times$ the maximum autocorrelation
 time.  When convergence is achieved, we drop the first two autocorrelation 
 lengths in the chain as a burn-in, and randomly choose 5000 samples as 
 representative of the posterior.  This fitting process takes several hours 
-for a typical simulated light curve, though in some cases it may take 12
+for a typical simulated light curve, though in some cases it can take 12
 hours or longer to converge.
 
 \begin{table*}
@@ -683,7 +681,7 @@ Parameter & Prior & Bounds\\
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{figures/comparison_emcee3_13_12_2.png}
+\includegraphics[width=6in, clip=true]{figures/comparison_emcee3_17_1.png}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique.
@@ -772,7 +770,19 @@ parameters leads to longer MCMC burn in and convergence time), we choose to
 use global parameters only.
 
 Our results show good agreement with the \citet{Mcquillan2014} measurements,
-as shown in ... %\ref{fig:mcquillan}.
+as shown in \ref{fig:mcquillan}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=6in, clip=true]{figures/comparison_koi.pdf}
+\caption[Comparison with McQuillan results.]
+{A comparison of our GP rotation period measurements to those of
+\citet{Mcquillan2014}. The results show good agreement. In several cases we
+    measure a rotation period that is half the value reported by
+    \citet{Mcquillan2014}.}
+\label{fig:mcquillan}
+\end{center}
+\end{figure}
 
 At this point it is important to highlight the following caveat.
 Our method has been tuned to reproduce the rotation periods of the
