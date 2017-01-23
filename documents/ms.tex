@@ -15,10 +15,10 @@
 \newcommand{\princeton}{2}
 \newcommand{\naigrain}{333}
 \newcommand{\nmcquillan}{100}
-\newcommand{\nkois}{1114}
-\newcommand{\nkoimcq}{271}
-\newcommand{\nkoigood}{222}
-\newcommand{\nkoibad}{49}
+\newcommand{\nkois}{1102}
+\newcommand{\nkoimcq}{275}
+% \newcommand{\nkoigood}{222}
+% \newcommand{\nkoibad}{49}
 \newcommand{\kepexample}{1430163}
 \newcommand{\kepexampleperiod}{4}
 \newcommand{\aigrainexampleperiod}{20.8}
@@ -725,52 +725,41 @@ the ACF method by \citet{Mcquillan2013}.  We use the pipeline-corrected flux
 and unit-subtracted.  As with the simulated light curves, we randomly subsample each 
 light curve by a factor of 30 and split it into segments of about 300 points
 for the purposes of evaluating the likelihood.  We also follow the same MCMC
-fitting procedure as with the simulated data.
+fitting procedure as with the simulated data, using the ACF-based prior as before.
 
-Figure \ref{fig:kois} compares the periods inferred with the GP method to the
+Initially, we also use the same priors on the hyperparameters for the KOIs 
+as for the simulated light curves (Table \ref{tab:priors}).  
+However, we found that $\ln l$ and $\ln \Gamma$ tended toward slightly different
+values than the simulations.  We also found that the allowed hyperparameter
+range that we used for the simulations was too large for the KOI population, 
+as maybe $\sim$15\% of the fits tended toward corners in the hyperparameter
+space, resulting in poor period measurements.  As a result, after this initial
+test, we subsequently adjusted the priors and re-fit all the KOIs.  The final 
+priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
+
+\begin{table*}
+\begin{center}
+\caption{Priors and bounds on the natural logarithms of the GP model parameters, 
+        for \Kepler\ light curves}
+\begin{tabular}{lcc}
+Parameter & Prior & Bounds\\
+    \hline
+    $\ln A$ & $\mathcal N(-13, 5.7)$ & (-20, 0) \\
+    $\ln l$ & $\mathcal N(5.0, 1.2)$ & (2, 8) \\
+    $\ln \Gamma$ & $\mathcal N(1.9, 1.4)$ & (0, 3) \\
+    $\ln \sigma$ & $\mathcal N(-17, 5)$ & (-20, 0) \\
+    $\ln P $ & Uniform / ACF-based & ($\ln 0.5, \ln 100$) \\ 
+\end{tabular}
+\end{center}
+\end{table*}
+\label{tab:koipriors}
+
+Figure \ref{fig:mcquillan} compares the periods inferred with the GP method to the
 ACF-based periods from \citet{Mcquillan2013} for the \nkoimcq\ overlapping KOIs.
-This comparison shows generally very good agreement, 
-with the exception of a cluster of stars in the lower right of the figure
-where the GP method does not recover the ACF period.  
-However, rather than being primarily evidence of weakness of the GP method,
-this cluster of nominal failures actually reveals an important advantage
-for this method---the possibility of quantitatively motivated quality assessment. 
-
-
-
-
-We applied our method to \nmcquillan\ stars with rotation periods previously
-measured by \citet{Mcquillan2014}.
-A feature of \kepler\ light curves that works to our advantage is that they
-are naturally broken up into smaller time units by quarterly (three month)
-breaks.
-As explained above, splitting the data set into quarters, rather than
-modelling the entire time series contiguously speeds up the computation time
-as inverting several small matrices is faster than inverting one large one.
-The \kepler\ quarter divisions are natural places to split the time series
-because the spacecraft rotates by ninety degrees every quarter (three months),
-placing each star on a new CCD module.
-Pixel response functions and background flux differs from pixel-to-pixel and
-module-to-module, so noise properties of \kepler\ light curves change every
-quarter.
-Additionally, changes in the spacecraft's orientation and position during
-quarterly re-pointings temporarily affect the temperature of the CCD,
-producing systematic features in the light curves at the start of some
-quarters.
-We model each quarter separately but the parameters of the GP kernel function
-are global, {\it i.e.} we do not use a separate period parameter for each
-quarter---there is just one period parameter for an entire light curve.
-It would be possible to model the time series with a mixture of some global
-parameters and some quarter-specific parameters, for example one might expect
-that the amplitude of covariance, $A$ or white noise level, $\sigma$ to vary
-on a quarterly basis.
-However, since there are seventeen quarters this would lead to thirty-seven
-parameters, and in the interest of minimising computation time (adding
-parameters leads to longer MCMC burn in and convergence time), we choose to
-use global parameters only.
-
-Our results show good agreement with the \citet{Mcquillan2014} measurements,
-as shown in \ref{fig:mcquillan}.
+This comparison shows generally very good agreement, with only a few exceptions, 
+demonstrating that this method works not only on simulated data, but also on 
+real data---with the caveat that for any particular data set, some care is needed 
+regarding the setting the priors and ranges for the GP hyperparameters.
 
 \begin{figure}
 \begin{center}
@@ -784,22 +773,22 @@ as shown in \ref{fig:mcquillan}.
 \end{center}
 \end{figure}
 
-At this point it is important to highlight the following caveat.
-Our method has been tuned to reproduce the rotation periods of the
-\citet{Aigrain2015} simulated light curves.
-These light curves were simulated using a very good but still imperfect model.
-The input parameters and their distributions were chosen to be as realistic as
-possible given current observations.
-Unfortunately however, there are limited data on some of these parameters for
-stars other than the Sun: for example the distrubution of spot lifetimes or
-activity cycle length.
-Ensuring that we can recover the rotation periods of these simulated light
-curves does not necessarily ensure that we can recover the rotation periods of
-real \kepler\ light curves with equal accuracy and precision.
-Even using priors on the QP kernel parameters that have been derived from the
-\citet{Aigrain2015} sample may be dangerous.
-This caveat should be taken into consideration when this method is applied to
-real data.
+% At this point it is important to highlight the following caveat.
+% Our method has been tuned to reproduce the rotation periods of the
+% \citet{Aigrain2015} simulated light curves.
+% These light curves were simulated using a very good but still imperfect model.
+% The input parameters and their distributions were chosen to be as realistic as
+% possible given current observations.
+% Unfortunately however, there are limited data on some of these parameters for
+% stars other than the Sun: for example the distrubution of spot lifetimes or
+% activity cycle length.
+% Ensuring that we can recover the rotation periods of these simulated light
+% curves does not necessarily ensure that we can recover the rotation periods of
+% real \kepler\ light curves with equal accuracy and precision.
+% Even using priors on the QP kernel parameters that have been derived from the
+% \citet{Aigrain2015} sample may be dangerous.
+% This caveat should be taken into consideration when this method is applied to
+% real data.
 
 \section{Discussion}
 \label{sec:discussion}
