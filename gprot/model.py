@@ -31,7 +31,7 @@ class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
     # log bounds
-    _bounds = ((-20., 0.), 
+    _default_bounds = ((-20., 0.), 
                (2, 20.), 
                (-10., 3.), 
                (-20., 0.), 
@@ -46,7 +46,9 @@ class GPRotModel(object):
     _acf_prior_width = 0.2
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
-                 acf_prior=False):
+                 acf_prior=False, 
+                 gp_prior_mu=None, gp_prior_sigma=None, 
+                 bounds=None):
 
         self.lc = lc
 
@@ -61,9 +63,20 @@ class GPRotModel(object):
 
         self.acf_prior = acf_prior
 
-        # Default gaussian for GP param priors
-        self.gp_prior_mu = np.array(self._default_gp_prior_mu)
-        self.gp_prior_sigma = np.array(self._default_gp_prior_sigma)
+        # GP param priors
+        if gp_prior_mu is None:
+            self.gp_prior_mu = np.array(self._default_gp_prior_mu)
+        else:
+            self.gp_prior_mu = np.array(gp_prior_mu)
+        if gp_prior_sigma is None:
+            self.gp_prior_sigma = np.array(self._default_gp_prior_sigma)
+        else:
+            self.gp_prior_sigma = np.array(gp_prior_sigma)
+
+        if bounds is None:
+            self._bounds = self._default_bounds
+        else:
+            self._bounds = bounds
 
     @property
     def ndim(self):
@@ -97,22 +110,19 @@ class GPRotModel(object):
         Returns N x ndim array of prior samples
         (within bounds)
         """
-        samples = np.empty((N, self.ndim))
+        samples = np.inf*np.ones((N, self.ndim))
 
         np.random.seed(seed)
-        for i in range(self.ndim - 1):
-            vals = np.inf*np.ones(N)
-            m = ~np.isfinite(vals)
+        m = np.ones(N, dtype=bool)
+        nbad = m.sum()
+        while nbad > 0:
+            rn = np.random.randn(N * (self.ndim-1)).reshape((N, self.ndim-1))
+            for i in range(self.ndim - 1):
+                samples[m, i] = rn[m, i]*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
+            samples[m, -1] = self.sample_period_prior(nbad)
+            lnp = np.array([self.lnprior(theta) for theta in samples])
+            m = ~np.isfinite(lnp)
             nbad = m.sum()
-            while nbad > 0:
-                rn = np.random.randn(nbad)
-                vals[m] = rn*self.gp_prior_sigma[i] + self.gp_prior_mu[i]
-                m = (vals < self.bounds[i][0]) | (vals > self.bounds[i][1])
-                nbad = m.sum()
-
-            samples[:, i] = vals
-
-        samples[:, -1] = self.sample_period_prior(N)
 
         return samples
 
@@ -127,8 +137,8 @@ class GPRotModel(object):
             return -np.inf
 
         # Don't let SE correlation length be shorter than P.
-        # if theta[1] < theta[-1]:
-        #     return -np.inf
+        if theta[1] < theta[-1]:
+            return -np.inf
 
         # if not (theta[1] > theta[4] and np.log(0.5) < theta[4]):
         #     return -np.inf
@@ -148,6 +158,28 @@ class GPRotModel(object):
             return 0
         else:
             return lnGauss_mixture(p, self.period_mixture)
+
+    def plot_period_prior(self, ax=None, log=False, truth=None, **kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        ps = np.linspace(self.bounds[-1][0], self.bounds[-1][1], 1000)
+        lnp = np.array([self.lnprior_period(p) for p in ps])
+
+        if log:
+            ax.plot(ps, lnp, **kwargs)
+        else:
+            ax.plot(ps, np.exp(lnp - lnp.max()), **kwargs)
+
+        if truth is not None:
+            ax.axvline(truth, c='r', ls=':')
+
+        ax.set_xlabel('log(period)')
+        ax.set_ylabel('Probability density')
+        ax.set_yticks([])
+        return fig
 
     def sample_period_prior(self, N):
         loP, hiP = self.bounds[-1]

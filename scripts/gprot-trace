@@ -11,9 +11,10 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('star', type=int)
 parser.add_argument('--directory', '-d', default='mcmc_chains')
+parser.add_argument('--kepler', action='store_true')
 
 args = parser.parse_args()
 
-fig = trace_plot(args.star, directory=args.directory)
+fig = trace_plot(args.star, directory=args.directory, kepler=args.kepler)
 
 plt.show()

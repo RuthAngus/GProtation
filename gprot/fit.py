@@ -128,18 +128,21 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         try:
             tau_max, neff = calc_stats(sampler)
         except emcee3.autocorr.AutocorrError:
+            tau_max = 0
             continue
         if neff > targetn:
             done = True
 
     burnin = int(nburn*tau_max)
     ntot = nsamples
+    samples = sampler.get_coords(flat=True, discard=burnin)
+    total_samples = len(samples)
+    if ntot > total_samples:
+        ntot = total_samples
     if verbose:
         print("Discarding {0} samples for burn-in".format(burnin))
         print("Randomly choosing {0} samples".format(ntot))
-    samples = sampler.get_coords(flat=True, discard=burnin)
-    total_samples = len(samples)
-    inds = np.random.choice(np.arange(len(samples)), size=ntot, replace=False)
+    inds = np.random.choice(total_samples, size=ntot, replace=False)
     samples = samples[inds]
 
     df = pd.DataFrame(samples, columns=mod.param_names)

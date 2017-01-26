@@ -180,7 +180,9 @@ class LightCurve(object):
         fit = minimize(chisq, [1., pbest*2])
 
         tau = fit.x[1]
-        quality =  1./ (fit.fun / len(lags) / maxheight) # bigger is better
+
+        # Bigger is better. len(lags) is basically proportional to pmax
+        quality =  1./ (fit.fun / len(lags) / maxheight)
         quality *= tau/pbest # enhance quality for long decay timescales.
 
         return pbest, maxheight, tau, quality

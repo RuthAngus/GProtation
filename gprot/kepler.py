@@ -12,8 +12,25 @@ import kplr
 from kplr.api import APIError
 
 from .lc import LightCurve, qtr_times
+from .model import GPRotModel
 
 client = None
+
+class KeplerGPRotModel(GPRotModel):
+    """Parameters are A, l, G, sigma, period
+
+    Bounds and priors are adjusted based on population results
+    with the default settings.
+    """
+    _default_bounds = ((-20., 0.), 
+               (2, 8.), 
+               (0., 3.), 
+               (-20., 0.), 
+               (-0.69, 4.61)) 
+
+    _default_gp_prior_mu = (-13, 5.0, 1.9, -17)
+    _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
+
 
 class KeplerLightCurve(LightCurve):
     """
@@ -34,7 +51,8 @@ class KeplerLightCurve(LightCurve):
         (Approximate) number of points in each subchunk of the light curve.
     """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
-                 quarters=None, normalized=True, careful_stitching=False):
+                 quarters=None, normalized=True, careful_stitching=False,
+                 sap=False):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -55,6 +73,7 @@ class KeplerLightCurve(LightCurve):
         self.nsigma = nsigma
         self.chunksize = chunksize
         self.normalized = normalized
+        self.sap = sap        
         self.careful_stitching = careful_stitching
 
         self._x = None
@@ -132,8 +151,12 @@ class KeplerLightCurve(LightCurve):
                 hdu_data = f[1].data
                 t = hdu_data["time"]
 
-                f = hdu_data["pdcsap_flux"]
-                f_e = hdu_data["pdcsap_flux_err"]
+                if self.sap:
+                    f = hdu_data['sap_flux']
+                    f_e = hdu_data['sap_flux_err']
+                else:
+                    f = hdu_data["pdcsap_flux"]
+                    f_e = hdu_data["pdcsap_flux_err"]
                 q = hdu_data["sap_quality"]
 
                 # Keep only good points, median-normalize and mean-subtract flux
@@ -160,7 +183,8 @@ class KeplerLightCurve(LightCurve):
                     ferr.append(f_e[m])
 
                 if self.careful_stitching:
-                    raise NotImplementedError('Do not use "careful_stitching option; not necessary')
+                    if not self.sap:
+                        raise NotImplementedError('Do not use "careful_stitching" option if not using SAP data.')
                     # Use polynomial fit from last quarter to set level.
                     if p_last is not None:
                         t0 = time[-1][0]
