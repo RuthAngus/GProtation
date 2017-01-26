@@ -35,7 +35,10 @@ def load_and_plot(data, DATA_DIR, RESULTS_DIR):
     xerr = data.P_rot_err.values
     lnxerr = xerr/x
     amp = data.R_var.values
-    l = recovered > 0
+    # remove binaries.
+    l = (recovered > 0) * (data.koi_id.values != 197) * \
+        (data.koi_id.values != 279)
+
 
     plt.clf()
     xs = np.log(np.linspace(0, 100, 100))
@@ -50,11 +53,28 @@ def load_and_plot(data, DATA_DIR, RESULTS_DIR):
                 edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
                 vmax=max(np.log(amp[l])), s=20, zorder=2, lw=.2)
 
+    import kplr
+    import kepler_data as kd
+    client = kplr.API()
+    m = 20 < (np.abs(x[l] - recovered[l])/x[l] * 100)
+    for i, koi in enumerate(data.koi_id.values):
+        print(data.koi_id.values[l][m][i], x[l][m][i], recovered[l][m][i])
+        star = client.koi("{}.01".format(str(data.koi_id.values[l][m][i])))
+        # star.get_light_curves(fetch=True, shortcadence=False)
+        print(star.kepid)
+        kid = str(int(star.kepid)).zfill(9)
+        fname = "/Users/ruthangus/.kplr/data/lightcurves/{}".format(kid)
+        x, y, yerr = kd.load_kepler_data(fname)
+        plt.clf()
+        plt.plot(x, y, "k.")
+        plt.xlim(150, 300)
+        plt.savefig("{}".format(data.koi_id.values[l][m][i]))
+
     plt.ylim(0, 4)
     plt.xlim(0, 4)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln(\mathrm{R}_{\mathrm{var}})$")
-    plt.xlabel("$\ln(\mathrm{McQuillan~{\it et~al.}~(2014)~Period})$")
+    plt.xlabel("$\ln(\mathrm{McQuillan~{\it et~al.,}~2013~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.savefig("comparison_koi")
     plt.savefig("../documents/figures/comparison_koi.pdf")

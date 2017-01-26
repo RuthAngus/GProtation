@@ -9,7 +9,7 @@
 \usepackage{bm}
 
 \newcommand{\columbia}{1}
-\newcommand{\oxford}{3j}
+\newcommand{\oxford}{3}
 \newcommand{\uw}{4}
 \newcommand{\princeton}{2}
 \newcommand{\naigrain}{333}
@@ -48,7 +48,9 @@
    Ruth Angus\altaffilmark{\columbia},
    Timothy Morton\altaffilmark{\princeton}
    Suzanne Aigrain\altaffilmark{\oxford},
-   \& Daniel Foreman-Mackey\altaffilmark{\uw}
+   Daniel Foreman-Mackey\altaffilmark{\uw}
+   Suzanne Aigrain\altaffilmark{\oxford},
+   \& Vinesh Rajpaul\altaffilmark{\oxford}
 }
 
 \altaffiltext{\columbia}{Simons Fellow, Department of Astronomy, Columbia
@@ -519,7 +521,10 @@ The longer-period measurements provide the dominant contribution to this RMS.
 \includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
 \caption[LS periodogram results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
-curves vs the rotation periods measured using a LS periodogram technique.}
+curves vs the rotation periods measured using a LS periodogram technique.
+In many cases a large peak at a long period was present in the periodogram,
+    producing a significant over-estimate of the period.
+    }
 \label{fig:pgram_compare}
 \end{center}
 \end{figure*}
@@ -738,15 +743,36 @@ use global parameters only.
 
 Our results show good agreement with the \citet{Mcquillan2014} measurements,
 as shown in \ref{fig:mcquillan}.
+The uncertainties published in the \citet{Mcquillan2014} catalogue were
+calculated from the scatter in the positions of peaks in the ACF that are
+separated by integer multiples of the period.
+We show a comparison of our results to those of the \kepler\ Objects of
+Interest (KOIS) \citet{Mcquillan2014} in order to demonstrate that our
+technique works on real \kepler\ light curves, not just simulated ones.
+These are perhaps not the ideal test subjects because many KOI light curves
+have deep stellar occulatations and planetary transits which can look
+like non-Gaussian noise.
+Since Gaussian processes require that the data are Gaussian, this could have
+detremental effects on the results.
+Despite this however, our results are, in most cases, similar to those of
+\citet{Mcquillan2014} indicating that our method still works well even in the
+presence of transits and eclipses.
+In many cases where there is a large discrepancy between our results and the
+\citet{Mcquillan2014} results, either the variability is low amplitude or
+frequent, deep eclipses/transits are present in the data.
+In most other cases we expect our results to be the more accurate ones and the
+discrepancy may be due to quasi-periodicity in the light curve.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/comparison_koi.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
-\citet{Mcquillan2014}. The results show good agreement. In several cases we
-    measure a rotation period that is half the value reported by
-    \citet{Mcquillan2014}.}
+\citet{Mcquillan2014}.
+The data points are coloured by the range of variability measured by
+    \citet{Mcquillan2014}, defined as the interval between the 5th and 95th
+    percentiles of normalized flux per period bin in millimagnitudes.
+    The results show good agreement.}
 \label{fig:mcquillan}
 \end{center}
 \end{figure}
@@ -971,26 +997,40 @@ rotation from \citet{Aigrain2015} and attempted to recover the rotation
 periods used to generate them.
 Three methods were compared: a Lomb-Scargle periodogram method, an
 autocorrelation function method and a new Gaussian process method.
-The GP method produced the most precise and accurate rotation periods of the
-three techniques.
-This is because a GP is a semi-parametric model that is well suited to signals
-that are non-sinusoidal and quasi-periodic.
+We demonstrate that the GP method produced the most precise and accurate
+rotation periods of the three techniques.
+In addition, we compared the rotation periods of \kepler\ objects of
+interest measured using the GP method to those measured previously by
+\citet{Mcquillan2014}.
+The good agreement between the two sets of results demonstrates that the GP
+method works well on real \kepler\ data and is, in most cases robust to the
+presents of transits and eclipses in the light curves.
+
+Although rotation period uncertainties calculated using the GP method are
+better estimates than those calculated using the ACF method, they are still
+imperfect estimates of the intrinsic uncertainties.
+This is because the posterior PDF of the rotation period parameter is, in many
+cases, multi-modal.
+If it were possible to run an MCMC sampler for an infinite number of steps, we
+would the entire posterior PDF would eventually be sampled, producing an
+accurate uncertainty measurement.
+Practically speaking however, these imperfect estimates may be the best
+currently achievable.
+
+A GP is a semi-parametric model that is well suited to signals that are
+non-sinusoidal and quasi-periodic.
 Not only this, unlike the other two methods, the GP method provides posterior
 PDF samples of rotation periods, allowing characterisation of uncertainties.
 Note that the posterior PDFs are often non-Gaussian, being bi- or multimodal.
-In these cases it is therefore misleading to report a 1$\sigma$ or 16th and
+In these cases it is therefore misleading to report median values or 16th and
 84th percentiles as uncertainties.
 Rather, it is better to incorporate posterior PDF samples into analyses which
 require uncertainty propagation.
-
 Because rotation periods are inferred probabilistically with the GP method,
 this allows them to be easily incorporated into follow-on studies; inferring
 stellar ages or characterising star-planet interactions for example.
-This the GP method also eliminates the need to define a heuristic detection
-criterion such as are often used in the literature: a light curve that does
-not contain a rotation signal will return the prior PDF.
 
-The main drawback of the GP method is the computation time.
+The main drawback of the GP method is the computational cost.
 
 % acknowledgements
 This research was funded by the Simons Foundation and the Leverhulme Trust.
