@@ -492,7 +492,11 @@ between our new method and that used largely in the literature.
 \includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
 \caption[ACF results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
-curves vs the rotation periods measured using the ACF technique.}
+curves vs the rotation periods measured using the ACF technique.
+    Several light curves have over-estimated rotation periods and some
+    are drastically underestimated.
+    In some cases the recovered period is twice the true period used to
+    simulate the light curve.}
 \label{fig:compare_acf}
 \end{center}
 \end{figure*}
@@ -651,24 +655,26 @@ prior (details in Appendix.)
 % log-uniform between the bounds, but that we were also able to
 % further improve our results by using an ACF-inspired prior.
 
-To sample the posterior in a way that is sensitive to potential
-multimodality, we use the \texttt{emcee3} MCMC sampler.
-We initialize 500 walkers with random samples from the prior
- and use a mix of different proposal distributions:
-specifically, a 2:2:1 mix of KDE, differential evolution, and DESnooker moves.
+To sample the posterior in a way that is sensitive to potential multimodality,
+we use the \texttt{emcee3} MCMC sampler.
+We initialize 500 walkers with random samples from the prior and use a mix of
+different proposal distributions: specifically, a 2:2:1 mix of KDE,
+differential evolution, and DESnooker moves.
 [DFM: more words/citations here?]
 We run fifty steps of the sampler at a time, checking for convergence after
-each iteration, up to a maximum of fifty iterations.  We declare convergence if
-the total effective chain length is at least 8$\times$ the maximum autocorrelation
-time.  When convergence is achieved, we drop the first two autocorrelation
-lengths in the chain as a burn-in, and randomly choose 5000 samples as
-representative of the posterior.  This fitting process takes several hours
-for a typical simulated light curve, though in some cases it can take 12
-hours or longer to converge.
+each iteration, up to a maximum of fifty iterations.
+We declare convergence if the total effective chain length is at least
+8$\times$ the maximum autocorrelation time.
+When convergence is achieved, we drop the first two autocorrelation lengths in
+the chain as a burn-in, and randomly choose 5000 samples as representative of
+the posterior.
+This fitting process takes several hours for a typical simulated light curve,
+though in some cases it can take 12 hours or longer to converge.
 
 \begin{table*}
 \begin{center}
-\caption{Priors and bounds on the natural logarithms of the GP model parameters.}
+\caption{Priors and bounds on the natural logarithms of the GP model
+    parameters.}
 \begin{tabular}{lcc}
 Parameter & Prior & Bounds\\
     \hline
@@ -692,7 +698,9 @@ simulated light curves vs the rotation periods measured using the GP
 technique.
 Since the posterior PDFs of rotation periods are often non-Gaussian,
 the points plotted here are the highest likelihood samples.
-The uncertainties are the 16th and 84th percentiles.}
+The uncertainties are the 16th and 84th percentiles.
+In many cases, the uncertainties are under-estimated.
+    }
 \label{fig:compare_mcmc}
 \end{center}
 \end{figure*}
