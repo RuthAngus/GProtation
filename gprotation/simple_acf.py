@@ -56,6 +56,10 @@ def simple_acf(x, y):
     m, b = np.linalg.solve(ATA, np.dot(AT, acf_smooth))
     acf_smooth -= m*lags + b
 
+    # Cut off the first half a day
+    m = lags > .5
+    acf_smooth, lags = acf_smooth[m], lags[m]
+
     # find all the peaks
     peaks = np.array([i for i in range(1, len(lags)-1)
                      if acf_smooth[i-1] < acf_smooth[i] and

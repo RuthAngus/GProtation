@@ -602,58 +602,59 @@ operations use the fast matrix solver HODLR \citep{Ambikasaran2014},
 implemented in the {\tt george} \citep{George} python package.} scale as
 $N\ln(N)^2$, where $N$ is the number of data points in the light curve.
 
-\item The flexibility of this GP model allows for insidious kinds of
-posterior multimodality and ``over-fitting''--like behavior.  For example,
-if $l$ is small,  the non-periodic factor in the covariance kernel may
-dominate, allowing for a good fit to the data without requiring any
-periodic covariance structure---even if
-clear periodic structure is present.  Additionally, if $\Gamma$ is too large,
-then [explain in more technical terms that ``the GP gets way too wiggly and
-overfits the data without caring about the periodicity.'' ]
+\item The flexibility of this GP model allows for posterior multimodality and
+``over-fitting''--like behavior.
+For example, if $l$ is small,  the non-periodic factor in the covariance
+        kernel may dominate, allowing for a good fit to the data without
+        requiring any periodic covariance structure---even if clear periodic
+        structure is present.
+Additionally, if $\Gamma$ is too large, the GP model becomes extremely
+        flexible and can fit the data without varying the period.
 
 \item In some cases, the posterior may also be multi-modal in period---that is,
 there may be significant posterior density at half or twice the true period $P$.
-This is related to how the ACF method must guard against identifying periods
-at half or twice the true period.
 \end{itemize}
 
-We address the difficulty of computational speed in two distinct ways: subsampling
-the data and splitting the light curve into independent sections.
-To subsample, we randomly select 1/30th of the points in the full light curve (an
-average of $\sim$1.5 points per day).  This decreases the likelihood evaluation
-time by a factor of about 50, down to about 100\,ms.
-We then split the light curve into equal-sized
-chunks containing approximately 300 points per section (corresponding to about
-200 days), and evaluate the log-likelihood as the sum of the log-likelihoods
-of the individual sections (all using the same parameters ${\bm \theta}$).  This reduces
-computation time because the section-based likelihood evaluation scales as $mn\ln(n)^2$, where $n$ is the number of data points per section and $m$ is the number of sections.
-This method further reduces computation time for a typical light curve (subsampled
-by a factor of 30) by about a factor of two, to about 50\,ms.
+We address the difficulty of computational speed in two distinct ways:
+subsampling the data and splitting the light curve into independent sections.
+To subsample, we randomly select 1/30th of the points in the full light curve
+(an average of $\sim$1.5 points per day).
+This decreases the likelihood evaluation time by a factor of about 50, down to
+about 100\,ms.
+We then split the light curve into equal-sized chunks containing approximately
+300 points per section (corresponding to about 200 days), and evaluate the
+log-likelihood as the sum of the log-likelihoods of the individual sections
+(all using the same parameters ${\bm \theta}$).
+This reduces computation time because the section-based likelihood evaluation
+scales as $mn\ln(n)^2$, where $n$ is the number of data points per section and
+$m$ is the number of sections.
+This method further reduces computation time for a typical light curve
+(subsampled by a factor of 30) by about a factor of two, to about 50\,ms.
 
-In order to manage the great flexibilty of the GP model and focus on
-reliably retrieving the period parameter, we also impose priors
-on the non-period GP parameters that we
-learned during the development of this method.
-Beginning with very broad priors (uniform in log space between
--20 and 20) on all the parameters, we first explored what the
-typical values of the non-period parameters tended to be when the
-injected periods were successfully recovered.  We also experimented with
-constraining the allowed ranges of the parameters, after discovering
-that some regions of parameter space (such as large values of $A$ and $\Gamma$
-and small values of $l$) tended to allow fits that ignored the desired
-periodicity.  The priors and bounds we used for this work are listed in
-table \ref{tab:priors}.  We note that we do not have any specific
-quantitative justification for the use of these priors,
-except that they produce good results for this particular test set of
-light curves.  We thus caution that other data sets might have different
-noise properties, potentially requiring modifications to these priors
-on the non-period parameters (e.g., see Section \ref{sec:kepler}).  
-For period, we tried two different methods:
-an uninformed (log-flat) prior between 0.5\,d and 100\,d, and an ACF-informed
-prior (details in Appendix.)
-% We note that our default prior for period is
-% log-uniform between the bounds, but that we were also able to
-% further improve our results by using an ACF-inspired prior.
+In order to manage the flexibilty of the GP model and focus on reliably
+retrieving the period parameter, we also impose priors on the non-period GP
+parameters, learned during the development of this method.
+Beginning with very broad priors (uniform in log space between -20 and 20) on
+all the parameters, we first explored the typical values of the non-period
+parameters when the injected periods were successfully recovered.
+We also experimented with constraining the allowed ranges of the parameters
+after discovering that some regions of parameter space (such as large values
+of $A$ and $\Gamma$ and small values of $l$) tended to allow fits that ignored
+the desired periodicity.
+The priors and bounds we used for this work are listed in table
+\ref{tab:priors}.
+We note that we do not have any specific quantitative justification for the
+use of these priors, except that they produce good results for this particular
+test set of light curves.
+We thus caution that other data sets might have different noise properties,
+potentially requiring modifications to these priors on the non-period
+parameters (e.g., see Section \ref{sec:kepler}).
+For the period prior, we tried two different methods: an uninformed (log-flat)
+prior between 0.5\,d and 100\,d, and an ACF-informed prior (details in
+Appendix.)
+% We note that our default prior for period is log-uniform between the bounds,
+% but that we were also able to further improve our results by using an
+% ACF-inspired prior.
 
 To sample the posterior in a way that is sensitive to potential multimodality,
 we use the \texttt{emcee3} MCMC sampler.

@@ -82,10 +82,10 @@ def gp_fit(x, y, yerr, sid, RESULTS_DIR):
 
 def recover(i):
 
-    RESULTS_DIR = "results_emcee3_move"
-    DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+    RESULTS_DIR = "acf_results"
+    DATA_DIR = "kepler_diffrot_full/final"
 
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    DIR = "kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
@@ -96,12 +96,12 @@ def recover(i):
     yerr = np.ones_like(y) * 1e-5
 
     fit = gp.fit(x, y, yerr, sid, RESULTS_DIR)
-    fit.gp_fit(burnin=1000, nwalkers=20, nruns=10, full_run=1000, nsets=2)
+    # fit.gp_fit(burnin=1000, nwalkers=20, nruns=10, full_run=1000, nsets=2)
 
 
 if __name__ == "__main__":
 
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    DIR = "kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 

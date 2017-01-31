@@ -10,7 +10,8 @@ import os
 import time
 import h5py
 
-import emcee3
+import emcee
+# import emcee3
 from gatspy.periodic import LombScargle
 
 from GProtation import make_plot, MyModel

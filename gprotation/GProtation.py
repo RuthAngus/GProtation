@@ -9,7 +9,8 @@ import os
 
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel
-import emcee3
+# import emcee3
+import emcee
 import corner
 
 
