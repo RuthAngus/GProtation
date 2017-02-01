@@ -105,5 +105,7 @@ if __name__ == "__main__":
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
     m = truths.DELTA_OMEGA.values == 0
 
-    pool = Pool()
-    results = pool.map(recover, range(len(truths.N.values[m])))
+    for i in range(len(truths.N.values[m])):
+        recover(i)
+    # pool = Pool()
+    # results = pool.map(recover, range(len(truths.N.values[m])))

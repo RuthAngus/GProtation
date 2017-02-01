@@ -50,11 +50,11 @@ def simple_acf(x, y):
     # ditch the first point
     acf_smooth, lags = acf_smooth[1:], lags[1:]
 
-    # fit and subtract straight line
-    AT = np.vstack((lags, np.ones_like(lags)))
-    ATA = np.dot(AT, AT.T)
-    m, b = np.linalg.solve(ATA, np.dot(AT, acf_smooth))
-    acf_smooth -= m*lags + b
+    # # fit and subtract straight line
+    # AT = np.vstack((lags, np.ones_like(lags)))
+    # ATA = np.dot(AT, AT.T)
+    # m, b = np.linalg.solve(ATA, np.dot(AT, acf_smooth))
+    # acf_smooth -= m*lags + b
 
     # Cut off the first half a day
     m = lags > .5

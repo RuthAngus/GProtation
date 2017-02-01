@@ -16,6 +16,7 @@ from gatspy.periodic import LombScargle
 
 from GProtation import make_plot, MyModel
 import simple_acf as sa
+import acf
 
 DATA_DIR = "data/"
 RESULTS_DIR = "results/"
@@ -177,7 +178,7 @@ def evaluate_convergence(flat, mean_acorr, diff_threshold=0,
     return converged, mean_acorr, mean_ind, mean_diff
 
 
-def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
+def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
     if not clobber and os.path.exists(fname):
         print("Previous ACF pgram result found")
@@ -191,6 +192,9 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=False):
         print("Calculating ACF")
         acf_period, acf, lags, rvar = sa.simple_acf(x, y)
         err = .1 * acf_period
+        # acf_period, err, lags, acf = acf.corr_run(x, y, np.ones_like(y)*1e-5,
+                                                  # id, RESULTS_DIR)
+
         plt.clf()
         plt.plot(lags, acf)
         plt.axvline(acf_period, color="r")

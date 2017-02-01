@@ -15,7 +15,8 @@ plotpar = {'axes.labelsize': 18,
            'text.usetex': True}
 plt.rcParams.update(plotpar)
 
-DATA_DIR = "../code/simulations/kepler_diffrot_full/final"
+DATA_DIR = "Users/ruthangus/projects/GProtation/" \
+    "code/kepler_diffrot_full/final"
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR):
     fname = os.path.join(RESULTS_DIR, "{0}_acf_pgram_results.txt".format(id))
@@ -232,7 +233,7 @@ def acf_plot(truths, DIR):
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period~ACF~Method})$")
     plt.savefig(os.path.join(DIR, "compare_acf.pdf"))
-    return (np.median((acfs - true)**2))**.5
+    return np.median(np.abs(acfs - true))
 
 def pgram_plot(truths, DIR):
     """
@@ -266,23 +267,16 @@ def pgram_plot(truths, DIR):
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period~LS~Periodogram~method})$")
     plt.savefig(os.path.join(DIR, "compare_pgram.pdf"))
-    return (np.median((pgram - true)**2))**.5
+    return np.median(np.abs(pgram - true))
 
 if __name__ == "__main__":
 
-    DIR = "../code/simulations/kepler_diffrot_full/par/"
+    DIR = "/Users/ruthangus/projects/GProtation/code/kepler_diffrot_full/par/"
     truths = pd.read_csv(os.path.join(DIR, "final_table.txt"), delimiter=" ")
 
     # remove 17 for now
 #     m = truths.N.values != 17
 #     truths = truths.iloc[m]
 
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee3"))
-    print("acf sigma rms = ", acf_plot(truths, "results_emcee3_move"))
-    print("pgram sigma rms = ", pgram_plot(truths, "results_emcee3_move"))
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_emcee2"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_emcee2"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_emcee2"))
-#     print("mcmc sigma rms = ", mcmc_plots(truths, "results_sigma"))
-#     print("acf sigma rms = ", acf_plot(truths, "results_sigma"))
-#     print("pgram sigma rms = ", pgram_plot(truths, "results_sigma"))
+    print("acf sigma rms = ", acf_plot(truths, "acf_results"))
+    print("pgram sigma rms = ", pgram_plot(truths, "acf_results"))
