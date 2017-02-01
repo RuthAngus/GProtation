@@ -233,7 +233,8 @@ def acf_plot(truths, DIR):
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period~ACF~Method})$")
     plt.savefig(os.path.join(DIR, "compare_acf.pdf"))
-    return np.median(np.abs(acfs - true))
+
+    return np.median(np.abs(acfs - true)), np.log(true) - np.log(acfs)
 
 def pgram_plot(truths, DIR):
     """
@@ -267,7 +268,9 @@ def pgram_plot(truths, DIR):
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period~LS~Periodogram~method})$")
     plt.savefig(os.path.join(DIR, "compare_pgram.pdf"))
-    return np.median(np.abs(pgram - true))
+
+    return np.median(np.abs(pgram - true)), np.log(true) - np.log(pgram)
+
 
 if __name__ == "__main__":
 
@@ -278,5 +281,19 @@ if __name__ == "__main__":
 #     m = truths.N.values != 17
 #     truths = truths.iloc[m]
 
-    print("acf sigma rms = ", acf_plot(truths, "acf_results"))
-    print("pgram sigma rms = ", pgram_plot(truths, "acf_results"))
+    acf_MAD, acf_resids = acf_plot(truths, "acf_results")
+    pgram_MAD, pgram_resids = pgram_plot(truths, "acf_results")
+    print("acf MAD = ", acf_MAD)
+    print("pgram MAD = ", pgram_MAD)
+    m1 = (-.5 < acf_resids) * (acf_resids < .5)
+    m2 = (-.5 < pgram_resids) * (pgram_resids < .5)
+    plt.clf()
+    plt.hist(pgram_resids[m2], 100, normed=True, alpha=.5, color="r",
+             label="pgram")
+    plt.hist(acf_resids[m1], 100, normed=True, alpha=.5, color="b",
+             label="ACF")
+    print(np.median(np.abs(acf_resids)))
+    print(np.median(np.abs(pgram_resids)))
+    plt.legend()
+    plt.xlim(-1, 1)
+    plt.savefig("acf_pgram_resids")
