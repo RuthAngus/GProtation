@@ -69,13 +69,13 @@ WA}
 University,  Princeton, NJ}
 
 \begin{abstract}
-The light curves of spotted, rotating stars are often non-sinusoidal and
-quasi-periodic---spots are not static on the stellar surface and have finite
+The light curves of spotted, rotating stars often vary in a non-sinusoidal and
+quasi-periodic fashion---spots move on the stellar surface and have finite
 lifetimes, causing stellar flux variations to slowly shift in phase.
 A strictly periodic sinusoid therefore cannot accurately model a
 rotationally modulated stellar light curve.
 Physical models of the stellar surface also have many drawbacks preventing effective
-inference, such as having highly degenerate or high-dimensional parameter spaces.
+inference, such as highly degenerate or high-dimensional parameter spaces.
 % \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
 In this work, we introduce an appropriate {\it effective} model: a Gaussian Process (GP)
 with a quasi-periodic covariance kernel function.
@@ -83,9 +83,9 @@ Using this highly flexible model,
 we are able to sample from the posterior Probability Density Function
 (PDF) of the periodic parameter, marginalising over the other kernel hyperparameters
 using a Markov Chain Monte Carlo approach.
-To test this method's effectiveness, we infer rotation periods from
-\naigrain\ simulated light curves, demonstrating that our results
-    are more accurate than both a sine-fitting periodogram and an
+To test this method's effectiveness, we infer rotation periods from 
+\naigrain\ simulated stellar light curves, demonstrating that our results 
+    are more accurate than both a sine-fitting periodogram and an 
     AutoCorrelation Function (ACF) method.
 We also demonstrate that it works effectively on real data, by
 inferring rotation periods for \nkois\ \Kepler\ stars.
@@ -104,53 +104,52 @@ ages or stellar obliquities in exoplanet systems, or characterising star-planet 
 
 \section{Introduction}
 
-The light curves of spotted, rotating stars are often non-sinusoidal and
-Quasi-Periodic (QP).
-These stars vary in brightness due to active regions on their surfaces which
+The brightness of a spotted, rotating star often varies in a non-sinusoidal and
+Quasi-Periodic (QP) manner, due to active regions on its surface which
 rotate in and out of view.
-Complicated surface spot patterns produce the non-sinusoidal quality,
-and the finite lifetimes of these active regions and the presence of 
+Complicated surface spot patterns produce non-sinusoidal variations,
+and the finite lifetimes of these active regions and
 differential rotation on the stellar surface produce quasi-periodicity.
 A strictly periodic sinusoid therefore does not well describe 
 rotationally modulated stellar light curves.
 A physically realistic model of the stellar surface 
-would perfectly capture the complexity of shapes
+would ideally perfectly capture the complexity of shapes
 within stellar light curves as well as the quasi-periodic nature, allowing for
 extremely precise probabilistic period recovery when conditioned on the data.
 However, such physical models require many free parameters in order to
-accurately represent a stellar surface and some of these parameters are
+accurately represent a stellar surface, and some of these parameters are
 extremely degenerate \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
 In addition to global stellar parameters such as inclination and rotation
 period, each spot or active region should have (at minimum) a longitude,
 latitude, size, temperature and lifetime.
-Considering that many stars likely have hundreds of spots, the number
-of free parameters quickly becomes unwieldy, especially to explore
-their posterior PDFs with MCMC.
+Considering that stars may have hundreds of spots, the number
+of free parameters in such a model quickly becomes unwieldy, especially to explore
+its posterior probability distribution function (PDF).
 Simplified spot models, such as the one described in \citet{Lanza2014} where
 only two spots are modelled, have produced successful results; however, such 
 relatively inflexible models sacrifice precision. 
 
-The standard methods used for measuring rotation periods include detecting
+Standard methods to measure rotation periods include detecting
 peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS) periodogram
 \citep[e.g.][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
 \citep{Mcquillan2013} and wavelet transforms \citep{Garcia2014}.
-The precision of the LS periodogram and wavelet methods are limited by the
+The precisions of the LS periodogram and wavelet methods are limited by the
 suitability of the model choice: a sinusoid for the LS periodogram, 
 and a choice of mother wavelet, assumed to desribe the data
 over a range of transpositions \citep[see, \eg][]{Carter2010}, 
 for the wavelet method.
 In contrast, the ACF method is much better suited to signals that are
 non-sinusoidal.
-In fact, as long as it is approximately periodic the ACF will 
-display a peak at the rotation period, no matter the signal shape.
+In fact, as long as the signal is approximately periodic the ACF will 
+display a peak at the rotation period, no matter its precise shape.
 A drawback of the ACF method, however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
 ACFs for unevenly-spaced data.}, which is not exactly the case with \Kepler\
 light curves (although in many cases it can be approximated as uniformly
-sampled) and not nearly the case for the future large-scale survey instrument
-\LSST.
-An ACF is also an operation performed on the data, not a generative model of
-the data, and so not inherently probabilistic.
+sampled) and not nearly the case for most ground-based measurements, such 
+as the future Large Synoptic Survey Telescope (\LSST).
+An ACF is also an operation performed on the data rather than a generative 
+model of the data, and so is not inherently probabilistic.
 Therefore, there is no justified way to estimate the uncertainty on an ACF
 rotation period measurement.
 % Many rotation periods in the literature have been inferred by measuring the
@@ -165,16 +164,16 @@ which captures the salient behaviour but is not
 physically motivated---although some parameters may indeed be 
 {\it interpreted} as physical ones.
 An ideal effective model should have a small number of non-degenerate parameters 
-and be flexible enough to perfectly capture non-sinusoidal, QP behaviour.
-A Gaussian process (GP) model fulfills these requirements. We use this GP 
-model as the generative model at the backbone of a method to probabilistically 
+and be flexible enough to perfectly capture non-sinusoidal and QP behaviour.
+A Gaussian process (GP) model fulfills these requirements. We thus use a GP 
+as the generative model at the core of a method to probabilistically 
 infer accurate and precise stellar rotation periods.  This enables us to 
 estimate the posterior PDF of the rotation period, thereby producing a 
 justified estimate of its uncertainty while simultaneously marginalizing over
 parameters which model correlated noise.
 
 GPs are commonly used in the machine learning community and increasingly
-in other scientific fields, for example biology and geophysics.
+in other scientific fields such as biology and geophysics.
 More recently, GPs have been used in the astronomy literature \citep[see
 \eg][]{Gibson2012, Haywood2014, Haywood2015, Evans2015, Rajpaul2015,
 Rajpaul2016, Aigrain2016}.
@@ -188,31 +187,32 @@ An in-depth introduction to Gaussian processes is provided by
 
 GP models parameterise the covariance between data points by means of a kernel
 function that defines the form of the covariance matrix.
-For example, take the time-series in Figure \ref{fig:GP_example}: 
+As a qualitatively demonstration, we present the time-series 
+in Figure \ref{fig:GP_example}: 
 the \kepler\ light curve of KIC \kepexample, a relatively active star that
 rotates once every $\sim$ 4 days, with stochastic variability typical of 
 \kepler\ FGK stars.
 Clearly, data points in this light curve are correlated.
-Points close together in time are tightly correlated and points more
+Points close together in time are tightly correlated, and points more
 widely separated are loosely correlated.
 A GP models the way in which this correlation varies with the separation between 
 data points; that is, it models not the data directly but rather the {\it 
 covariance structure}.
-This gives GPs their flexibility---they can model any time
+This lends GPs their flexibility---they can model any time
 series with a similar covariance structure.
 In addition, a very simple function can usually capture the covariance
-structure of a light curve, whereas a much more complicated one may be
-required to model the time series itself.
-Figure \ref{fig:GP_example} demonstrates how the light curve of KIC \kepexample\ 
-may be modelled with a GP.
+structure of a light curve, whereas modelling the time series itself
+might require much more complexity.
+Figure \ref{fig:GP_example} demonstrates how a GP model fits the light curve of 
+KIC \kepexample.
 % Both provide adequate fits to the data, however only the periodic kernel
 % function, `QP' is a useful model because it has a periodic parameter.
 % I return to this point shortly.
 
 A range of kernel functions can describe stellar variability.
 For example, the simplest and most commonly used kernel function, the `Squared
-Exponential' (SE), defined as follows, 
-produces an adequate fit to the KIC \kepexample\ light curve:
+Exponential' (SE), defined as follows, adequately fits the 
+KIC \kepexample\ light curve:
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2} \right).
 \end{equation}
@@ -224,15 +224,14 @@ just two parameters, $A$ and $l$.
 If $l$ is large, two data points far apart in $x$ will be tightly correlated,
 and if small they will be loosely correlated.
 Another property of the SE kernel function is that it produces functions that
-are infinitely differentiable.
-It is therefore possible to model a data set and its derivatives
-simultaneously.
+are infinitely differentiable, making it possible to model a data set 
+and its derivatives simultaneously.
 % \citep[see \eg][]{Rajpaul2015}
 
-However, The SE kernel function is not a good model of the covariance 
-in stellar light curves, nor a {\it useful} one for the problem of 
+However, The SE kernel function does not well describe the covariance 
+in stellar light curves, nor is it {\it useful} for the problem of 
 rotation period inference because it does not capture periodic behaviour.
-In order to infer rotation periods it is thus necessary to use a periodic kernel
+Inferring rotation periods thus requires a periodic kernel
 function.  For this reason, we use the `Quasi-Periodic' kernel, defined as
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2} -
@@ -242,38 +241,38 @@ k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2} -
 It is the product of the SE kernel function, which describes the overall
 covariance decay, and an exponentiated, squared, sinusoidal kernel function
 that describes the periodic covariance structure.
-$P$ can be interpreted as the rotation period of the star and $\Gamma$
+$P$ can be interpreted as the rotation period of the star, and $\Gamma$
 controls the amplitude of the $\sin^2$ term.
 If $\Gamma$ is very small, only points almost exactly one period away are
 tightly correlated and points that are slightly more or less than one period
 away are very loosely correlated.
 If $\Gamma$ is large, points separated by one period are tightly
-correlated and points separated by slightly more or less are still highly
-correlated although less so.
+correlated, and points separated by slightly more or less are still highly
+correlated, although less so.
 This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while also allowing 
 points separated by half a period to be weakly correlated.
 We also use an extra parameter $\sigma$ which is an additional white noise
 term added to the diagonal elements of the covariance matrix.
-It is the fraction by which the observational uncertainties have been
+This represents the fraction by which the observational uncertainties have been
 underestimated --- if the uncertainties reported on the data are too small,
-this parameter will be non-zero.
-In practice however, this parameter should always be non-zero when performing
-GP regression.
-This is because the covariance matrix must be positive definite; however,
-matrix inversion performed using most solvers is approximate, not exact,
-so slight deviations from positive definiteness can arise.
-Including a small amount of extra variance in the model allows enough
-flexibility that the matrix inversion algorithms do not run into numerical
+it will be non-zero.
+In practice, this parameter should always be non-zero when performing
+GP regression, because the covariance matrix must be positive definite and  
+slight deviations from positive definiteness can arise due to most 
+solvers using approximate, rather than exact, matrix inversion.
+Including a small amount of extra variance in the model ensures enough
+flexibility for matrix inversion algorithms to not run into such numerical
 issues.  We use this QP kernel function to produce the GP model 
 that fits the \Kepler\ light curve in in Figure \ref{fig:GP_example}.
 
-To infer a stellar rotation period from a light curve, we fit this QP-kernel
+To infer a stellar rotation period $P$ from a light curve, we fit this QP-kernel
 GP model to the data.  As with any model-fitting exercise, the likelihood
 of the model could be maximized to find the maximum-likelihood value for $P$.
-In this study, however, we explore the full posterior PDFs using MCMC.  While
+In this study, however, we explore the full posterior PDFs using a Markov
+Chain Monte Carlo (MCMC) procedure.  While
 this approach comes at a computational cost, such posterior exploration 
-importantly provides a justified estimate of the uncertainty on rotation period.
+importantly provides a justified uncertainty estimate.
 
 \begin{figure}
 \begin{center}
