@@ -72,25 +72,25 @@ University,  Princeton, NJ}
 The light curves of spotted, rotating stars are often non-sinusoidal and
 quasi-periodic---spots are not static on the stellar surface and have finite
 lifetimes, causing stellar flux variations to slowly shift in phase.
-A strictly periodic sinusoid therefore cannot accurately model a 
+A strictly periodic sinusoid therefore cannot accurately model a
 rotationally modulated stellar light curve.
 Physical models of the stellar surface also have many drawbacks preventing effective
 inference, such as having highly degenerate or high-dimensional parameter spaces.
 % \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
 In this work, we introduce an appropriate {\it effective} model: a Gaussian Process (GP)
 with a quasi-periodic covariance kernel function.
-Using this highly flexible model, 
+Using this highly flexible model,
 we are able to sample from the posterior Probability Density Function
 (PDF) of the periodic parameter, marginalising over the other kernel hyperparameters
 using a Markov Chain Monte Carlo approach.
-To test this method's effectiveness, we infer rotation periods from 
-\naigrain\ simulated light curves, demonstrating that our results 
-    are more accurate than both a sine-fitting periodogram and an 
+To test this method's effectiveness, we infer rotation periods from
+\naigrain\ simulated light curves, demonstrating that our results
+    are more accurate than both a sine-fitting periodogram and an
     AutoCorrelation Function (ACF) method.
-We also demonstrate that it works effectively on real data, by 
+We also demonstrate that it works effectively on real data, by
 inferring rotation periods for \nkois\ \Kepler\ stars.
-Because this method delivers posteriors PDFs, 
-it will enable other studies involving stellar rotation, 
+Because this method delivers posteriors PDFs,
+it will enable other studies involving stellar rotation,
 such as inferring stellar
 ages or stellar obliquities in exoplanet systems, or characterising star-planet interactions.
 % Thehe ACF method is not applicable to unevenly spaced data,
@@ -643,11 +643,24 @@ Appendix).
 % ACF-inspired prior.
 
 To sample the posterior in a way that is sensitive to potential multimodality,
-we use the \texttt{emcee3} MCMC sampler.
-We initialize 500 walkers with random samples from the prior and use a mix of
-different proposal distributions: specifically, a 2:2:1 mix of KDE,
-differential evolution, and DESnooker moves.
-[DFM: more words/citations here?]
+we use the \texttt{emcee3}\footnote{\url{https://github.com/dfm/emcee3}} MCMC
+sampler.
+\texttt{emcee3} is the successor to the \texttt{emcee} project
+\citep{Foreman-Mackey2013} that includes a suite of ensemble MCMC proposals
+that can be combined to efficiently sample more distributions than the stretch
+move \citep{Goodman2010} in \texttt{emcee}.
+For this project, we use a weighted mixture of three proposals.
+First, we include a proposal based on the \texttt{kombine}
+package\footnote{\url{https://github.com/bfarr/kombine}} (Farr \& Farr, in
+prep.) where a kernel density estimate (KDE) of the density represented by the
+complementary ensemble is used as the proposal for the other walkers.
+The other two proposals are a ``Differential Evolution (DE) MCMC'' proposal
+\citep{terBraak2006, Nelson2014} and the ``snooker'' extension of DE
+\citep{terBraak2008}.
+
+We initialize 500 walkers with random samples from the prior and use a
+weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4,
+0.4, and 0.2 respectively.
 We run fifty steps of the sampler at a time, checking for convergence after
 each iteration, up to a maximum of fifty iterations.
 We declare convergence if the total effective chain length is at least
