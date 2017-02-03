@@ -72,6 +72,13 @@ def load_and_plot(data):
     print("median_err = ", median_err)
     print(np.median(lnxerr[np.isfinite(lnxerr)]), "mcquillan err")
 
+
+    print("MAD = ", np.median(np.abs(x[l] - recovered[l])))
+    print("MAD (log) = ", np.median(np.abs(np.log(x[l]) - np
+                                           .log(recovered[l]))))
+    print("MAD relative % = ", np.median((np.abs(x[l] -
+                                                 recovered[l]))/x[l])*100)
+
 #     errs = .5*(lnerrp[l] + lnerrm[l])
 #     plt.clf()
 #     plt.hist(errs, 100)

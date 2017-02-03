@@ -102,14 +102,21 @@ def plot(prior, nbins):
     else:
         plt.savefig("gp_hist_noprior.pdf")
 
-    print("percentiles:")
-    print(np.percentile(resids, 16), np.percentile(resids, 84))
-    print("diff = ",
-          np.abs(np.percentile(resids, 16) - np.percentile(resids, 84)))
-    print("median_err = ", median_err)
+    print(len(x[l]), "stars")
+    # print("percentiles:")
+    # print(np.percentile(resids, 16), np.percentile(resids, 84))
+    # print("diff = ",
+    #       np.abs(np.percentile(resids, 16) - np.percentile(resids, 84)))
+    # print("median_err = ", median_err)
 
-    print("MAD = ", (np.median((x[l] - recovered[l])**2)**.5))
-    print("MAD = ", (np.median((np.log(x[l]) - np.log(recovered[l]))**2)**.5))
+    print("MAD = ", np.median(np.abs(x[l] - recovered[l])))
+    print("MAD (log) = ", np.median(np.abs(np.log(x[l]) -
+                                           np.log(recovered[l]))))
+    print("MAD relative % = ", np.median((np.abs(x[l] -
+                                                 recovered[l]))/x[l])*100)
+    # print("MAD relative (log) = ", np.median(np.abs(np.log(x[l]) -
+    #                                            np.log(recovered[l]))
+    #                                          /np.log(x[l]))*100j)
 
     errs = .5*(lnerrp[l] + lnerrm[l])
     plt.clf()
@@ -142,5 +149,7 @@ def plot(prior, nbins):
 
 if __name__ == "__main__":
     FIG_DIR = "/Users/ruthangus/projects/GProtation/documents/figures"
+    print("ACF prior")
     plot(True, 100)  # with ACF prior
+    print("\n", "No prior")
     plot(False, 100)  # without ACF prior
