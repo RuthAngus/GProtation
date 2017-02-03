@@ -14,15 +14,7 @@
 \newcommand{\sagan}{4}
 \newcommand{\uw}{5}
 \newcommand{\princeton}{2}
-\newcommand{\naigrain}{333}
-\newcommand{\nmcquillan}{100}
-\newcommand{\nkois}{1102}
-\newcommand{\nkoimcq}{275}
-% \newcommand{\nkoigood}{222}
-% \newcommand{\nkoibad}{49}
-\newcommand{\kepexample}{5809890}
-\newcommand{\kepexampleperiod}{30.5}
-\newcommand{\aigrainexampleperiod}{20.8}
+
 \newcommand{\Kepler}{{\it Kepler}}
 \newcommand{\kepler}{\Kepler}
 \newcommand{\corot}{{\it CoRoT}}
@@ -42,9 +34,27 @@
 \newcommand{\logg}{log \emph{g}}
 \newcommand{\dnu}{$\Delta \nu$}
 \newcommand{\numax}{$\nu_{\mathrm{max}}$}
-\newcommand{\acfRMS}{0.60}
-\newcommand{\pgramRMS}{0.98}
-\newcommand{\mcmcRMS}{0.46}
+
+\newcommand{\naigrain}{333}
+\newcommand{\nmcquillan}{100}
+\newcommand{\nkois}{1102}
+\newcommand{\nkoimcq}{275}
+\newcommand{\kepexample}{5809890}
+\newcommand{\kepexampleperiod}{30.5}
+\newcommand{\aigrainexampleperiod}{20.8}
+
+\newcommand{\lnacfMAD}{0.04}
+\newcommand{\acfMAD}{0.60}
+\newcommand{\percentacfMAD}{3.65}
+\newcommand{\lnpgramMAD}{0.04}
+\newcommand{\pgramMAD}{0.98}
+\newcommand{\percentpgramMAD}{4.32}
+\newcommand{\lngpMADnp}{0.02}
+\newcommand{\gpMADnp}{0.48}
+\newcommand{\percentgpMADnp}{2.45}
+\newcommand{\lngpMAD}{0.02}
+\newcommand{\gpMAD}{0.38}
+\newcommand{\percentgpMAD}{1.85}
 
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 
@@ -77,15 +87,16 @@ quasi-periodic fashion---spots move on the stellar surface and have finite
 lifetimes, causing stellar flux variations to slowly shift in phase.
 A strictly periodic sinusoid therefore cannot accurately model a
 rotationally modulated stellar light curve.
-Physical models of the stellar surface also have many drawbacks preventing effective
-inference, such as highly degenerate or high-dimensional parameter spaces.
+Physical models of the stellar surface also have many drawbacks preventing
+    effective inference, such as highly degenerate or high-dimensional
+    parameter spaces.
 % \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
-In this work, we introduce an appropriate {\it effective} model: a Gaussian Process (GP)
-with a quasi-periodic covariance kernel function.
-Using this highly flexible model,
-we are able to sample from the posterior Probability Density Function
-(PDF) of the periodic parameter, marginalising over the other kernel hyperparameters
-using a Markov Chain Monte Carlo approach.
+In this work, we introduce an appropriate {\it effective} model: a Gaussian
+    Process (GP) with a quasi-periodic covariance kernel function.
+Using this highly flexible model, we are able to sample from the posterior
+    Probability Density Function (PDF) of the periodic parameter,
+    marginalising over the other kernel hyperparameters using a Markov Chain
+    Monte Carlo approach.
 To test this method's effectiveness, we infer rotation periods from
 \naigrain\ simulated stellar light curves, demonstrating that our results
     are more accurate than both a sine-fitting periodogram and an
@@ -598,9 +609,14 @@ Figures \ref{fig:compare_mcmc_acfprior} and \ref{fig:compare_mcmc_noprior}
 summarize the results of this MCMC fitting procedure compared to the injected
 `true' stellar rotation periods, for the uninformed and ACF-informed priors on
 period, respectively.
-Both the informative and uninformative prior versions of the GP method perform
-better than the ACF and periodogram methods, with respective MADs of 0.38 and
-0.48, compared to \acfRMS\ (ACF) and \pgramRMS\ (periodogram).
+In order to assess the performance of the GP and other period recovery
+methods, we compute Median Absolute Deviations (MADs) of the results, relative
+to the input periods.
+We also compute the Median Relative Deviation (MRD), as a percentage.
+These metrics are presented for the three different methods tested in this
+paper in table \ref{tab:MADs}.
+The informative and uninformative prior versions of the GP method have MRDs of
+\percentgpMAD\ \% and \percentgpMADnp \% respectively.
 The marginal posterior distributions of the QP kernel hyperparameters for the
 example simulated light curve in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
@@ -675,8 +691,8 @@ Periods measured using the ACF method are plotted against the original
 rotation period values used to generate the light curves in figure
 \ref{fig:compare_acf}.
 The $2n$ and $\frac{1}{2}n$ harmonic lines are shown as dashed lines.
-The Median Absolute Deviation (MAD) of the ACF-recovered periods is \acfRMS\
-in log-space (1.8 days).
+The MRD of the ACF-recovered periods is \percentacfMAD\ \% (see table
+\ref{tab:MADs} for a side-by-side comparison with the other methods).
 The agreement between the injected and recovered rotation periods is good in
 general, however some rotation periods are drastically over- and
 underestimated.
@@ -718,8 +734,8 @@ The period of the highest peak in the periodogram was adopted as the rotation
 period.
 The resulting recovered rotation periods are plotted as a function of the true
 periods in figure \ref{fig:pgram_compare}.
-The MAD for rotation periods measured using the LS periodogram technique is
-\pgramRMS\ in log-space (2.7 days).
+The MRD of the pgram-recovered periods is \percentpgramMAD\ \% (see table
+\ref{tab:MADs} for a side-by-side comparison with the other methods).
 There is a large number of drastically overestimated periods recovered using
 the periodogram.
 Excess power at long periods can be generated by long-term trends that are not
@@ -739,6 +755,22 @@ In many cases a large peak at a long period was present in the periodogram,
 \label{fig:pgram_compare}
 \end{center}
 \end{figure*}
+
+\begin{table*}
+\begin{center}
+    \caption{Median absolute (MAD) and median relative (MRD) deviations for
+    the ACF, LS periodogram and GP period recovery methods.}
+\begin{tabular}{lccc}
+Method & MAD & MRD \\
+    \hline
+    ACF & \acfMAD\ days & \percentacfMAD\ \% \\
+    LS periodogram & \pgramMAD\ days & \percentpgramMAD\ \% \\
+    GP (no prior) & \gpMADnp\ days & \percentgpMADnp\ \% \\
+    GP (acf prior) & \gpMAD\ days & \percentgpMAD\ \% \\
+\end{tabular}
+\end{center}
+\end{table*}
+\label{tab:MADs}
 
 \section{Real \kepler\ data}
 \label{sec:kepler}
