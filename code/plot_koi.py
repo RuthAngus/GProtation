@@ -16,7 +16,7 @@ plotpar = {'axes.labelsize': 18,
 plt.rcParams.update(plotpar)
 
 
-def load_and_plot(data, DATA_DIR, RESULTS_DIR):
+def load_and_plot(data):
 
     recovered, errp, errm, lnerrp, lnerrm = [np.zeros(len(data.koi_id.values))
                                              for i in range(5)]
@@ -59,7 +59,7 @@ def load_and_plot(data, DATA_DIR, RESULTS_DIR):
     plt.xlabel("$\ln(\mathrm{McQuillan~{\it et~al.,}~2013~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.savefig("comparison_koi")
-    # plt.savefig("../documents/figures/comparison_koi.pdf")
+    plt.savefig(os.path.join(FIG_DIR, "comparison_koi_02_03.pdf"))
 
     print("MAD = ", np.median(np.abs(np.log(x[l]) - np.log(recovered[l]))))
 
@@ -96,7 +96,9 @@ def load_and_plot(data, DATA_DIR, RESULTS_DIR):
 
 
 if __name__ == "__main__":
-    RESULTS_DIR = "koi_results_01_23"
-    DATA_DIR = "data"
+    path = "/Users/ruthangus/projects/GProtation"
+    RESULTS_DIR = os.path.join(path, "code/koi_results_02_03")
+    DATA_DIR = os.path.join(path, "code/data")
+    FIG_DIR = os.path.join(path, "documents/figures")
     data = pd.read_csv(os.path.join(DATA_DIR, "Table_1.txt"), skiprows=19)
-    load_and_plot(data, DATA_DIR, RESULTS_DIR)
+    load_and_plot(data)
