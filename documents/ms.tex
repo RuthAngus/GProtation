@@ -20,8 +20,8 @@
 \newcommand{\nkoimcq}{275}
 % \newcommand{\nkoigood}{222}
 % \newcommand{\nkoibad}{49}
-\newcommand{\kepexample}{1430163}
-\newcommand{\kepexampleperiod}{4}
+\newcommand{\kepexample}{5809890}
+\newcommand{\kepexampleperiod}{30.5}
 \newcommand{\aigrainexampleperiod}{20.8}
 \newcommand{\Kepler}{{\it Kepler}}
 \newcommand{\kepler}{\Kepler}
@@ -92,12 +92,10 @@ To test this method's effectiveness, we infer rotation periods from
     AutoCorrelation Function (ACF) method.
 We also demonstrate that it works effectively on real data, by
 inferring rotation periods for \nkois\ \Kepler\ stars.
-Because this method delivers posteriors PDFs,
-it will enable other studies involving stellar rotation,
-such as inferring stellar
-ages or stellar obliquities in exoplanet systems, or characterising star-planet interactions.
-\dfmcomment{Why do posteriors ``enable'' other studies? Hierarchical
-    inference? This could include more of an argument here.}
+Because this method delivers posteriors PDFs it will enable hierarchical
+    studies involving stellar rotation, particularly those involving
+    population modelling, such as inferring stellar ages, obliquities in
+    exoplanet systems, or characterising star-planet interactions.
 % Thehe ACF method is not applicable to unevenly spaced data,
 % therefore it is inappropriate for the ~$10^7$ stellar light curves expected
 % to be produced by \LSST\ unlike the GP method.
@@ -178,12 +176,11 @@ justified estimate of its uncertainty while simultaneously marginalizing over
 parameters which model correlated noise.
 
 GPs are commonly used in the machine learning community and increasingly
-in other scientific fields such as biology and geophysics.
-More recently, GPs have been used in the astronomy \dfmcomment{(this should
-probably say something more specific because GPs have been used in other parts
-of astronomy for decades)} literature \citep[see
-\eg][]{Gibson2012, Haywood2014, Dawson2014, Barclay2015, Haywood2015,
-Evans2015, Rajpaul2015, Rajpaul2016, Aigrain2016}.
+in other scientific fields such as biology, geophysics and cosmology.
+More recently, GPs have been used in stellar and exoplanet fields to capture
+stellar variability or instrumental systematics \citep[see \eg][]{Gibson2012,
+Haywood2014, Dawson2014, Barclay2015, Haywood2015, Evans2015, Rajpaul2015,
+Rajpaul2016, Aigrain2016}.
 They are useful in regression problems involving any stochastic process,
 specifically when the probability distribution for the process is a
 multi-variate Gaussian.
@@ -240,8 +237,10 @@ However, The SE kernel function does not well describe the covariance
 in stellar light curves, nor is it {\it useful} for the problem of
 rotation period inference because it does not capture periodic behaviour.
 Inferring rotation periods thus requires a periodic kernel
-function.  For this reason, we use the `Quasi-Periodic' kernel, defined as
-\citep{Rasmussen2005}
+function.  For this reason, we use the `Quasi-Periodic' kernel.
+This kernel is used by \citet{Rasmussen2005} to capture the variable behaviour
+of CO$_2$ emissions from the Mauna Loa volcano in Hawai'i.
+It is defined as
 \begin{equation}
 k_{i,j} = A \exp \left[-\frac{(x_i - x_j)^2}{2l^2} -
 \Gamma^2 \sin^2\left(\frac{2\pi}{P}\right) \right].
@@ -287,7 +286,7 @@ importantly provides a justified uncertainty estimate.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/001430163.pdf}
+\includegraphics[width=6in, clip=true]{figures/koi_lc_demo.pdf}
 \caption[A light curve with a GP model.]
 {Light curve of KIC \kepexample, an active star with a rotation period of
 $\sim$ \kepexampleperiod\ days.
@@ -297,11 +296,14 @@ covariance kernel function.}
 \end{center}
 \end{figure}
 
+This paper is laid out as follows.
 In \textsection \ref{sec:simulations} of this paper we describe the simulated
-light curves used to test the three rotation period recovery methods---periodogram,
-ACF, and GP---that we describe in detail in \textsection \ref{sec:method}.
-In \textsection \ref{sec:kepler} we apply our method to real \kepler\ data, and
-we discuss the results in \textsection \ref{sec:discussion}.
+light curves used to test the three rotation period recovery
+methods (ACF, LS periodogram and GP).
+The GP method is described in \textsection \ref{sec:method} and the ACF and LS
+periodogram methods are described in \textsection \ref{sec:comparison}.
+In \textsection \ref{sec:kepler} we apply our method to real \kepler\ data,
+and the results are discussed in \textsection \ref{sec:discussion}.
 
 \section{Simulated light curves}
 \label{sec:simulations}
@@ -390,125 +392,8 @@ simulated light curves in \citet{Aigrain2015}.}
 % using three methods: the ACF method; the LS periodogram method; and the GP
 % method, and compared their performances.
 
-\section{Rotation period recovery}
+\section{The GP method}
 \label{sec:method}
-\subsection{ACF}
-
-We measured an ACF-based period for each light curve following the method of
-\citet{Mcquillan2013}.
-An ACF is calculated for each light curve and smoothed by convolving with a
-Gaussian with $\sigma=9$ days.
-A rotation period is estimated as the lag-time of the highest peak in the ACF,
-less than 100 days.
-This is not always the first peak: the second can be larger than the first if
-there are two active regions at or near opposite longitudes on the surface of
-the star---producing a light curve with two dips per rotation period.
-We restrict our search to periods less than 100 days because this is the
-maximum period that is realistically recoverable in \kepler\ light curves ---
-instrumental noise significantly distorts signals on longer timescales.
-An example ACF of the light curve in figure~\ref{fig:demo_lc} is shown
-in figure \ref{fig:demo_acf}.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=6in, clip=true]{figures/demo_ACF.pdf}
-\caption[ACF of a simulated light curve.]
-{An autocorrelation function of the simulated light curve shown in figure
-\ref{fig:demo_lc}.
-The vertical blue line shows the period measured using the ACF method (20.4
-days) and the pink dashed line shows the period that was used to simulate the
-light curve (\aigrainexampleperiod\ days).}
-\label{fig:demo_acf}
-\end{center}
-\end{figure}
-
-The ACF method has proven to be extremely useful for measuring rotation
-periods.
-The catalogue of rotation periods of \Kepler\ stars provided in
-\citet{Mcquillan2013} has been widely used by the community and has provided
-ground-breaking results for stellar and exoplanetary science.
-The results of the ACF method as tested in \citet{Aigrain2015} were positive
-(see, for example their figure 8) as it produced a large number of accurate
-rotation period measurements.
-Another advantage of the ACF method is that it is fast to implement.
-A clear disadvantage however, as already mentioned above, are the poorly
-defined uncertainties for rotation periods estimated using an autocorrelation
-function.
-This is related to the fact that ACF period detection is a non-probabilistic
-method, another drawback of ACF periods.
-
-We applied the ACF method to the sample of \naigrain\ simulated light
-curves.
-Periods measured using the ACF method are plotted against the original
-rotation period values used to generate the light curves in figure
-\ref{fig:compare_acf}.
-The $2n$ and $\frac{1}{2}n$ harmonic lines are shown as dashed lines.
-The Median Absolute Deviation (MAD) of the ACF-recovered periods is \acfRMS\
-in log-space (1.8 days).
-The agreement between the injected and recovered rotation periods is good in
-general, however some rotation periods are drastically over- and
-underestimated.
-Of the points clustered close to the $x=y$ line, more fall slightly below it
-than above it, \ie\ rotation periods are preferentially underestimated.
-This is a feature of the peak position measurement method that is performed on
-the ACF.
-ACFs of stellar light curves have similar functional forms to the QP kernel
-function in equation \ref{eq:QP}: periodic functions added to decaying
-exponentials.
-In such functions the peak positions can be shifted towards the left, the
-short period end, because the decaying exponential raises the left side of
-each peak more than the right.
-It is possible to model this effect, however the standard practice is to
-simply measure the peak position without taking it into account.
-We adopt the standard practice approach here in order to provide a comparison
-between our new method and that used largely in the literature.
-
-\begin{figure*}
-\begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
-\caption[ACF results.]
-{The `true' rotation periods used to generate \naigrain\ simulated light
-curves vs the rotation periods measured using the ACF technique.
-    Several light curves have over-estimated rotation periods and some
-    are drastically underestimated.}
-\label{fig:compare_acf}
-\end{center}
-\end{figure*}
-
-\subsection{LS periodogram}
-
-For each simulated light curve, a LS periodogram
-\footnote{LS periodograms were calculated using the gatspy Python module:
-\url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.}
-was computed over a grid of 10,000 periods, evenly spaced in frequency,
-between 1 and 100 days.
-The period of the highest peak in the periodogram was adopted as the rotation
-period.
-The resulting recovered rotation periods are plotted as a function of the true
-periods in figure \ref{fig:pgram_compare}.
-The MAD for rotation periods measured using the LS periodogram technique is
-\pgramRMS\ in log-space (2.7 days).
-There is a large number of drastically overestimated periods recovered using
-the periodogram.
-Excess power at long periods can be generated by long-term trends that are not
-related to rotation.
-This problem becomes exacerbated when instrumental noise is also present in
-light curves.
-
-\begin{figure*}
-\begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
-\caption[LS periodogram results.]
-{The `true' rotation periods used to generate \naigrain\ simulated light
-curves vs the rotation periods measured using a LS periodogram technique.
-In many cases a large peak at a long period was present in the periodogram,
-    producing a significant over-estimate of the period.
-    }
-\label{fig:pgram_compare}
-\end{center}
-\end{figure*}
-
-\subsection{The GP method}
 
 In order to recover the rotation period of a simulated light curve using
 Gaussian processes, we sample the following posterior PDF:
@@ -675,7 +560,7 @@ Parameter & Prior & Bounds\\
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{figures/comparison_emcee3_24_0.png}
+\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_02_03.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique.
@@ -693,7 +578,7 @@ The MAD of these results is 0.38 in log-space, \ie\ 1.46 days.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/comparison_noprior.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_03.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with no .
@@ -733,6 +618,125 @@ parameter will be non-zero.
     The green line in the period panel shows the injected period.
     This figure was made using \texttt{corner.py} \citep{Corner}.}
 \label{fig:gp_posteriors}
+\end{center}
+\end{figure*}
+
+
+\section{Comparison with standard methods}
+\label{sec:comparison}
+\subsection{ACF}
+
+We measured an ACF-based period for each light curve following the method of
+\citet{Mcquillan2013}.
+An ACF is calculated for each light curve and smoothed by convolving with a
+Gaussian with $\sigma=9$ days.
+A rotation period is estimated as the lag-time of the highest peak in the ACF,
+less than 100 days.
+This is not always the first peak: the second can be larger than the first if
+there are two active regions at or near opposite longitudes on the surface of
+the star---producing a light curve with two dips per rotation period.
+We restrict our search to periods less than 100 days because this is the
+maximum period that is realistically recoverable in \kepler\ light curves ---
+instrumental noise significantly distorts signals on longer timescales.
+An example ACF of the light curve in figure~\ref{fig:demo_lc} is shown
+in figure \ref{fig:demo_acf}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=6in, clip=true]{figures/demo_ACF.pdf}
+\caption[ACF of a simulated light curve.]
+{An autocorrelation function of the simulated light curve shown in figure
+\ref{fig:demo_lc}.
+The vertical blue line shows the period measured using the ACF method (20.4
+days) and the pink dashed line shows the period that was used to simulate the
+light curve (\aigrainexampleperiod\ days).}
+\label{fig:demo_acf}
+\end{center}
+\end{figure}
+
+The ACF method has proven to be extremely useful for measuring rotation
+periods.
+The catalogue of rotation periods of \Kepler\ stars provided in
+\citet{Mcquillan2013} has been widely used by the community and has provided
+ground-breaking results for stellar and exoplanetary science.
+The results of the ACF method as tested in \citet{Aigrain2015} were positive
+(see, for example their figure 8) as it produced a large number of accurate
+rotation period measurements.
+Another advantage of the ACF method is that it is fast to implement.
+A clear disadvantage however, as already mentioned above, are the poorly
+defined uncertainties for rotation periods estimated using an autocorrelation
+function.
+This is related to the fact that ACF period detection is a non-probabilistic
+method, another drawback of ACF periods.
+
+We applied the ACF method to the sample of \naigrain\ simulated light
+curves.
+Periods measured using the ACF method are plotted against the original
+rotation period values used to generate the light curves in figure
+\ref{fig:compare_acf}.
+The $2n$ and $\frac{1}{2}n$ harmonic lines are shown as dashed lines.
+The Median Absolute Deviation (MAD) of the ACF-recovered periods is \acfRMS\
+in log-space (1.8 days).
+The agreement between the injected and recovered rotation periods is good in
+general, however some rotation periods are drastically over- and
+underestimated.
+Of the points clustered close to the $x=y$ line, more fall slightly below it
+than above it, \ie\ rotation periods are preferentially underestimated.
+This is a feature of the peak position measurement method that is performed on
+the ACF.
+ACFs of stellar light curves have similar functional forms to the QP kernel
+function in equation \ref{eq:QP}: periodic functions added to decaying
+exponentials.
+In such functions the peak positions can be shifted towards the left, the
+short period end, because the decaying exponential raises the left side of
+each peak more than the right.
+It is possible to model this effect, however the standard practice is to
+simply measure the peak position without taking it into account.
+We adopt the standard practice approach here in order to provide a comparison
+between our new method and that used largely in the literature.
+
+\begin{figure*}
+\begin{center}
+\includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
+\caption[ACF results.]
+{The `true' rotation periods used to generate \naigrain\ simulated light
+curves vs the rotation periods measured using the ACF technique.
+    Several light curves have over-estimated rotation periods and some
+    are drastically underestimated.}
+\label{fig:compare_acf}
+\end{center}
+\end{figure*}
+
+\subsection{LS periodogram}
+
+For each simulated light curve, a LS periodogram
+\footnote{LS periodograms were calculated using the gatspy Python module:
+\url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.}
+was computed over a grid of 10,000 periods, evenly spaced in frequency,
+between 1 and 100 days.
+The period of the highest peak in the periodogram was adopted as the rotation
+period.
+The resulting recovered rotation periods are plotted as a function of the true
+periods in figure \ref{fig:pgram_compare}.
+The MAD for rotation periods measured using the LS periodogram technique is
+\pgramRMS\ in log-space (2.7 days).
+There is a large number of drastically overestimated periods recovered using
+the periodogram.
+Excess power at long periods can be generated by long-term trends that are not
+related to rotation.
+This problem becomes exacerbated when instrumental noise is also present in
+light curves.
+
+\begin{figure*}
+\begin{center}
+\includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
+\caption[LS periodogram results.]
+{The `true' rotation periods used to generate \naigrain\ simulated light
+curves vs the rotation periods measured using a LS periodogram technique.
+In many cases a large peak at a long period was present in the periodogram,
+    producing a significant over-estimate of the period.
+    }
+\label{fig:pgram_compare}
 \end{center}
 \end{figure*}
 
@@ -777,16 +781,18 @@ Parameter & Prior & Bounds\\
 \end{table*}
 \label{tab:koipriors}
 
-Figure \ref{fig:mcquillan} compares the periods inferred with the GP method to the
-ACF-based periods from \citet{Mcquillan2013} for the \nkoimcq\ overlapping KOIs.
-This comparison shows generally very good agreement, with only a few exceptions,
-demonstrating that this method works not only on simulated data, but also on
-real data---with the caveat that for any particular data set, some care is needed
-regarding the setting the priors and ranges for the GP hyperparameters.
+Figure \ref{fig:mcquillan} compares the periods inferred with the GP method to
+the ACF-based periods from \citet{Mcquillan2013} for the \nkoimcq\ overlapping
+KOIs.
+This comparison shows generally very good agreement, with only a few
+exceptions, demonstrating that this method works not only on simulated data,
+but also on real data---with the caveat that for any particular data set, some
+care is needed regarding the setting the priors and ranges for the GP
+hyperparameters.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/comparison_koi.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_koi_02_03.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
 \citet{Mcquillan2014}.
