@@ -999,47 +999,51 @@ parameters of interest will insure that the periodic signal is preserved.}
 
 \section{Conclusion}
 
-We used the \naigrain\ simulated \kepler-like light curves for solid-body
-rotation from \citet{Aigrain2015} and attempted to recover the rotation
-periods used to generate them.
-Three methods were compared: a Lomb-Scargle periodogram method, an
-autocorrelation function method and a new Gaussian process method.
-We demonstrate that the GP method produced the most precise and accurate
-rotation periods of the three techniques.
-As expected, it provides a large improvement over the periodogram method and a
-moderate one over the ACF method.
-We find that the ACF method often slightly under-predicts the rotation period
-due to a subtlety in the standard peak detection algorithm.
-% The periodogram method performs poorly because a sinusoid is not a perfect
-% model choice for stellar light curves --- they do not always display
-% sinusoidal behaviour.
-% On the other hand, the ACF method does not rely on any model choice and
+We attempted to recover the rotation periods of \naigrain\ simulated
+\kepler-like light curves for solid-body rotators in \citet{Aigrain2015} using
+three different methods: a new Gaussian process method, a Lomb-Scargle
+periodogram method and an autocorrelation function method.
+We demonstrate that the GP method produces the most accurate rotation periods
+of the three techniques, providing a large improvement over the LS periodogram
+method and a moderate one over the ACF method.
+We also find that the standard version of the ACF method, most commonly
+implemented in the literature, often slightly under-predicts the rotation
+period due to a subtle feature of its peak detection algorithm.
 In addition, we compared the rotation periods of \kepler\ objects of
 interest measured using the GP method to those measured previously by
 \citet{Mcquillan2014}.
 The good agreement between the two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
 
-The GP method provides approximate uncertainties because it produces posterior
-PDF samples but they are still imperfect estimates of the intrinsic
-uncertainties.
-This is because the posterior PDF of the rotation period parameter is, in many
-cases, multi-modal.
+Unlike the ACF and LS periodogram methods, the GP method provides posterior
+PDF samples which can be used to estimate rotation periods uncertainties.
+Although an improvement on competing methods, these uncertainties are still
+approximate because is many cases the posterior PDFs of the parameters are
+multi-modal.
+In addition, although the GP model used here is clearly a good one, it is
+still only an effective model, not an accurate physical model.
+It can only capture the posterior PDF for the periodic component of the
+covariance matrix, not the rotation period of a physical star.
 If it were possible to run an MCMC sampler for an infinite number of steps,
-the entire posterior PDF would eventually be sampled, producing an accurate
-uncertainty measurement.
-We find that only a quarter of the reported uncertainties are representative.
+the entire posterior PDF would eventually be sampled, and a more accurate
+uncertainty would result.
+Unfortunately, due to realistic computational resources and the limitations of
+MCMC sampling techniques for multi-modal posteriors, we are not always able to
+map out the entire posterior PDFs.
+We find that only a quarter of the reported uncertainties are accurate.
 
 The main aim of this work was to develop a rotation period inference method
 that is probabilistic.
-Probabilistic periods methods are necessary for hierarchical Bayesian
-inference and for performing population analysis.
-Using this method to generate a catalogue of probabilistic rotation periods
-could, for example, reveal the period distribution of (and therefore
-potentially the age distribution) of stars in the Milky Way.
-There is still some work to be done on the development of this model such that
-the uncertainty estimates are truly representative, but this new method
-provides a improvement upon previous methods in that regard.
+Probabilistic periods are necessary for hierarchical Bayesian inference,
+particularly when performing population analysis.
+This new GP method is capable of generating a catalogue of probabilistic
+rotation periods which could, for example, reveal the period distribution of
+(and therefore potentially the age distribution) of stars in the Milky Way.
+There is still room for improvement of this model since that the uncertainty
+estimates are not yet truly representative and it is still only an `effective'
+model, not a physical one, but it is probabilistic, it provides more accurate
+periods and, we argue, is the best method for rotation period inference
+currently available.
 
 % acknowledgements
 This research was funded by the Simons Foundation and the Leverhulme Trust.
