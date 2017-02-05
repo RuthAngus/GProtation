@@ -1003,12 +1003,15 @@ of the measured periods lie within 1 $\sigma$ of the true period.
 The largest outlier is 114 $\sigma$ away from the true value.
 In the majority of these cases the uncertainties are underestimated due to the
 multi-modal nature of the period posterior PDFs, which makes them difficult to
-sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.}
+sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
+I would think the multi-modality would only be relevant if the posterior is 
+closer to the 1/2x or 2x period, but this isn't most of them.}
 The underestimated uncertainties can also be attributed to the model choice.
 Although a GP model is more appropriate than a sinusoid, it is still an
 imperfect, effective model.
 A perfect physical model of the star would still produce better results with
-more representative uncertainties.
+more representative uncertainties. \tdmcomment{Not sure saying ``a perfect
+model would give better results'' is worth saying...}
 
 The QP kernel function represents a simplistic effective model of a stellar
 light curve.
