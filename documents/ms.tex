@@ -147,7 +147,7 @@ relatively inflexible models sacrifice precision.
 Standard methods to measure rotation periods include detecting
 peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS) periodogram
 \citep[e.g.][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
-\citep{Mcquillan2013} and wavelet transforms \citep{Garcia2014}.
+\citep{Mcquillan13b} and wavelet transforms \citep{Garcia2014}.
 The precisions of the LS periodogram and wavelet methods are limited by the
 suitability of the model choice: a sinusoid for the LS periodogram,
 and a choice of mother wavelet, assumed to desribe the data
@@ -453,7 +453,7 @@ While using an uninformed prior on period (e.g., log-flat) often suffices,
 we also develop a method to construct an informed period prior, based on the 
 autocorrelation function (ACF). 
 The ACF has proven to be very useful for measuring stellar rotation periods 
-\citep{Mcquillan2012, Mcquillan2013, Mcquillan2014}; however, the
+\citep{Mcquillan2012, Mcquillan13b, Mcquillan2014}; however, the
 method has several shortcomings,
 most notably the inability to deliver uncertainties, but also
 the necessity of several heuristic choices,
@@ -794,6 +794,7 @@ The MAD of these results is 0.48 in log-space, \ie\ 1.61 days.
 \subsection{Comparison with literature methods}
 \label{sec:comparison}
 \subsubsection{ACF}
+\label{sec:acf} 
 
 We measure an ACF-based period for each light curve, 
 following the method of
@@ -872,6 +873,7 @@ curves vs the rotation periods measured using the ACF technique.
 \end{figure*}
 
 \subsubsection{LS periodogram}
+\label{sec:ls}
 
 For each simulated light curve, we compute a LS periodogram
 \footnote{LS periodograms were calculated using the gatspy Python module:
@@ -922,8 +924,8 @@ Method & MAD & MRD \\
 \section{Real \kepler\ data}
 \label{sec:kepler}
 
-In order to test this rotation period inference method on real data,
-we applied it to a set of \nkois\ \Kepler\ Object of Interest (KOI)
+In order to test our rotation period inference method on real data,
+we apply it to a set of \nkois\ \Kepler\ Object of Interest (KOI)
 host stars, \nkoimcq\ of which had rotation periods previously measured by
 the ACF method by \citet{Mcquillan2013}.  We use the pipeline-corrected flux
 (\texttt{pdcsap\_flux} column in the \Kepler\ light curve table), median-normalized
@@ -940,8 +942,8 @@ values than the simulations.  We also found that the allowed hyperparameter
 range that we used for the simulations was too large for the KOI population,
 as maybe $\sim$15\% of the fits tended toward corners in the hyperparameter
 space, resulting in poor period measurements.  As a result, after this initial
-test, we subsequently adjusted the priors and re-fit all the KOIs.  The final
-priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
+test, we subsequently adjusted the priors and re-fit all the KOIs.  
+The final priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
 
 \begin{table*}
 \begin{center}
@@ -954,7 +956,7 @@ Parameter & Prior & Bounds\\
     $\ln l$ & $\mathcal N(5.0, 1.2)$ & (2, 8) \\
     $\ln \Gamma$ & $\mathcal N(1.9, 1.4)$ & (0, 3) \\
     $\ln \sigma$ & $\mathcal N(-17, 5)$ & (-20, 0) \\
-    $\ln P $ & Uniform / ACF-based & ($\ln 0.5, \ln 100$) \\
+    $\ln P $ & ACF-based & ($\ln 0.5, \ln 100$) \\
 \end{tabular}
 \end{center}
 \end{table*}
@@ -968,15 +970,18 @@ exceptions, demonstrating that this method works not only on simulated data,
 but also on real data---with the caveat that for any particular data set, some
 care is needed regarding the setting the priors and ranges for the GP
 hyperparameters.
+Notably, below $\ln P$ of about 2.5, the GP method recovers periods 
+systematically slightly larger than \citet{Mcquillan2013}---a likely consequence
+of correcting for the ACF peak measurement bias discussed in Section \ref{sec:acf}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/comparison_koi_02_03.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
-\citet{Mcquillan2014}.
+\citet{Mcquillan2013}.
 The data points are coloured by the range of variability measured by
-    \citet{Mcquillan2014}, defined as the interval between the 5th and 95th
+    \citet{Mcquillan2013}, defined as the interval between the 5th and 95th
     percentiles of normalized flux per period bin in millimagnitudes.
     The results show good agreement.}
 \label{fig:mcquillan}
