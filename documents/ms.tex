@@ -999,10 +999,11 @@ underestimated in the majority cases.
 Of the rotation periods recovered from the simulated light curves, only 25\%
 of the measured periods lie within 1 $\sigma$ of the true period.
 50\% lie within 2 $\sigma$ and 66\% within 3 $\sigma$.
+\tdmcomment{What are these numbers for the uninformed-prior experiment?}
 The largest outlier is 114 $\sigma$ away from the true value.
 In the majority of these cases the uncertainties are underestimated due to the
 multi-modal nature of the period posterior PDFs, which makes them difficult to
-sample.
+sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.}
 The underestimated uncertainties can also be attributed to the model choice.
 Although a GP model is more appropriate than a sinusoid, it is still an
 imperfect, effective model.
@@ -1163,7 +1164,7 @@ implemented in the literature, often slightly under-predicts the rotation
 period due to a subtle feature of its peak detection algorithm.
 In addition, we compared the rotation periods of \kepler\ objects of
 interest measured using the GP method to those measured previously by
-\citet{Mcquillan2014}.
+\citet{Mcquillan2013}.
 The good agreement between the two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
 
@@ -1178,6 +1179,9 @@ uncertainty would result.
 Unfortunately, due to realistic computational resources and the limitations of
 MCMC sampling techniques for multi-modal posteriors, we are not always able to
 map out the entire posterior PDFs.
+\tdmcomment{I don't think this is the problem;
+I think the fits that we judge to have converged have actually converged.}
+
 In addition, although the GP model used here is clearly a good one, it is
 still only an effective model, not an accurate physical model.
 It can only capture the posterior PDF of the periodic component of the
@@ -1201,6 +1205,9 @@ inference currently available.
 
 % acknowledgements
 This research was funded by the Simons Foundation and the Leverhulme Trust.
+TDM is supported by NASA grant NNX14AE11G, and acknowledges the 
+hospitality of the Institute for Advanced Study, 
+where part of this work was completed.
 Some of the data presented in this paper were obtained from the Mikulski
 Archive for Space Telescopes (MAST).
 STScI is operated by the Association of Universities for Research in
