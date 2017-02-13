@@ -435,7 +435,7 @@ For example, if $l$ is small, the non-periodic factor in the covariance
 kernel may dominate, allowing for a good fit to the data without
 requiring any periodic covariance structure---even if clear periodic
 structure is present.
-Additionally, if $\Gamma$ is too large, the GP model becomes extremely
+Additionally, for large values of $\Gamma$ the GP model becomes extremely
 flexible and can fit the data without varying the period.
 Managing this flexibility to reliably retrieve the period parameter requires
 imposing informative priors on the non-period GP parameters.
@@ -502,10 +502,9 @@ peak in the ACF best represents the true rotation period,
 but rather we identify several \emph{candidate} periods and define
 a weighting scheme in order to create a noncommital, though useful,
 multimodal prior.  While this procedure does not avoid heuristic choices,
-the fact that its goal is simply to create a \emph{prior} for a
-probabilistically justified inference scheme rather than
-to identify a single correct period softens the potential impact
-of these choices.
+we soften the potential impact of these choices because we are simply
+creating a \emph{prior} for probabilistically justified
+inference rather attempting to identify a single correct period.
 
 As another innovation beyond what ACF methods in the literature have
 presented, we also bandpass filter the light curves (using a 5th order
@@ -641,8 +640,8 @@ These light curves result from placing dark, circular spots with slowly
 evolving size on the surface of bright, rotating spheres, ignoring
 limb-darkening effects.
 \citet{Aigrain2015} simulated one thousand such light curves to test the
-ability of participating teams to recover both the stellar rotation periods
-and the rotational shear (the amplitude of surface differential rotation).
+ability of participating teams to recover both stellar rotation periods
+and rotational shear (the amplitude of surface differential rotation).
 % Since we are not interested in recovering differential rotation we only used
 % those light curves simulated {\it without} differential rotation, of which
 % there are \naigraincurves.
@@ -665,7 +664,7 @@ angles, activity levels, spot lifetimes and more
 (see Table \ref{tab:simulation_parameters}).
 In order to preserve \kepler\ noise properties,
 \citet{Aigrain2015} add real \kepler\ light curves with no obvious astrophysical
-variability to the theoretical rotational modulated light curves.
+variability to the theoretical rotationally modulated light curves.
 Figure \ref{fig:demo_lc} shows an example of a simulated light curve with a
 period of \aigrainexampleperiod days.
 
