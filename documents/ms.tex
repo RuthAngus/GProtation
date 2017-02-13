@@ -53,8 +53,8 @@
 \newcommand{\gpMADnp}{0.48}
 \newcommand{\percentgpMADnp}{2.45}
 \newcommand{\lngpMAD}{0.02}
-\newcommand{\gpMAD}{0.38}
-\newcommand{\percentgpMAD}{1.85}
+\newcommand{\gpMAD}{0.39}
+\newcommand{\percentgpMAD}{1.96}
 
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 \newcommand{\tdmcomment}[1]{{\color{blue}#1}}
@@ -287,9 +287,18 @@ will be non-zero~---~or it can capture any remaining ``jitter'' or residuals
 that are not captured by the effective GP model.
 We use this QP kernel function to produce the GP model
 that fits the \Kepler\ light curve in in Figure \ref{fig:GP_example}.
+There are many ways to construct a periodic kernel and there are several
+non-periodic kernel choices, other than the SE kernel that could be combined
+with a periodic kernel in order to produce a QP kernel.
+The kernel presented above reproduces the behaviour of stellar light curves
+but it is not necessarily the only kernel choice that can do so.
+We do not attempt to test any other choices in this paper, noting only that
+this kernel function provides an adequeate model and leaving formal
+comparisons with other kernel function choices to a future publication.
 
-To infer a stellar rotation period $P$ from a light curve, we fit this QP-kernel
-GP model to the data.  As with any model-fitting exercise, the likelihood
+To infer a stellar rotation period $P$ from a light curve, we fit this
+QP-kernel GP model to the data.  As with any model-fitting exercise, the
+likelihood
 of the model could be maximized to find the maximum-likelihood value for $P$.
 In this study, however, we explore the full posterior PDFs using a Markov
 Chain Monte Carlo (MCMC) procedure.  While
@@ -322,7 +331,8 @@ and the results are discussed in \textsection \ref{sec:discussion}.
 \label{sec:method}
 
 In order to recover a stellar rotation period from a light curve using a
-quasi-periodic Gaussian process (QP-GP), we sample the following posterior PDF:
+quasi-periodic Gaussian process (QP-GP), we sample the following posterior
+PDF:
 \begin{equation}
 \label{eq:posterior}
 p({\bm \theta}\,|\,y) \propto \mathcal L(y\,|\,{\bm \theta}) p({\bm \theta}),
@@ -602,8 +612,8 @@ The other two proposals are a ``Differential Evolution (DE) MCMC'' proposal
 We initialize 500 walkers with random samples from the prior and use a
 weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4,
 0.4, and 0.2 respectively.
-We run \vrcomment{50} steps of the sampler at a time, checking for convergence after
-each iteration, up to a maximum of \vrcomment{50} iterations.
+We run \vrcomment{50} steps of the sampler at a time, checking for convergence
+after each iteration, up to a maximum of \vrcomment{50} iterations.
 We declare convergence if the total effective chain length is at least
 8$\times$ the maximum autocorrelation time.
 When convergence is achieved, we discard the first two autocorrelation lengths
@@ -769,7 +779,7 @@ Parameter & Prior & Bounds\\
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_02_03.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_02_13.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique.
@@ -787,7 +797,7 @@ The MAD of these results is 0.38 in log-space, \ie\ 1.46 days.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_03.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_13.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with no .
@@ -806,10 +816,10 @@ The MAD of these results is 0.48 in log-space, \ie\ 1.61 days.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/25.png}
+\includegraphics[width=6in, clip=true]{figures/corner_plot.pdf}
 \caption{Marginal posterior PDFs of the QP GP model parameters, fit to the
     light curve in figure \ref{fig:demo_lc}.
-    The green line in the period panel shows the injected period. \vrcomment{[VR: might it be possible to make the green line darker? It took me a little while to find it.]}
+    The blue line in the period panel shows the injected period.
     This figure was made using \texttt{corner.py} \citep{Corner}.}
 \label{fig:gp_posteriors}
 \end{center}
@@ -1041,7 +1051,8 @@ It manages to describe a wide range of quasi-periodic behavior and is
 relatively simple, with only a few hyperparameters.
 Nevertheless, it is still a somewhat arbitrary choice.
 Another valid choice would be a squared cosine function multiplied by a
-squared exponential,
+squared exponential, used by \citet{Brewer2009} to model asteroseismic
+pulsations,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
 \cos\left(\frac{\pi(x_i - x_j)}{P}\right)
@@ -1062,12 +1073,20 @@ In other words, we do not want to force anti-correlation of points that are
 $\frac{1}{2}$ a period apart.
 It would be very worthwhile to test this assumption and this alternative
 kernel function in future.
-If CPU time were not limited there may be some benefit to performing formal
-model comparison with different kernel functions.
-However, the evidence integral is an ambitious calculation for models with
-likelihood functions that take milliseconds to compute, let alone those
-involving GPs with light curves containing thousands of data points which can
-take minutes.
+% If CPU time were not limited there may be some benefit to performing formal
+% model comparison with different kernel functions.
+% However, the evidence integral is an ambitious calculation for models with
+% likelihood functions that take milliseconds to compute, let alone those
+% involving GPs with light curves containing thousands of data points which can
+% take minutes.
+The kernel we have chosen to use is only one of many possibilities, and it is
+already so flexible it does a fantastic job of reproducing more or less every
+stellar light curve we have thrown it at.
+This in turn implies we should be cautious in interpreting the
+hyperparameters as physical quantities.
+Even if the period is more meaningful than the others, there are certain
+regimes (depending on the value of the other hyperparameters relative to the
+period) where the period is not physically meaningful.
 
 Not all \kepler\ light curves show evidence of stellar rotation.
 In some cases perhaps the star has few or no active regions, it is rotating
