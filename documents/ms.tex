@@ -59,6 +59,7 @@
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 \newcommand{\tdmcomment}[1]{{\color{blue}#1}}
 \newcommand{\vrcomment}[1]{{\color{magenta}#1}}
+\newcommand{\racomment}[1]{{\color{green}#1}}
 
 \begin{document}
 
@@ -93,7 +94,7 @@ Physical models of the stellar surface also have many drawbacks preventing
     parameter spaces.
 % \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
 In this work, we introduce an appropriate {\it effective} model: a Gaussian
-    Process (GP) with a quasi-periodic covariance kernel function.
+    Process with a quasi-periodic covariance kernel function.
 Using this highly flexible model, we are able to sample from the posterior
     Probability Density Function (PDF) of the periodic parameter,
     marginalising over the other kernel hyperparameters using a Markov Chain
@@ -101,7 +102,7 @@ Using this highly flexible model, we are able to sample from the posterior
 To test the effectiveness of this method, we infer rotation periods from
 \naigrain\ simulated stellar light curves, demonstrating that our results
     are more accurate than both a sine-fitting periodogram and an
-    AutoCorrelation Function (ACF) method.
+    autocorrelation function method.
 We also demonstrate that it works effectively on real data, by
 inferring rotation periods for \nkoimcq\ \Kepler\ stars with 
 previously measured periods.
@@ -149,8 +150,8 @@ relatively inflexible models sacrifice precision.
 
 Standard methods to measure rotation periods include detecting
 peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS) periodogram
-\citep[e.g.][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
-\citep{Mcquillan13b} and wavelet transforms \citep{Garcia2014}.
+\citep[\eg][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
+\citep[\eg][]{Mcquillan13b} and wavelet transforms \citep[\eg][]{Garcia2014}.
 The precisions of the LS periodogram and wavelet methods are limited by the
 suitability of the model choice: a sinusoid for the LS periodogram,
 and a choice of mother wavelet, assumed to describe the data
@@ -187,8 +188,9 @@ A Gaussian process (GP) model fulfills these requirements. We thus use a GP
 as the generative model at the core of a method to probabilistically
 infer accurate and precise stellar rotation periods.  This enables us to
 estimate the posterior PDF of the rotation period, thereby producing a
-justified estimate of its uncertainty while simultaneously marginalizing over
-parameters which model correlated noise.
+justified estimate of its uncertainty.
+% while simultaneously marginalizing over
+% parameters which model correlated noise.
 
 GPs are commonly used in the machine learning community and increasingly
 in other scientific fields such as biology, geophysics and cosmology.
@@ -205,8 +207,7 @@ An in-depth introduction to Gaussian processes is provided in
 \citet{Rasmussen2005}.
 
 GP models parameterise the covariance between data points by means of a
-parametric kernel function that models the autocorrelation behaviour of the
-signal and defines the form of the covariance matrix.
+kernel function.
 As a qualitative demonstration, we present the time-series in Figure
 \ref{fig:GP_example}: the \kepler\ light curve of KIC \kepexample.
 This is a relatively active star that rotates once every $\sim$
@@ -215,9 +216,9 @@ stars.
 Clearly, data points in this light curve are correlated.
 Points close together in time are tightly correlated, and points more
 widely separated are loosely correlated.
-A GP models this variation in correlation with the separation between data
-points; that is, it models the {\it covariance structure} rather than the data
-directly.
+A GP models this variation in correlation as a function of the separation
+between data points; that is, it models the {\it covariance structure} rather
+than the data directly.
 This lends GPs their flexibility---they can model any time
 series with a similar covariance structure.
 In addition, a very simple function can usually capture the covariance
@@ -280,7 +281,7 @@ increasingly complex harmonic content.
 This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while also allowing
 points separated by half a period to be weakly correlated.
-We also use an extra parameter $\sigma$ which is an additional white noise
+We also use an extra parameter, $\sigma$, which is an additional white noise
 term added to the diagonal elements of the covariance matrix.
 This can be interpreted to represent underestimation of observational
 uncertainties~---~if the uncertainties reported on the data are too small, it
@@ -288,19 +289,19 @@ will be non-zero~---~or it can capture any remaining ``jitter'' or residuals
 that are not captured by the effective GP model.
 We use this QP kernel function to produce the GP model
 that fits the \Kepler\ light curve in in Figure \ref{fig:GP_example}.
-There are many ways to construct a periodic kernel and there are several
-non-periodic kernel choices, other than the SE kernel that could be combined
-with a periodic kernel in order to produce a QP kernel.
-The kernel presented above reproduces the behaviour of stellar light curves
-but it is not necessarily the only kernel choice that can do so.
+There are many ways to construct a QP kernel function, involving a range of
+choices for both the periodic and a-periodic components of the model.
+The kernel function presented above reproduces the behaviour of stellar light
+curves but it is not necessarily the only model choice that can do so.
 We do not attempt to test any other choices in this paper, noting only that
-this kernel function provides an adequeate model and leaving formal
-comparisons with other kernel function choices to a future publication.
+this kernel function provides an adequate fit to the data.
+We leave formal comparisons with other kernel function choices to a future
+publication.
 
 To infer a stellar rotation period $P$ from a light curve, we fit this
 QP-kernel GP model to the data.  As with any model-fitting exercise, the
 likelihood
-of the model could be maximized to find the maximum-likelihood value for $P$.
+of the model could be maximised to find the maximum-likelihood value for $P$.
 In this study, however, we explore the full posterior PDFs using a Markov
 Chain Monte Carlo (MCMC) procedure.  While
 this approach comes at a computational cost, such posterior exploration
@@ -319,9 +320,6 @@ covariance kernel function.}
 \end{figure}
 
 This paper is laid out as follows.
-In \textsection \ref{sec:simulations} we describe the simulated light curves
-used to test the three rotation period recovery methods (ACF, LS periodogram
-and GP).
 The GP method is described in \textsection \ref{sec:method}.
 Its performance is demonstrated and compared with literature methods in
 in \textsection \ref{sec:perf_and_comp}.
@@ -451,10 +449,9 @@ imposing informative priors on the non-period GP parameters.
 % periodicity to fit the data even in the presence of clear periodicity.
 In particular, we find it necessary to avoid large values of
 $A$ and $\Gamma$, and small values of $l$; though the exact details of what
-works well may differ among datasets (see \ref{sec:} and
-\ref{sec:} for two different examples of hyperparameter priors).
-More physically motivated priors are discussed in \textsection
-\ref{sec:discussion}.
+works well may differ among datasets.
+See \textsection \ref{sec:discussion} for a discussion of more physically
+motivated priors on the non-period parameters.
 
 % \vrcomment{VR: in my opinion, this is the weakest part of the paper.
 % I don't agree that there are no \emph{a priori} reasons to believe that any of
@@ -482,9 +479,11 @@ More physically motivated priors are discussed in \textsection
 \subsubsection{Period}
 \label{sec:period_prior}
 
-While using an uninformed prior on period (e.g., log-flat) often suffices,
-we also develop a method to construct an informed period prior, based on the
-autocorrelation function (ACF).
+% While using an uninformed prior on period (e.g., log-flat) often suffices,
+% we also develop a method to construct an informed period prior, based on the
+% autocorrelation function (ACF).
+We use an informed period prior, based on the autocorrelation function (ACF)
+of the light curve.
 The ACF has proven to be very useful for measuring stellar rotation periods
 \citep{Mcquillan2012, Mcquillan13b, Mcquillan2014}; however, the
 method has several shortcomings,
@@ -536,7 +535,7 @@ damped oscillator with fixed period $T_i$:
 \begin{equation}
 y = A e^{-t/\tau} \cos{\frac{2\pi t}{T_i} },
 \end{equation}
-where and $t$ is the lag time,
+        \racomment{where and $t$ is the lag time, (some missing text here.)}
 and find the best-fitting parameters $A_i$ and $\tau_i$ by a non-linear
 least squares minimization procedure.  We then define the
 following heuristic quality metric:
@@ -549,7 +548,7 @@ $N_i$ is the length of the lag vector in the ACF (directly proportional
 to the maximum allowed period $P_i$),
 and $R_i$ is the sum of squared residuals between the
 damped oscillator model and the actual ACF data.  The idea behind this
-quality metric to give a candidate period a higher score if
+quality metric is to give a candidate period a higher score if
 
     \begin{enumerate}[(a)]
 
@@ -609,7 +608,7 @@ The other two proposals are a ``Differential Evolution (DE) MCMC'' proposal
 \citep{terBraak2006, Nelson2014} and the ``snooker'' extension of DE
 \citep{terBraak2008}.
 
-We initialize 500 walkers with random samples from the prior and use a
+We initialise 500 walkers with random samples from the prior and use a
 weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4,
 0.4, and 0.2 respectively.
 We run \vrcomment{50} steps of the sampler at a time, checking for convergence
@@ -630,7 +629,7 @@ it to a set of simulated light curves
 and compare to the performance of established literature methods.
 Section \ref{sec:simulations} describes the simulated data we use;
 Section \ref{sec:performance} demonstrates the performance of the
-QP-GP method; and Section \ref{sec:comparison} compares to the performance
+QP-GP method; and Section \ref{sec:comparison} compares it to the performance
 of the Lomb-Scargle periodogram and autocorrelation function methods.
 
 \subsection{Simulated light curves}
@@ -742,7 +741,7 @@ prior between 0.5\,d and 100\,d, and an ACF-informed prior
 (Section \ref{sec:period_prior}).
 
 Figures \ref{fig:compare_mcmc_acfprior} and \ref{fig:compare_mcmc_noprior}
-summarize our results compared to the injected
+summarise our results compared to the injected
 `true' stellar rotation periods, for the uninformed and ACF-informed priors on
 period, respectively.
 To assess the performance of the QP-GP and other period recovery
@@ -783,13 +782,14 @@ Parameter & Prior & Bounds\\
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique.
+    Points are coloured by the peak-to-peak amplitude of the light curve, as
+    defined in \citet{Aigrain2015}.
 Since the posterior PDFs of rotation periods are often non-Gaussian,
-the points plotted here are the highest likelihood samples.
+    the points plotted here are maximum {\it a-posteriori} results.
 The uncertainties are the 16th and 84th percentiles.
 In many cases, the uncertainties are under-estimated.
 The ACF-informed prior on rotation period used to generate these results is
-    described in the appendix.
-The MAD of these results is 0.38 in log-space, \ie\ 1.46 days.
+    described in \textsection \ref{sec:GP_prior}.
     }
 \label{fig:compare_mcmc_acfprior}
 \end{center}
@@ -800,14 +800,15 @@ The MAD of these results is 0.38 in log-space, \ie\ 1.46 days.
 \includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_13.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
-technique with no .
+technique with an uninformative prior.
+    Points are coloured by the peak-to-peak amplitude of the light curve, as
+    defined in \citet{Aigrain2015}.
 Since the posterior PDFs of rotation periods are often non-Gaussian,
-the points plotted here are the highest likelihood samples.
+    the points plotted here are maximum {\it a-posteriori} results.
 The uncertainties are the 16th and 84th percentiles.
 In many cases, the uncertainties are under-estimated.
 An uninformative prior, flat in the natural log of the rotation period between
     0.5 and 100 days was used to generate these results.
-The MAD of these results is 0.48 in log-space, \ie\ 1.61 days.
     }
 \label{fig:compare_mcmc_noprior}
 \end{center}
@@ -818,7 +819,7 @@ The MAD of these results is 0.48 in log-space, \ie\ 1.61 days.
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/corner_plot.pdf}
 \caption{Marginal posterior PDFs of the QP GP model parameters, fit to the
-    light curve in figure \ref{fig:demo_lc}.
+    simulated light curve in figure \ref{fig:demo_lc}.
     The blue line in the period panel shows the injected period.
     This figure was made using \texttt{corner.py} \citep{Corner}.}
 \label{fig:gp_posteriors}
@@ -876,14 +877,14 @@ We apply the ACF method to the sample of \naigrain\ simulated light
 curves.
 Figure \ref{fig:compare_acf} shows ACF-measured versus true rotation
 periods, with the $2n$ and $\frac{1}{2}n$ harmonic lines as dashed lines.
-The MRD of the ACF-recovered periods is \percentacfMAD\ \% (see table
+The MRD of the ACF-recovered periods is \percentacfMAD\% (see table
 \ref{tab:MADs} for a side-by-side comparison with the other methods).
 The injected and recovered rotation periods generally agree well,
 though with a few drastic over- or underestimates.
 Additionally, of the points clustered close to the 1:1 line,
 more fall slightly below than above it, \ie\
 rotation periods are systematically underestimated.
-This stems from how peak positions in the ACF are measured.
+This stems from peak position measurements in the ACF method.
 ACFs of stellar light curves have similar functional forms to the QP kernel
 function in Equation \ref{eq:QP}: periodic functions added to decaying
 exponentials.
@@ -901,6 +902,8 @@ our new method to that used in the literature.
 \caption[ACF results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using the ACF technique.
+    Points are coloured by the peak-to-peak amplitude of the light curve, as
+    defined in \citet{Aigrain2015}.
     Several light curves have over-estimated rotation periods and some
     are drastically underestimated.}
 \label{fig:compare_acf}
@@ -932,6 +935,8 @@ at long periods.
 \caption[LS periodogram results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using a LS periodogram technique.
+    Points are coloured by the peak-to-peak amplitude of the light curve, as
+    defined in \citet{Aigrain2015}.
 In many cases a large peak at a long period was present in the periodogram,
     producing a significant over-estimate of the period.
     }
@@ -942,13 +947,13 @@ In many cases a large peak at a long period was present in the periodogram,
 \begin{table*}
 \begin{center}
     \caption{Median absolute (MAD) and median relative (MRD) deviations for
-    the ACF, LS periodogram and GP period recovery methods.}
+    the LS periodogram, ACF and GP period recovery methods.}
 \begin{tabular}{lccc}
 Method & MAD & MRD \\
     \hline
-    ACF & \acfMAD\ days & \percentacfMAD \% \\
     LS periodogram & \pgramMAD\ days & \percentpgramMAD \% \\
-    GP (no prior) & \gpMADnp\ days & \percentgpMADnp \% \\
+    ACF & \acfMAD\ days & \percentacfMAD \% \\
+    GP (uninformative prior) & \gpMADnp\ days & \percentgpMADnp \% \\
     GP (acf prior) & \gpMAD\ days & \percentgpMAD \% \\
 \end{tabular}
 \end{center}
@@ -1016,8 +1021,7 @@ of correcting for the ACF peak measurement bias discussed in Section \ref{sec:ac
 \citet{Mcquillan2013}.
 The data points are coloured by the range of variability measured by
     \citet{Mcquillan2013}, defined as the interval between the 5th and 95th
-    percentiles of normalized flux per period bin in millimagnitudes.
-    The results show good agreement.}
+    percentiles of normalised flux per period bin in millimagnitudes.}
 \label{fig:mcquillan}
 \end{center}
 \end{figure}
@@ -1031,9 +1035,9 @@ period is explored using MCMC.
 Whilst they are an improvement, unfortunately these uncertainties are still
 underestimated in the majority cases.
 Of the rotation periods recovered from the simulated light curves, only 25\%
-of the measured periods lie within 1 $\sigma$ of the true period.
-50\% lie within 2 $\sigma$ and 66\% within 3 $\sigma$.
-The largest outlier is 114 $\sigma$ away from the true value.
+of the measured periods lie within 1$\sigma$ of the true period.
+50\% lie within 2$\sigma$ and 66\% within 3$\sigma$.
+The largest outlier is 114$\sigma$ away from the true value.
 % In the majority of these cases the uncertainties are underestimated due to the
 % multi-modal nature of the period posterior PDFs, which makes them difficult to
 % sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
@@ -1055,7 +1059,7 @@ squared exponential, used by \citet{Brewer2009} to model asteroseismic
 pulsations,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
-\cos\left(\frac{\pi(x_i - x_j)}{P}\right)
+\cos\left(\frac{\pi(x_i - x_j)}{P}\right).
 \end{equation}
 \label{eq:cos_kernel}
 This function produces a positive semi-definite matrix and has the $P$
@@ -1079,14 +1083,14 @@ kernel function in future.
 % likelihood functions that take milliseconds to compute, let alone those
 % involving GPs with light curves containing thousands of data points which can
 % take minutes.
-The kernel we have chosen to use is only one of many possibilities, and it is
+The kernel we have chosen to use is only one of many possibilities, and is
 already so flexible it does a fantastic job of reproducing more or less every
-stellar light curve we have thrown it at.
-This in turn implies we should be cautious in interpreting the
-hyperparameters as physical quantities.
-Even if the period is more meaningful than the others, there are certain
-regimes (depending on the value of the other hyperparameters relative to the
-period) where the period is not physically meaningful.
+stellar light curve we have used it to model.
+% This in turn implies we should be cautious in interpreting the
+% hyperparameters as physical quantities.
+% Even if the period is more meaningful than the others, there are certain
+% regimes (depending on the value of the other hyperparameters relative to the
+% period) where the period is not physically meaningful.
 
 Not all \kepler\ light curves show evidence of stellar rotation.
 In some cases perhaps the star has few or no active regions, it is rotating
@@ -1118,37 +1122,37 @@ continuing to develop, listed as follows:.
         fully marginalised likelihood with GPs.}
 \item{To design and implement more physically motivated priors.
 We have only explored the physical interpretation of one parameter in our
-        kernel function, $P$.
+        kernel function, $P$ but some others may warrant physically motivated
+        priors.
 For example, take the harmonic complexity parameter, $\Gamma$.
         For large values of $l$ ($l\gg P$), $\Gamma$ can be related to the
         typical number of stationary/non-stationary points of inflection, per
-        period, found in functions drawn from the corresponding GP.
+        period.
+        % found in functions drawn from the corresponding GP.
         This behaviour will be independent of the exact value of $l$.
-        For `intermediate' values of $l$ ($l\gtrsim P$) this can still be done
+        For `intermediate' values of $l$ ($l\gtrsim P$) this still holds
         but the behaviour will be sensitive to the value of $l$.
-        Small values of $l$ e.g.\ $l<P$ are probably not relevant -- see
+        Small values of $l$, \eg\ $l<P$, are probably not relevant -- see
         below.
         % Depending on the processes giving rise to observed stellar signals,
         % you may not expect to require certain types of functions to model
         % observed signals.
-        In typical simulations \eg\ of arbitrary numbers of spots on rotating
-        stars, you're unlikely to end up with more than say three or four
+        In typical light curves, observing more than say three or four
         turning points per period in the disk-integrated photometric signal
         (as opposed to say $20$; of course $2$ turning points is the minimum
-        for periodic functions).
+        for periodic functions) is highly unlikely.
         So there is likely to be some maximum $\Gamma$, related to the maximum
         number of turning points typically observed in stellar light curves.
         % Such simulations, crude though they may be, could be used to come up
         % with physically-motivated priors for $\Gamma$.
-For the evolution time-scale, $l$, it is sensible to enforce $l>P$ if we
-        desire functions that have at least some fairly clear
-        periodicity.
-        Intuitively, asserting that $l<P$ will produce functions that can
-        evolve significantly over time scales shorter than one period.
-        So a function $f(t+P)$ would look signficantly different to $f(t)$,
-        in which case any claims of periodicity become dubious.
-        Actually, you can come with a more rigorous criterion (which also
-        takes into account dependencies on $\Gamma$) than this -- see below.
+For the evolution time-scale, $l$, it is sensible to enforce $l>P$, such that
+        functions that have clear periodicity.
+        Intuitively, if $l<P$ the functions may evolve significantly over time
+        scales shorter than one period, so a function $f(t+P)$ would look
+        signficantly different to $f(t)$, in which case any claims of
+        periodicity become dubious.
+        A more rigorous criterion (which also
+        takes into account dependencies on $\Gamma$) is presented below.
         Provided
         \begin{equation}
         \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
@@ -1225,7 +1229,6 @@ interest measured using the GP method to those measured previously by
 \citet{Mcquillan2013}.
 The good agreement between the two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
-
 Unlike the ACF and LS periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
 Although an improvement on competing methods, these uncertainties are still
@@ -1241,14 +1244,13 @@ model.
 % map out the entire posterior PDFs.
 % \tdmcomment{I don't think this is the problem;
 % I think the fits that we judge to have converged have actually converged.}
-
 In addition, although the GP model used here is clearly a good one, it is
 still only an effective model, not an accurate physical model.
 It can only capture the posterior PDF of the periodic component of the
 covariance matrix, not the actual rotation period of a physical star.
 We find that only a quarter of the reported uncertainties are accurate.
 
-The main aim of this work is to develop a probabilistic rotation period
+The main aim of this work was to develop a probabilistic rotation period
 inference method.
 Probabilistic periods are necessary for hierarchical Bayesian inference,
 particularly when performing population analysis.

@@ -80,6 +80,7 @@ def plot(prior, nbins):
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlabel("$\ln(\mathrm{Injected~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.subplots_adjust(bottom=.15)
     if prior:
         plt.savefig("comparison_acfprior_02_03")
         plt.savefig(os.path.join(FIG_DIR, "comparison_acfprior_02_13.pdf"))
