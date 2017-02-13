@@ -1233,7 +1233,7 @@ Unlike the ACF and LS periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
 Although an improvement on competing methods, these uncertainties are still
 underestimated in many cases because the GP model is an approximate, effective
-model.
+model: we find that only a quarter of the reported uncertainties are accurate.
 % in many cases the posterior PDFs of the parameters are
 % multi-modal.
 % If it were possible to run an MCMC sampler for an infinite number of steps,
@@ -1248,7 +1248,6 @@ In addition, although the GP model used here is clearly a good one, it is
 still only an effective model, not an accurate physical model.
 It can only capture the posterior PDF of the periodic component of the
 covariance matrix, not the actual rotation period of a physical star.
-We find that only a quarter of the reported uncertainties are accurate.
 
 The main aim of this work was to develop a probabilistic rotation period
 inference method.
