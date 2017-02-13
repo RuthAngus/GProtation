@@ -103,8 +103,9 @@ To test the effectiveness of this method, we infer rotation periods from
     are more accurate than both a sine-fitting periodogram and an
     AutoCorrelation Function (ACF) method.
 We also demonstrate that it works effectively on real data, by
-inferring rotation periods for \nkois\ \Kepler\ stars.
-Because this method delivers posteriors PDFs it will enable hierarchical
+inferring rotation periods for \nkoimcq\ \Kepler\ stars with 
+previously measured periods.
+Because this method delivers posteriors PDFs, it will enable hierarchical
     studies involving stellar rotation, particularly those involving
     population modelling, such as inferring stellar ages, obliquities in
     exoplanet systems, or characterising star-planet interactions.
@@ -881,7 +882,7 @@ The injected and recovered rotation periods generally agree well,
 though with a few drastic over- or underestimates.
 Additionally, of the points clustered close to the 1:1 line,
 more fall slightly below than above it, \ie\
-rotation periods are preferentially underestimated.
+rotation periods are systematically underestimated.
 This stems from how peak positions in the ACF are measured.
 ACFs of stellar light curves have similar functional forms to the QP kernel
 function in Equation \ref{eq:QP}: periodic functions added to decaying
@@ -958,8 +959,8 @@ Method & MAD & MRD \\
 \label{sec:kepler}
 
 In order to test our rotation period inference method on real data,
-we apply it to a set of \nkois\ \Kepler\ Object of Interest (KOI)
-host stars, \nkoimcq\ of which had rotation periods previously measured by
+we apply it to a set of \nkoimcq\ \Kepler\ Object of Interest (KOI)
+host stars, that had rotation periods previously measured by
 the ACF method by \citet{Mcquillan2013}.  We use the pipeline-corrected flux
 (\texttt{pdcsap\_flux} column in the \Kepler\ light curve table), median-normalized
 and unit-subtracted, and mask out all known transiting planet candidate signals.
@@ -1003,7 +1004,7 @@ exceptions, demonstrating that this method works not only on simulated data,
 but also on real data---with the caveat that for any particular data set, some
 care is needed regarding the setting the priors and ranges for the GP
 hyperparameters.
-Notably, below $\ln P$ of about 2.5, the GP method recovers periods
+Notably, the GP method recovers periods
 systematically slightly larger than \citet{Mcquillan2013}---a likely consequence
 of correcting for the ACF peak measurement bias discussed in Section \ref{sec:acf}.
 
