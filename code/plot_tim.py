@@ -28,9 +28,9 @@ def plot(prior, nbins):
     """
 
     if prior:
-        RESULTS_DIR = "results_01_24"
+        RESULTS_DIR = "results_acfprior_02_13"
     else:
-        RESULTS_DIR = "results_noprior_02_03"
+        RESULTS_DIR = "results_noprior_02_13"
     truths = pd.read_csv("final_table.txt", delimiter=" ")
 
     # remove differential rotators and take just the first 100
@@ -82,10 +82,10 @@ def plot(prior, nbins):
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     if prior:
         plt.savefig("comparison_acfprior_02_03")
-        plt.savefig(os.path.join(FIG_DIR, "comparison_acfprior_02_03.pdf"))
+        plt.savefig(os.path.join(FIG_DIR, "comparison_acfprior_02_13.pdf"))
     else:
         plt.savefig("comparison_noprior")
-        plt.savefig(os.path.join(FIG_DIR, "comparison_noprior_02_03.pdf"))
+        plt.savefig(os.path.join(FIG_DIR, "comparison_noprior_02_13.pdf"))
 
     plt.clf()
     resids = np.log(x[l]) - np.log(recovered[l])
