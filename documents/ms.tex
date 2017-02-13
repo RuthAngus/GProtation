@@ -428,7 +428,7 @@ For example, if $l$ is small, the non-periodic factor in the covariance
 kernel may dominate, allowing for a good fit to the data without
 requiring any periodic covariance structure---even if clear periodic
 structure is present.
-Additionally, if $\Gamma$ is too large, the GP model becomes extremely
+Additionally, for large values of $\Gamma$ the GP model becomes extremely
 flexible and can fit the data without varying the period.
 
 Managing this flexibility to focus on reliably
@@ -471,10 +471,9 @@ peak in the ACF best represents the true rotation period,
 but rather we identify several \emph{candidate} periods and define
 a weighting scheme in order to create a non-commital, though useful,
 multimodal prior.  While this procedure does not avoid heuristic choices,
-the fact that its goal is simply to create a \emph{prior} for a
-probabilitistically justified inference scheme rather than
-to identify a single correct period softens the potential impact
-of these choices.
+we soften the potential impact of these choices because we are simply
+creating a \emph{prior} for probabilistically justified
+inference rather attempting to identify a single correct period.
 
 As another innovation beyond what ACF methods in the literature have
 presented, we also bandpass filter the light curves (using a 5th order
