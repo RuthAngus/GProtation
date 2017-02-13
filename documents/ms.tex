@@ -1035,8 +1035,8 @@ Additionally, because it explores the posterior PDF with MCMC,
 our method produces probabilistically justified uncertainties.  
 Unfortunately, these uncertainties still appear to be underestimated.
 Of the rotation periods recovered from the simulated light curves, only 25\%
-of the measured periods lie within 1$\sigma$ of the true period.
-50\% lie within 2$\sigma$ and 66\% within 3$\sigma$.
+of the measured periods lie within 1$\sigma$ of the true period,
+50\% lie within 2$\sigma$, and 66\% within 3$\sigma$.
 The largest outlier is 114$\sigma$ away from the true value.
 \tdmcomment{I assume this is for the ACF-based prior run? (should probably be mentioned)  
 Are these numbers similar for the logflat prior?}
@@ -1051,9 +1051,9 @@ Although more appropriate than a sinusoid, the GP is still only an
 A perfect physical model of the star would produce more representative
 uncertainties.
 
-The QP kernel function represents a simplistic effective model of a stellar
+The QP kernel function represents a simple effective model of a stellar
 light curve.
-It manages to describe a wide range of quasi-periodic behavior and is
+It can describe a wide range of quasi-periodic behavior and is
 relatively simple, with only a few hyperparameters.
 Nevertheless, it is still a somewhat arbitrary choice.
 Another valid choice would be a squared cosine function multiplied by a
@@ -1065,29 +1065,26 @@ k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
 \end{equation}
 \label{eq:cos_kernel}
 This function produces a positive semi-definite matrix and has the $P$
-parameter of interest.
-The main practical difference between this cosine and the QP function is that
-the cosine function allows negative covariances and the QP function does not.
-Is is realistic to allow negative covariances?
+parameter of interest, but differs qualitatively from the QP function
+by allowing negative covariances.
+Is it realistic to allow negative covariances?
 In practice, the ACFs of \Kepler\ light curves often go negative.
 However, many stars have two active regions on opposite hemispheres that
-produce two brightness dips per rotation.
-If the covariance is forced to be negative for two data points that are
-separated by half a rotation period, those light curves with two peaks per
-rotation period may not be well modelled.
-In other words, we do not want to force anti-correlation of points that are
-$\frac{1}{2}$ a period apart.
+produce two brightness dips per rotation, and it
+may be difficult to model such stars with a kernel that forces
+anti-correlation of points $\frac{1}{2}$ a period apart.
 It would be very worthwhile to test this assumption and this alternative
-kernel function in future.
+kernel function (and others) in the future.
 % If CPU time were not limited there may be some benefit to performing formal
 % model comparison with different kernel functions.
 % However, the evidence integral is an ambitious calculation for models with
 % likelihood functions that take milliseconds to compute, let alone those
 % involving GPs with light curves containing thousands of data points which can
 % take minutes.
-The kernel we have chosen to use is only one of many possibilities, and is
-already so flexible it does a fantastic job of reproducing more or less every
-stellar light curve we have used it to model.
+% The kernel we have chosen to use is only one of many 
+% possibilities, and is
+% already so flexible it does a fantastic job of reproducing more or less every
+% stellar light curve we have used it to model.
 % This in turn implies we should be cautious in interpreting the
 % hyperparameters as physical quantities.
 % Even if the period is more meaningful than the others, there are certain
@@ -1095,8 +1092,8 @@ stellar light curve we have used it to model.
 % period) where the period is not physically meaningful.
 
 Not all \kepler\ light curves show evidence of stellar rotation.
-In some cases perhaps the star has few or no active regions, it is rotating
-pole-on, or it rotates so slowly that the \kepler\ data detrending pipeline
+In some cases a star may have few or no active regions, be rotating
+pole-on, or be rotating so slowly that the \kepler\ data detrending pipeline
 removes any signal.
 In other cases there may be another source of variability present in the light
 curve, generating a false period detection.
