@@ -280,23 +280,11 @@ This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while also allowing
 points separated by half a period to be weakly correlated.
 We also use an extra parameter $\sigma$ which is an additional white noise
-term added to the diagonal elements of the covariance matrix. \vrcomment{[VR: I think it might be clearer if you just included this white noise term directly in the definition of the kernel, especially for people who might not be familiar with GPs and for whom it won't necessarily be obvious how the white noise term connects to the rest of the kernel. I.e.\ I'd suggest you simply defined the kernel as below.]}
-\begin{equation}
-\label{eq:QP2}
-\vrcomment{k_{i,j} = A \exp \left[-\frac{(x_i - x_j)^2}{2l^2} -
-\Gamma^2 \sin^2\left(\frac{\pi\vrcomment{(x_i - x_j)}}{P}\right) \right] + \sigma^2\delta_{ij}.}
-\end{equation}
+term added to the diagonal elements of the covariance matrix.
 This can be interpreted to represent underestimation of observational
 uncertainties~---~if the uncertainties reported on the data are too small, it
 will be non-zero~---~or it can capture any remaining ``jitter'' or residuals
 that are not captured by the effective GP model.
-%In practice, this parameter should always be non-zero when performing
-%GP regression, because the covariance matrix must be positive definite and
-%slight deviations from positive definiteness can arise due to most
-%solvers using approximate, rather than exact, matrix inversion.
-%Including a small amount of extra variance in the model ensures enough
-%flexibility for matrix inversion algorithms to not run into such numerical
-%issues.
 We use this QP kernel function to produce the GP model
 that fits the \Kepler\ light curve in in Figure \ref{fig:GP_example}.
 
@@ -328,7 +316,7 @@ The GP method is described in \textsection \ref{sec:method}.
 Its performance is demonstrated and compared with literature methods in
 in \textsection \ref{sec:perf_and_comp}.
 In \textsection \ref{sec:kepler} we apply our method to real \kepler\ data,
-and the results are discussed in \textsection \ref{sec:discussion}. \vrcomment{[VR: the order doesn't make sense. As things stand, you've laid it out as \textsection3.1,\textsection2, then  \textsection3.3. Presumably should be \textsection2,\textsection3.1, \textsection3.3 -- and \textsection3.2 is missing].}
+and the results are discussed in \textsection \ref{sec:discussion}.
 
 \section{GP Rotation Period Inference}
 \label{sec:method}
@@ -372,7 +360,7 @@ The equivalent equation in matrix notation is
     + \frac{N}{2}\log2\pi,
 \end{equation}
 \label{eq:lhf1}
-\vrcomment{(VR: why not just write $\frac{N}{2}\log{2\pi}$ instead of `constant'?)}~where $\bf{r}$ is the vector of residuals and $\bf{C}$ is the covariance
+where $\bf{r}$ is the vector of residuals and $\bf{C}$ is the covariance
 matrix,
 \begin{eqnarray}
     \mathbf{C} &=& \left (\begin{array}{cccc}
@@ -454,25 +442,31 @@ In particular, we find it necessary to avoid large values of
 $A$ and $\Gamma$, and small values of $l$; though the exact details of what
 works well may differ among datasets (see \ref{sec:} and
 \ref{sec:} for two different examples of hyperparameter priors).
+More physically motivated priors are discussed in \textsection
+\ref{sec:discussion}.
 
-\vrcomment{VR: in my opinion, this is the weakest part of the paper. I don't agree that there are no \emph{a priori} reasons to believe that any of the hyperparameters should take values in any specific range, and the phrase `somewhat subjective art' seems likely to set alarm bells ringing for referees/readers. Going through the hyperparameters in turn, the following things come to mind.
+% \vrcomment{VR: in my opinion, this is the weakest part of the paper.
+% I don't agree that there are no \emph{a priori} reasons to believe that any of
+% the hyperparameters should take values in any specific range, and the phrase
+% `somewhat subjective art' seems likely to set alarm bells ringing for
+% referees/readers.
+% Going through the hyperparameters in turn, the following things come to mind.
 
-\begin{itemize}
-\item Amplitude, $A$: their is a closed form solution for the maximum-likelihood value of $A$ (solve ${\partial _A}\mathcal{L} = 0$). Steve Roberts alluded to this in his 2012 tutorial paper and I know I've worked through the mathematics myself -- offhand I can't remember the solution, but it's a fairly straightforward looking thing involving the precision matrix like $A\sim{{\mathbf{y}}^{\textrm{T}}}{{\mathbf{K}}^{ - 1}}{\mathbf{y}}$ with some scaling constant. I'll see if I can dig up my workings and/or find a reference. I think this means that if you're anyway going to use a flat prior on $A$, your MAP solution will end up corresponding to the ML solution. In which case you could speed things up a good deal by just setting $A$ to its optimal value \emph{ab initio}, and not bothering to explore the full posterior PDF. More importantly though, if for some reason the MAP value you use doesn't correspond more or less to the ML value (e.g.\ if something went wrong with the MCMC convergence) -- in other words, if you end up using a non-optimal value for $A$ -- I've found you can sometimes get rather bizarre behaviour. For example, when I fit data with an obvious period, sometimes I end up recovering a very wrong period if $A$ is also very wrong e.g.\ much too large. Such problems can be avoided quite straightforwardly by constraining $A$ to sensible values.
-\item Harmonic complexity, $\Gamma$: for large values of $l$ ($l\gg P$), $\Gamma$ can be related to the typical number of stationary/non-stationary points of inflection, per period, found in functions drawn from the corresponding GP. This behaviour will be independent of the exact value of $l$. For `intermediate' values of $l$ ($l\gtrsim P$) this can still be done but the behaviour will be sensitive to the value of $l$. And small values of $l$ e.g.\ $l<P$ are probably not relevant -- see below. If useful I could make a plot or two illustrating this. Anyway, the point is that depending on the processes giving rise to observed stellar signals, you may not expect to require certain types of functions to model observed signals. In typical simulations e.g.\ of arbitrary numbers of spots on rotating stars, I think you're unlikely to end up with more than say three or four turning points per period in the disk-integrated photometric signal (as opposed to say $20$; of course $2$ turning points is the minimum for periodic functions). Such simulations, crude though they may be, can be used to come up with physically-motivated priors for $\Gamma$.
-\item Evolution time-scale, $l$: it's sensible to enforce something like $l>P$ if we desire functions that have at least some fairly clear periodicity, as intuitively $l<P$ would mean the functions are allowed to evolve significantly over time scales shorter than one period. So a function $f(t+P)$ would look signficantly different to $f(t)$, in which case any claims of periodicity become dubious. Actually, you can come with a more rigorous criterion (which also takes into account dependencies on $\Gamma$) than this -- see below.
-\item Suzanne and I have shown that provided
-\begin{equation}
-\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
-\end{equation}
-the QP covariance function will have at least one inflection point other than at $|x_i-x_j|=0$ (the derivation is straightforward though a bit long). So $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} = \frac{{4\pi }}{3}$ corresponds to a critical point at which secondary maxima disappear, and the behaviour of the kernel becomes dominated by the SE term rather than the periodic term. For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$. In practice satisfying this criterion doesn't absolutely guarantee that function draws will have clear evidence of periodicity, but it does give you a quantitative boundary between obviously periodic behaviour and not-so-obviously periodic behaviour (if you're trying to fit rotation periods then obviously you don't want to use an SE-like kernel to do so) and provides some justification for a more stringent criterion such as $l>P$, or $l>2P$ (ensure that functions evolve significantly over time-scales longer than 2 periods), etc.
-\end{itemize}
-The upshot of all of this is that I don't think constraining hyperparameters needs to be some sort of dark art or ad hockery, and it'd do the underlying method a disservice by suggesting as much. As I see it, there are at least two ways to proceed here.
-\begin{enumerate}
-\item Provide as much detail on constraining the hyperparameters in this paper as we possibly can, including quantitative justification, illustrations of qualitatively-different behaviours for different regions of the hyperparameter space, etc. Disadvantages: if we do this it'd be necessary to re-run your fits with the new priors; and the paper would be come a good deal longer, with the focus possibly shifted away from the essential idea of using a GP to infer rotation periods.
-\item Alternatively, at least allude to some of these approaches to constraining hyperparameters (instead of saying that it's a subjective art) but defer a focused discussion on how to do that to a short, separate paper/research note. As I've already done much of the work for such a study, I'd be happy to take the lead on that at some point later this year. Advantage here would be your paper remains more focused and you don't need to re-run any of your fits. Indeed I imagine that if you check your MAP values for $A$, $l$, etc., they'd usually be consistent with any rigorously-motivated priors (since you get generally sensible results). Perhaps we could show in the follow-up paper how using the physically-motivated priors could lead to improved period inference (at least I hope that would be the case!). Any differential rotation tests could also be shifted to the other paper -- see my later remarks on this.
-\end{enumerate}}
-
+% \begin{itemize}
+% \item Amplitude, $A$: their is a closed form solution for the maximum-likelihood value of $A$ (solve ${\partial _A}\mathcal{L} = 0$). Steve Roberts alluded to this in his 2012 tutorial paper and I know I've worked through the mathematics myself -- offhand I can't remember the solution, but it's a fairly straightforward looking thing involving the precision matrix like $A\sim{{\mathbf{y}}^{\textrm{T}}}{{\mathbf{K}}^{ - 1}}{\mathbf{y}}$ with some scaling constant. I'll see if I can dig up my workings and/or find a reference. I think this means that if you're anyway going to use a flat prior on $A$, your MAP solution will end up corresponding to the ML solution. In which case you could speed things up a good deal by just setting $A$ to its optimal value \emph{ab initio}, and not bothering to explore the full posterior PDF. More importantly though, if for some reason the MAP value you use doesn't correspond more or less to the ML value (e.g.\ if something went wrong with the MCMC convergence) -- in other words, if you end up using a non-optimal value for $A$ -- I've found you can sometimes get rather bizarre behaviour. For example, when I fit data with an obvious period, sometimes I end up recovering a very wrong period if $A$ is also very wrong e.g.\ much too large. Such problems can be avoided quite straightforwardly by constraining $A$ to sensible values.
+% \item Harmonic complexity, $\Gamma$: for large values of $l$ ($l\gg P$), $\Gamma$ can be related to the typical number of stationary/non-stationary points of inflection, per period, found in functions drawn from the corresponding GP. This behaviour will be independent of the exact value of $l$. For `intermediate' values of $l$ ($l\gtrsim P$) this can still be done but the behaviour will be sensitive to the value of $l$. And small values of $l$ e.g.\ $l<P$ are probably not relevant -- see below. If useful I could make a plot or two illustrating this. Anyway, the point is that depending on the processes giving rise to observed stellar signals, you may not expect to require certain types of functions to model observed signals. In typical simulations e.g.\ of arbitrary numbers of spots on rotating stars, I think you're unlikely to end up with more than say three or four turning points per period in the disk-integrated photometric signal (as opposed to say $20$; of course $2$ turning points is the minimum for periodic functions). Such simulations, crude though they may be, can be used to come up with physically-motivated priors for $\Gamma$.
+% \item Evolution time-scale, $l$: it's sensible to enforce something like $l>P$ if we desire functions that have at least some fairly clear periodicity, as intuitively $l<P$ would mean the functions are allowed to evolve significantly over time scales shorter than one period. So a function $f(t+P)$ would look signficantly different to $f(t)$, in which case any claims of periodicity become dubious. Actually, you can come with a more rigorous criterion (which also takes into account dependencies on $\Gamma$) than this -- see below.
+% \item Suzanne and I have shown that provided
+% \begin{equation}
+% \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
+% \end{equation}
+% the QP covariance function will have at least one inflection point other than at $|x_i-x_j|=0$ (the derivation is straightforward though a bit long). So $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} = \frac{{4\pi }}{3}$ corresponds to a critical point at which secondary maxima disappear, and the behaviour of the kernel becomes dominated by the SE term rather than the periodic term. For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$. In practice satisfying this criterion doesn't absolutely guarantee that function draws will have clear evidence of periodicity, but it does give you a quantitative boundary between obviously periodic behaviour and not-so-obviously periodic behaviour (if you're trying to fit rotation periods then obviously you don't want to use an SE-like kernel to do so) and provides some justification for a more stringent criterion such as $l>P$, or $l>2P$ (ensure that functions evolve significantly over time-scales longer than 2 periods), etc.
+% \end{itemize}
+% The upshot of all of this is that I don't think constraining hyperparameters needs to be some sort of dark art or ad hockery, and it'd do the underlying method a disservice by suggesting as much. As I see it, there are at least two ways to proceed here.
+% \begin{enumerate}
+% \item Provide as much detail on constraining the hyperparameters in this paper as we possibly can, including quantitative justification, illustrations of qualitatively-different behaviours for different regions of the hyperparameter space, etc. Disadvantages: if we do this it'd be necessary to re-run your fits with the new priors; and the paper would be come a good deal longer, with the focus possibly shifted away from the essential idea of using a GP to infer rotation periods.
+% \item Alternatively, at least allude to some of these approaches to constraining hyperparameters (instead of saying that it's a subjective art) but defer a focused discussion on how to do that to a short, separate paper/research note. As I've already done much of the work for such a study, I'd be happy to take the lead on that at some point later this year. Advantage here would be your paper remains more focused and you don't need to re-run any of your fits. Indeed I imagine that if you check your MAP values for $A$, $l$, etc., they'd usually be consistent with any rigorously-motivated priors (since you get generally sensible results). Perhaps we could show in the follow-up paper how using the physically-motivated priors could lead to improved period inference (at least I hope that would be the case!). Any differential rotation tests could also be shifted to the other paper -- see my later remarks on this.
+% \end{enumerate}}
 
 \subsubsection{Period}
 \label{sec:period_prior}
@@ -612,9 +606,9 @@ We run \vrcomment{50} steps of the sampler at a time, checking for convergence a
 each iteration, up to a maximum of \vrcomment{50} iterations.
 We declare convergence if the total effective chain length is at least
 8$\times$ the maximum autocorrelation time.
-When convergence is achieved, we \vrcomment{discard} the first two autocorrelation lengths in
-the chain as a burn-in, and randomly choose 5000 samples as representative of
-the posterior.
+When convergence is achieved, we discard the first two autocorrelation lengths
+in the chain as a burn-in, and randomly choose 5000 samples as representative
+of the posterior.
 This fitting process takes several hours for a typical simulated light curve,
 though in some cases it can take 12 hours or longer to converge.
 
@@ -724,12 +718,15 @@ of $A$ and $\Gamma$ and small values of $l$) tended to allow fits that ignored
 the desired periodicity.
 We list the final priors and bounds this process led us to adopt
 in Table \ref{tab:priors}.
-We note that we do not have any specific quantitative justification for the
-use of these priors, except that they produce good results for this particular
-test set of light curves.
-We thus caution that other data sets might have different noise properties,
-potentially requiring modifications to these priors \vrcomment{[VR: might want to reword or remove these remarks; see my earlier comments]}
-(e.g., see Section \ref{sec:kepler}).
+These priors were determined experimentally --- see \textsection
+\ref{sec:discussion} for a discussion on more physically motivated priors.
+% We note that we do not have any specific quantitative justification for the
+% use of these priors, except that they produce good results for this particular
+% test set of light curves.
+% We thus caution that other data sets might have different noise properties,
+% potentially requiring modifications to these priors \vrcomment{[VR: might
+% want to reword or remove these remarks; see my earlier comments]}
+% (e.g., see Section \ref{sec:kepler}).
 For the period prior, we tried two different methods: an uninformed (log-flat)
 prior between 0.5\,d and 100\,d, and an ACF-informed prior
 (Section \ref{sec:period_prior}).
@@ -746,7 +743,7 @@ These metrics are presented for the three different methods tested in this
 paper in table \ref{tab:MADs}.
 The informative and uninformative prior versions of the GP method have MRDs of
 \percentgpMAD \% and \percentgpMADnp \% respectively.
-The marginal posterior distributions of the QP kernel hyperparameters\vrcomment{,} for the
+The marginal posterior distributions of the QP kernel hyperparameters, for the
 example simulated light curve in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
 
@@ -1026,43 +1023,32 @@ underestimated in the majority cases.
 Of the rotation periods recovered from the simulated light curves, only 25\%
 of the measured periods lie within 1 $\sigma$ of the true period.
 50\% lie within 2 $\sigma$ and 66\% within 3 $\sigma$.
-\tdmcomment{What are these numbers for the uninformed-prior experiment?}
 The largest outlier is 114 $\sigma$ away from the true value.
-In the majority of these cases the uncertainties are underestimated due to the
-multi-modal nature of the period posterior PDFs, which makes them difficult to
-sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
-I would think the multi-modality would only be relevant if the posterior is
-closer to the 1/2x or 2x period, but this isn't most of them.}
-The underestimated uncertainties can also be attributed to the model choice.
-Although a GP model is more appropriate than a sinusoid, it is still an
-imperfect, effective model.
-A perfect physical model of the star would still produce better results with
-more representative uncertainties. \tdmcomment{Not sure saying ``a perfect
-model would give better results'' is worth saying...} \vrcomment{VR: I agree this is probably not worth saying.}
+% In the majority of these cases the uncertainties are underestimated due to the
+% multi-modal nature of the period posterior PDFs, which makes them difficult to
+% sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
+% I would think the multi-modality would only be relevant if the posterior is
+% closer to the 1/2x or 2x period, but this isn't most of them.}
+The underestimated uncertainties can be attributed to the model choice.
+Although a GP model is more appropriate than a sinusoid, it is still only an
+ effective model.
+A perfect physical model of the star would produce more representative
+uncertainties.
 
 The QP kernel function represents a simplistic effective model of a stellar
 light curve.
-It adequately describes the data, captures that all-important periodic quality \vrcomment{[VR: I think this is a bit vague...a sinusoidal model would capture `periodic quality'. Maybe say something like: `it manages to describe a wide range of quasi-periodic behavior'.]}
-and is relatively simple, with only a few hyperparameters.
-It also satisfies the requirement to produce positive semi-definite covariance
-matrices. \vrcomment{[VR: I don't think it's worth mentioning the PSD thing. It's not as though this is some advantage the QP kernel has over any other kernel function.]}
-Whilst the QP kernel function evidently captures the periodic qualities of
-light curves adequately, it is still a somewhat arbitrary choice \vrcomment{[VR: repetitive...maybe just say 'Nevertheless, it is still a somewhat arbitrary choice.']}.
+It manages to describe a wide range of quasi-periodic behavior and is
+relatively simple, with only a few hyperparameters.
+Nevertheless, it is still a somewhat arbitrary choice.
 Another valid choice would be a squared cosine function multiplied by a
 squared exponential,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
-\cos\left(\frac{\pi\vrcomment{(x_i - x_j)}}{P}\right)
+\cos\left(\frac{\pi(x_i - x_j)}{P}\right)
 \end{equation}
 \label{eq:cos_kernel}
-\vrcomment{VR: missing $(x_i - x_j)$ term added above, and factor of $2$ removed.} This function produces a positive semi-definite matrix and has the $P$
+This function produces a positive semi-definite matrix and has the $P$
 parameter of interest.
-% It may in fact be even {\it more} suited to modelling stellar
-% light curves as it describes a Gaussian in frequency space.
-% It is easy to imagine a differentially rotating star with a period that is a
-% Gaussian in frequency space: the mean frequency would be the frequency at the
-% most active latitude, at or near which spots spend the majority of their time
-% and the tails would be occupied by spots that drift near the equator or poles.
 The main practical difference between this cosine and the QP function is that
 the cosine function allows negative covariances and the QP function does not.
 Is is realistic to allow negative covariances?
@@ -1082,21 +1068,6 @@ However, the evidence integral is an ambitious calculation for models with
 likelihood functions that take milliseconds to compute, let alone those
 involving GPs with light curves containing thousands of data points which can
 take minutes.
-
-% Clearly, stellar rotation periods are well represented by the $P$ parameter in
-% our QP kernel function, as evidenced by the its impressive ability to recover
-% the true rotation periods from the simulated light curves in this work.
-% However, it may not be the {\it best} function to use.
-% It is, after all, an approximation to the shape of the covariance matrix of a
-% real stellar light curve.
-% There may be an alternative function which is better suited to capturing
-% stellar variability and is able to recover periods even more precisely than
-% the QP kernel.
-% There may also be an alternative function which is more physically motivated,
-% that captures not just the rotation period but also (for example) the spot
-% lifetime or differential surface rotation.
-% This is beyond the scope of this work but we hope that these questions will be
-% answered in the near future.
 
 Not all \kepler\ light curves show evidence of stellar rotation.
 In some cases perhaps the star has few or no active regions, it is rotating
@@ -1124,52 +1095,89 @@ In addition to this, there are several other aspects of the GP method we are
 continuing to develop, listed as follows:.
 \begin{itemize}
 \item{To perform model selection with different kernel functions. Again, these
-tests have not been performed due to the cost of calculating the fully
-marginalised likelihood with GPs. This calculation may be prohibitively
-expensive, however simpler model selection tests can be performed. For
-example, the relative precision of rotation periods recovered using
-alternative kernel functions could be tested.} \vrcomment{[VR: this is something I've started exploring using MultiNest. Computation times seem quite manageable.]}
-\item{To design and implement a physically motivated kernel function. We have
-only explored the physical interpretation of one parameter in our kernel
-function, $P$.
-However, the other parameters may also be related to some physical processes.
-For example, the overall timescale for covariance fall-off, $l$ may be
-related to spot lifetimes.
-A star with long spot lifetimes will show little variation in the overall
-shape and amplitude of its light curve between rotations and $l$ will be
-large.
-In contrast, the light curve of a star with short spot lifetimes may display
-non-repeating patterns and amplitudes that vary rapidly between rotations.
-In this case $l$ will be small.
-The $\Gamma$ parameter is related to the number of zero crossings within one
-rotation period: when $\Gamma$ is small there are many zero crossings and
-vice versa.
-Since the number of zero crossings per rotation period is related to the
-number of active regions on the surface of the star, this parameter may also
-be of physical interest.
-In addition, instead of interpreting the parameters of the QP kernel function
-used here, it may be possible to design an entirely new kernel function, based
-on the physical processes that drive the light curve variability.
-This idea is being explored by another member of my research group.}
-% \item{To develop a detection criterion to assess whether a rotation period was
-% measured.
-% Another general problem in rotation period inference is deciding whether a
-% real rotation period was measured at all.
-% Detection thresholds are usually set using the amplitudes of peaks in LS
-% periodograms or ACFs in order to eliminate contaminants.
-% Using a GP model it may be possible to do this via model selection: \ie\ are
-% the data better described by a periodic model, or a non-periodic model?
-% There is more than one way to implement such a model comparison, one way could
-% be to use a sum of two kernel functions: one periodic and one non-periodic,
-% each with its own amplitude parameter.}
-\item{To attempt to detect differential rotation.
-We did not test our code on the light curves simulated with differential
-rotation in \citet{Aigrain2015} since we were only interested in recovering
-the most precise measurements of rotation period possible.
-In future we intend to investigate the possibility of recovering
-differential rotation by searching for close double peaks in the posterior
-PDFs of stars' rotation periods.}
-\item \vrcomment{[VR: for the two points above, you might want to reword slightly depending on the extent to which you want to try to (i) incorporate my suggestions re prior constraints etc.\ etc.\ vs.\ (ii) deferring this to the future paper, but at least alluding to the possibilities and results. For example I think one needn't try to `design' a physically-motivated kernel -- rather it seems not too difficult just to come up with physically-motivated priors for the QP kernel parameters. I've tried to design a physically motivated kernel to capture differential rotation but as noted earlier, that came with its own slew of degeneracies and other problems...more on this another time.]}
+    tests have not been performed thus far due to the cost of calculating the
+        fully marginalised likelihood with GPs.}
+\item{To design and implement more physically motivated priors.
+We have only explored the physical interpretation of one parameter in our
+        kernel function, $P$.
+For example, take the harmonic complexity parameter, $\Gamma$.
+        For large values of $l$ ($l\gg P$), $\Gamma$ can be related to the
+        typical number of stationary/non-stationary points of inflection, per
+        period, found in functions drawn from the corresponding GP.
+        This behaviour will be independent of the exact value of $l$.
+        For `intermediate' values of $l$ ($l\gtrsim P$) this can still be done
+        but the behaviour will be sensitive to the value of $l$.
+        Small values of $l$ e.g.\ $l<P$ are probably not relevant -- see
+        below.
+        % Depending on the processes giving rise to observed stellar signals,
+        % you may not expect to require certain types of functions to model
+        % observed signals.
+        In typical simulations \eg\ of arbitrary numbers of spots on rotating
+        stars, you're unlikely to end up with more than say three or four
+        turning points per period in the disk-integrated photometric signal
+        (as opposed to say $20$; of course $2$ turning points is the minimum
+        for periodic functions).
+        So there is likely to be some maximum $\Gamma$, related to the maximum
+        number of turning points typically observed in stellar light curves.
+        % Such simulations, crude though they may be, could be used to come up
+        % with physically-motivated priors for $\Gamma$.
+For the evolution time-scale, $l$, it is sensible to enforce $l>P$ if we
+        desire functions that have at least some fairly clear
+        periodicity.
+        Intuitively, asserting that $l<P$ will produce functions that can
+        evolve significantly over time scales shorter than one period.
+        So a function $f(t+P)$ would look signficantly different to $f(t)$,
+        in which case any claims of periodicity become dubious.
+        Actually, you can come with a more rigorous criterion (which also
+        takes into account dependencies on $\Gamma$) than this -- see below.
+        Provided
+        \begin{equation}
+        \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
+        \end{equation}
+        the QP covariance function will have at least one inflection point
+        other than at $|x_i-x_j|=0$
+        So $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} = \frac{{4\pi }}{3}$
+        corresponds to a critical point at which secondary maxima disappear,
+        and the behaviour of the kernel becomes dominated by the SE term
+        rather than the periodic term.
+        For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$.
+        In practice, satisfying this criterion doesn't absolutely guarantee
+        that function draws will have clear evidence of periodicity, but it
+        does give you a quantitative boundary between obviously periodic
+        behaviour and not-so-obviously periodic behaviour.
+        It also provides some justification for a more stringent criterion
+        such as $l>P$, or $l>2P$ (ensure that functions
+        evolve significantly over time-scales longer than 2 periods).}
+% However, the other parameters may also be related to some physical processes.
+% For example, the overall timescale for covariance fall-off, $l$ may be
+% related to spot lifetimes.
+% A star with long spot lifetimes will show little variation in the overall
+% shape and amplitude of its light curve between rotations and $l$ will be
+% large.
+% In contrast, the light curve of a star with short spot lifetimes may display
+% non-repeating patterns and amplitudes that vary rapidly between rotations.
+% In this case $l$ will be small.
+% The $\Gamma$ parameter is related to the number of zero crossings within one
+% rotation period: when $\Gamma$ is small there are many zero crossings and
+% vice versa.
+% Since the number of zero crossings per rotation period is related to the
+% number of active regions on the surface of the star, this parameter may also
+% be of physical interest.
+% In addition, instead of interpreting the parameters of the QP kernel function
+% used here, it may be possible to design an entirely new kernel function, based
+% on the physical processes that drive the light curve variability.
+% This idea is being explored by another member of my research group.}
+% \item \vrcomment{[VR: for the two points above, you might want to reword
+%     slightly depending on the extent to which you want to try to (i)
+%         incorporate my suggestions re prior constraints etc.\ etc.\ vs.\ (ii)
+%         deferring this to the future paper, but at least alluding to the
+%         possibilities and results. For example I think one needn't try to
+%         `design' a physically-motivated kernel -- rather it seems not too
+%         difficult just to come up with physically-motivated priors for the QP
+%         kernel parameters. I've tried to design a physically motivated kernel
+%         to capture differential rotation but as noted earlier, that came with
+%         its own slew of degeneracies and other problems...more on this another
+%         time.]}
 \item{To build in a noise model for \kepler\ data.
 Another huge advantage of the GP method is, because it is a {\it generative}
 model of the data, the rotation period signal can be modelled at the same time
@@ -1202,16 +1210,18 @@ method works well on real \kepler\ data.
 Unlike the ACF and LS periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
 Although an improvement on competing methods, these uncertainties are still
-approximate because in many cases the posterior PDFs of the parameters are
-multi-modal.
-If it were possible to run an MCMC sampler for an infinite number of steps,
-the entire posterior PDF would eventually be sampled, and a more accurate
-uncertainty would result.
-Unfortunately, due to realistic computational resources and the limitations of
-MCMC sampling techniques for multi-modal posteriors, we are not always able to
-map out the entire posterior PDFs.
-\tdmcomment{I don't think this is the problem;
-I think the fits that we judge to have converged have actually converged.}
+underestimated in many cases because the GP model is an approximate, effective
+model.
+% in many cases the posterior PDFs of the parameters are
+% multi-modal.
+% If it were possible to run an MCMC sampler for an infinite number of steps,
+% the entire posterior PDF would eventually be sampled, and a more accurate
+% uncertainty would result.
+% Unfortunately, due to realistic computational resources and the limitations of
+% MCMC sampling techniques for multi-modal posteriors, we are not always able to
+% map out the entire posterior PDFs.
+% \tdmcomment{I don't think this is the problem;
+% I think the fits that we judge to have converged have actually converged.}
 
 In addition, although the GP model used here is clearly a good one, it is
 still only an effective model, not an accurate physical model.
