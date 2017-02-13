@@ -1029,22 +1029,24 @@ The data points are coloured by the range of variability measured by
 \section{Discussion}
 \label{sec:discussion}
 
-The uncertainties produced by the GP method are more representative than those
-produced by the ACF and periodogram methods because the posterior PDF of the
-period is explored using MCMC.
-Whilst they are an improvement, unfortunately these uncertainties are still
-underestimated in the majority cases.
+The QP-GP inference method we present in this paper produces
+more accurate rotation periods than the ACF or periodogram methods.  
+Additionally, because it explores the posterior PDF with MCMC, 
+our method produces probabilistically justified uncertainties.  
+Unfortunately, these uncertainties still appear to be underestimated.
 Of the rotation periods recovered from the simulated light curves, only 25\%
 of the measured periods lie within 1$\sigma$ of the true period.
 50\% lie within 2$\sigma$ and 66\% within 3$\sigma$.
 The largest outlier is 114$\sigma$ away from the true value.
+\tdmcomment{I assume this is for the ACF-based prior run? (should probably be mentioned)  
+Are these numbers similar for the logflat prior?}
 % In the majority of these cases the uncertainties are underestimated due to the
 % multi-modal nature of the period posterior PDFs, which makes them difficult to
 % sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
 % I would think the multi-modality would only be relevant if the posterior is
 % closer to the 1/2x or 2x period, but this isn't most of them.}
-The underestimated uncertainties can be attributed to the model choice.
-Although a GP model is more appropriate than a sinusoid, it is still only an
+We attribute these underestimated uncertainties to the model choice.
+Although more appropriate than a sinusoid, the GP is still only an
  effective model.
 A perfect physical model of the star would produce more representative
 uncertainties.
