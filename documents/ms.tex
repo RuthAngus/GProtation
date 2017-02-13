@@ -104,7 +104,7 @@ To test the effectiveness of this method, we infer rotation periods from
     are more accurate than both a sine-fitting periodogram and an
     autocorrelation function method.
 We also demonstrate that it works effectively on real data, by
-inferring rotation periods for \nkoimcq\ \Kepler\ stars with 
+inferring rotation periods for \nkoimcq\ \Kepler\ stars with
 previously measured periods.
 Because this method delivers posteriors PDFs, it will enable hierarchical
     studies involving stellar rotation, particularly those involving
@@ -1117,7 +1117,7 @@ These are unlikely to be periodic and, again, may produce unusual combinations
 of hyperparameters.
 This is something that we hope to test in future.
 In addition to this, there are several other aspects of the GP method we are
-continuing to develop, listed as follows:.
+continuing to develop, listed as follows:
 \begin{itemize}
 \item{To perform model selection with different kernel functions. Again, these
     tests have not been performed thus far due to the cost of calculating the
@@ -1152,27 +1152,27 @@ For the evolution time-scale, $l$, it is sensible to enforce $l>P$, such that
         Intuitively, if $l<P$ the functions may evolve significantly over time
         scales shorter than one period, so a function $f(t+P)$ would look
         signficantly different to $f(t)$, in which case any claims of
-        periodicity become dubious.
-        A more rigorous criterion (which also
-        takes into account dependencies on $\Gamma$) is presented below.
-        Provided
-        \begin{equation}
-        \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
-        \end{equation}
-        the QP covariance function will have at least one inflection point
-        other than at $|x_i-x_j|=0$
-        So $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} = \frac{{4\pi }}{3}$
-        corresponds to a critical point at which secondary maxima disappear,
-        and the behaviour of the kernel becomes dominated by the SE term
-        rather than the periodic term.
-        For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$.
-        In practice, satisfying this criterion doesn't absolutely guarantee
-        that function draws will have clear evidence of periodicity, but it
-        does give you a quantitative boundary between obviously periodic
-        behaviour and not-so-obviously periodic behaviour.
-        It also provides some justification for a more stringent criterion
-        such as $l>P$, or $l>2P$ (ensure that functions
-        evolve significantly over time-scales longer than 2 periods).}
+        periodicity become dubious.}
+        % A more rigorous criterion (which also
+        % takes into account dependencies on $\Gamma$) is presented below.
+        % Provided
+        % \begin{equation}
+        % \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
+        % \end{equation}
+        % the QP covariance function will have at least one inflection point
+        % other than at $|x_i-x_j|=0$, so $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} =
+        % \frac{{4\pi }}{3}$
+        % corresponds to a critical point at which secondary maxima disappear,
+        % and the behaviour of the kernel becomes dominated by the SE term
+        % rather than the periodic term.
+        % For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$.
+        % In practice, satisfying this criterion doesn't absolutely guarantee
+        % that function draws will have clear evidence of periodicity, but it
+        % does provide a quantitative boundary between obviously periodic
+        % behaviour and not-so-obviously periodic behaviour.
+        % It also provides some justification for a more stringent criterion
+        % such as $l>P$, or $l>2P$ (ensure that functions
+        % evolve significantly over time-scales longer than 2 periods).}
 % However, the other parameters may also be related to some physical processes.
 % For example, the overall timescale for covariance fall-off, $l$ may be
 % related to spot lifetimes.
@@ -1235,7 +1235,7 @@ Unlike the ACF and LS periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
 Although an improvement on competing methods, these uncertainties are still
 underestimated in many cases because the GP model is an approximate, effective
-model.
+model: we find that only a quarter of the reported uncertainties are accurate.
 % in many cases the posterior PDFs of the parameters are
 % multi-modal.
 % If it were possible to run an MCMC sampler for an infinite number of steps,
@@ -1250,7 +1250,6 @@ In addition, although the GP model used here is clearly a good one, it is
 still only an effective model, not an accurate physical model.
 It can only capture the posterior PDF of the periodic component of the
 covariance matrix, not the actual rotation period of a physical star.
-We find that only a quarter of the reported uncertainties are accurate.
 
 The main aim of this work was to develop a probabilistic rotation period
 inference method.
