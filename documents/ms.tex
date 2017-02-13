@@ -1100,32 +1100,31 @@ curve, generating a false period detection.
 These sources may be physical: \eg\ binary star interactions, intra-pixel
 contamination from other astrophysical objects, pulsating variable stars,
 asteroseismic oscillations in giants and even stellar activity cycles.
-For some of these there is little we can do save attempt to eliminate these
-astrophysical false positives via alternative methods, \eg\ apply colour cuts
-to avoid giant contamination.
-For some however, like the variable stars, they may have distinctive
-hyperparameters that identify them, for example long coherence timescales.
-Testing this is beyond the scope of this paper but may be an interesting
-follow-up study.
-As well as astrophysical contamination, there may also be instrumental sources
-of contaminating variability: \eg\ temperature variations or pointing shifts
+Identifying many of these astrophysical false positives 
+falls outside the scope of this GP method 
+(\eg\ applying colour cuts to avoid giant contamination);
+however, for some, such as variable stars, they may have distinctive
+hyperparameters (\eg\ long coherence timescales) that identify them.
+Testing this may be an interesting follow-up study.
+As well as astrophysical contamination, instrumental sources may contribute
+to contaminating variability, \eg\ temperature variations or pointing shifts
 of the \kepler\ spacecraft.
 These are unlikely to be periodic and, again, may produce unusual combinations
 of hyperparameters.
-This is something that we hope to test in future.
-In addition to this, there are several other aspects of the GP method we are
-continuing to develop, listed as follows:
+We also hope to test this in the future.
+
+In addition, we are continuing to develop several other aspects of this GP method:
 \begin{itemize}
-\item{To perform model selection with different kernel functions. Again, these
-    tests have not been performed thus far due to the cost of calculating the
+\item{To perform model selection with different kernel functions. 
+    We have not performed these tests yet due to the cost of calculating the
         fully marginalised likelihood with GPs.}
 \item{To design and implement more physically motivated priors.
 We have only explored the physical interpretation of one parameter in our
-        kernel function, $P$ but some others may warrant physically motivated
+        kernel function ($P$), but others may warrant physically motivated
         priors.
 For example, take the harmonic complexity parameter, $\Gamma$.
-        For large values of $l$ ($l\gg P$), $\Gamma$ can be related to the
-        typical number of stationary/non-stationary points of inflection, per
+        For large values of $l$ ($l\gg P$), $\Gamma$ relates to the
+        typical number of stationary/non-stationary points of inflection per
         period.
         % found in functions drawn from the corresponding GP.
         This behaviour will be independent of the exact value of $l$.
@@ -1136,9 +1135,9 @@ For example, take the harmonic complexity parameter, $\Gamma$.
         % Depending on the processes giving rise to observed stellar signals,
         % you may not expect to require certain types of functions to model
         % observed signals.
-        In typical light curves, observing more than say three or four
+        In typical light curves, observing more than perhaps three or four
         turning points per period in the disk-integrated photometric signal
-        (as opposed to say $20$; of course $2$ turning points is the minimum
+        (of course, $2$ turning points is the minimum
         for periodic functions) is highly unlikely.
         So there is likely to be some maximum $\Gamma$, related to the maximum
         number of turning points typically observed in stellar light curves.
@@ -1201,38 +1200,45 @@ For the evolution time-scale, $l$, it is sensible to enforce $l>P$, such that
 %         its own slew of degeneracies and other problems...more on this another
 %         time.]}
 \item{To build in a noise model for \kepler\ data.
-Another huge advantage of the GP method is, because it is a {\it generative}
-model of the data, the rotation period signal can be modelled at the same time
-as systematic noise features.
+Because it is a {\it generative} model of the data,
+the GP method models the rotation period at the same time as systematic
+noise features.
 One can then marginalise over the parameters of the noise model.
 This approach would be extremely advantageous for \kepler\ data since
 long-term trends are often removed by the \kepler\ detrending pipeline.
 Marginalising over the noise model at the same time as inferring the
-parameters of interest will insure that the periodic signal is preserved.}
+parameters of interest will insure that the periodic signal is preserved. 
+\tdmcomment{Is this bullet point obselete, given that we have already successfully
+marginalized over \kepler\ noise to recover periods? Or is there
+something else we wanted to say here?}}
 \end{itemize}
 
 \section{Conclusion}
 
-We attempted to recover the rotation periods of \naigrain\ simulated
+We have attempted to recover the rotation periods of \naigrain\ simulated
 \kepler-like light curves for solid-body rotators \citep{Aigrain2015} using
-three different methods: a new Gaussian process method, a Lomb-Scargle
-periodogram method and an autocorrelation function method.
+three different methods: a new Gaussian process method, 
+an authocorrelation function method, and a Lomb-Scargle periodogram method.
 We demonstrate that the GP method produces the most accurate rotation periods
 of the three techniques, providing a large improvement over the LS periodogram
 method and a moderate one over the ACF method.
 We also find that the standard version of the ACF method, most commonly
 implemented in the literature, often slightly under-predicts the rotation
 period due to a subtle feature of its peak detection algorithm.
-In addition, we compared the rotation periods of \kepler\ objects of
-interest measured using the GP method to those measured previously by
-\citet{Mcquillan2013}.
-The good agreement between the two sets of results demonstrates that the GP
+In addition, we measure the rotation periods of \nkoimcq\ \kepler\ objects of
+interest using the GP method, and find that these results compare well
+to those measured previously by \citet{Mcquillan2013}.
+The good agreement between these two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
-Unlike the ACF and LS periodogram methods, the GP method provides posterior
+
+Unlike the ACF and L-S periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
 Although an improvement on competing methods, these uncertainties are still
 underestimated in many cases because the GP model is an approximate, effective
-model: we find that only a quarter of the reported uncertainties are accurate.
+model. \tdm{Can we make a statement something like ``we believe the method underestimates
+uncertainties by about a factor of three'' or something like that?  This
+matches with 66\% of the fits being within ``3$\sigma''.
+Might be good to say something like this, both in the discussion and here.}
 % in many cases the posterior PDFs of the parameters are
 % multi-modal.
 % If it were possible to run an MCMC sampler for an infinite number of steps,
