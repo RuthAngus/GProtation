@@ -58,6 +58,7 @@
 
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 \newcommand{\tdmcomment}[1]{{\color{blue}#1}}
+\newcommand{\vrcomment}[1]{{\color{magenta}#1}}
 
 \begin{document}
 
@@ -279,7 +280,12 @@ This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while also allowing
 points separated by half a period to be weakly correlated.
 We also use an extra parameter $\sigma$ which is an additional white noise
-term added to the diagonal elements of the covariance matrix.
+term added to the diagonal elements of the covariance matrix. \vrcomment{[VR: I think it might be clearer if you just included this white noise term directly in the definition of the kernel, especially for people who might not be familiar with GPs and for whom it won't necessarily be obvious how the white noise term connects to the rest of the kernel. I.e.\ I'd suggest you simply defined the kernel as below.]}
+\begin{equation}
+\label{eq:QP2}
+\vrcomment{k_{i,j} = A \exp \left[-\frac{(x_i - x_j)^2}{2l^2} -
+\Gamma^2 \sin^2\left(\frac{\pi\vrcomment{(x_i - x_j)}}{P}\right) \right] + \sigma^2\delta_{ij}.}
+\end{equation}
 This can be interpreted to represent underestimation of observational
 uncertainties~---~if the uncertainties reported on the data are too small, it
 will be non-zero~---~or it can capture any remaining ``jitter'' or residuals
@@ -322,7 +328,7 @@ The GP method is described in \textsection \ref{sec:method}.
 Its performance is demonstrated and compared with literature methods in
 in \textsection \ref{sec:perf_and_comp}.
 In \textsection \ref{sec:kepler} we apply our method to real \kepler\ data,
-and the results are discussed in \textsection \ref{sec:discussion}.
+and the results are discussed in \textsection \ref{sec:discussion}. \vrcomment{[VR: the order doesn't make sense. As things stand, you've laid it out as \textsection3.1,\textsection2, then  \textsection3.3. Presumably should be \textsection2,\textsection3.1, \textsection3.3 -- and \textsection3.2 is missing].}
 
 \section{GP Rotation Period Inference}
 \label{sec:method}
@@ -366,7 +372,7 @@ The equivalent equation in matrix notation is
     + \frac{N}{2}\log2\pi,
 \end{equation}
 \label{eq:lhf1}
-where $\bf{r}$ is the vector of residuals and $\bf{C}$ is the covariance
+\vrcomment{(VR: why not just write $\frac{N}{2}\log{2\pi}$ instead of `constant'?)}~where $\bf{r}$ is the vector of residuals and $\bf{C}$ is the covariance
 matrix,
 \begin{eqnarray}
     \mathbf{C} &=& \left (\begin{array}{cccc}
@@ -449,6 +455,25 @@ $A$ and $\Gamma$, and small values of $l$; though the exact details of what
 works well may differ among datasets (see \ref{sec:} and
 \ref{sec:} for two different examples of hyperparameter priors).
 
+\vrcomment{VR: in my opinion, this is the weakest part of the paper. I don't agree that there are no \emph{a priori} reasons to believe that any of the hyperparameters should take values in any specific range, and the phrase `somewhat subjective art' seems likely to set alarm bells ringing for referees/readers. Going through the hyperparameters in turn, the following things come to mind.
+
+\begin{itemize}
+\item Amplitude, $A$: their is a closed form solution for the maximum-likelihood value of $A$ (solve ${\partial _A}\mathcal{L} = 0$). Steve Roberts alluded to this in his 2012 tutorial paper and I know I've worked through the mathematics myself -- offhand I can't remember the solution, but it's a fairly straightforward looking thing involving the precision matrix like $A\sim{{\mathbf{y}}^{\textrm{T}}}{{\mathbf{K}}^{ - 1}}{\mathbf{y}}$ with some scaling constant. I'll see if I can dig up my workings and/or find a reference. I think this means that if you're anyway going to use a flat prior on $A$, your MAP solution will end up corresponding to the ML solution. In which case you could speed things up a good deal by just setting $A$ to its optimal value \emph{ab initio}, and not bothering to explore the full posterior PDF. More importantly though, if for some reason the MAP value you use doesn't correspond more or less to the ML value (e.g.\ if something went wrong with the MCMC convergence) -- in other words, if you end up using a non-optimal value for $A$ -- I've found you can sometimes get rather bizarre behaviour. For example, when I fit data with an obvious period, sometimes I end up recovering a very wrong period if $A$ is also very wrong e.g.\ much too large. Such problems can be avoided quite straightforwardly by constraining $A$ to sensible values.
+\item Harmonic complexity, $\Gamma$: for large values of $l$ ($l\gg P$), $\Gamma$ can be related to the typical number of stationary/non-stationary points of inflection, per period, found in functions drawn from the corresponding GP. This behaviour will be independent of the exact value of $l$. For `intermediate' values of $l$ ($l\gtrsim P$) this can still be done but the behaviour will be sensitive to the value of $l$. And small values of $l$ e.g.\ $l<P$ are probably not relevant -- see below. If useful I could make a plot or two illustrating this. Anyway, the point is that depending on the processes giving rise to observed stellar signals, you may not expect to require certain types of functions to model observed signals. In typical simulations e.g.\ of arbitrary numbers of spots on rotating stars, I think you're unlikely to end up with more than say three or four turning points per period in the disk-integrated photometric signal (as opposed to say $20$; of course $2$ turning points is the minimum for periodic functions). Such simulations, crude though they may be, can be used to come up with physically-motivated priors for $\Gamma$.
+\item Evolution time-scale, $l$: it's sensible to enforce something like $l>P$ if we desire functions that have at least some fairly clear periodicity, as intuitively $l<P$ would mean the functions are allowed to evolve significantly over time scales shorter than one period. So a function $f(t+P)$ would look signficantly different to $f(t)$, in which case any claims of periodicity become dubious. Actually, you can come with a more rigorous criterion (which also takes into account dependencies on $\Gamma$) than this -- see below.
+\item Suzanne and I have shown that provided
+\begin{equation}
+\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
+\end{equation}
+the QP covariance function will have at least one inflection point other than at $|x_i-x_j|=0$ (the derivation is straightforward though a bit long). So $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} = \frac{{4\pi }}{3}$ corresponds to a critical point at which secondary maxima disappear, and the behaviour of the kernel becomes dominated by the SE term rather than the periodic term. For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$. In practice satisfying this criterion doesn't absolutely guarantee that function draws will have clear evidence of periodicity, but it does give you a quantitative boundary between obviously periodic behaviour and not-so-obviously periodic behaviour (if you're trying to fit rotation periods then obviously you don't want to use an SE-like kernel to do so) and provides some justification for a more stringent criterion such as $l>P$, or $l>2P$ (ensure that functions evolve significantly over time-scales longer than 2 periods), etc.
+\end{itemize}
+The upshot of all of this is that I don't think constraining hyperparameters needs to be some sort of dark art or ad hockery, and it'd do the underlying method a disservice by suggesting as much. As I see it, there are at least two ways to proceed here.
+\begin{enumerate}
+\item Provide as much detail on constraining the hyperparameters in this paper as we possibly can, including quantitative justification, illustrations of qualitatively-different behaviours for different regions of the hyperparameter space, etc. Disadvantages: if we do this it'd be necessary to re-run your fits with the new priors; and the paper would be come a good deal longer, with the focus possibly shifted away from the essential idea of using a GP to infer rotation periods.
+\item Alternatively, at least allude to some of these approaches to constraining hyperparameters (instead of saying that it's a subjective art) but defer a focused discussion on how to do that to a short, separate paper/research note. As I've already done much of the work for such a study, I'd be happy to take the lead on that at some point later this year. Advantage here would be your paper remains more focused and you don't need to re-run any of your fits. Indeed I imagine that if you check your MAP values for $A$, $l$, etc., they'd usually be consistent with any rigorously-motivated priors (since you get generally sensible results). Perhaps we could show in the follow-up paper how using the physically-motivated priors could lead to improved period inference (at least I hope that would be the case!). Any differential rotation tests could also be shifted to the other paper -- see my later remarks on this.
+\end{enumerate}}
+
+
 \subsubsection{Period}
 \label{sec:period_prior}
 
@@ -472,7 +497,7 @@ which can help the posterior sampling converge on the true period.
 We do not attempt to decide which single
 peak in the ACF best represents the true rotation period,
 but rather we identify several \emph{candidate} periods and define
-a weighting scheme in order to create a non-commital, though useful,
+a weighting scheme in order to create a noncommital, though useful,
 multimodal prior.  While this procedure does not avoid heuristic choices,
 the fact that its goal is simply to create a \emph{prior} for a
 probabilistically justified inference scheme rather than
@@ -583,11 +608,11 @@ The other two proposals are a ``Differential Evolution (DE) MCMC'' proposal
 We initialize 500 walkers with random samples from the prior and use a
 weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4,
 0.4, and 0.2 respectively.
-We run fifty steps of the sampler at a time, checking for convergence after
-each iteration, up to a maximum of fifty iterations.
+We run \vrcomment{50} steps of the sampler at a time, checking for convergence after
+each iteration, up to a maximum of \vrcomment{50} iterations.
 We declare convergence if the total effective chain length is at least
 8$\times$ the maximum autocorrelation time.
-When convergence is achieved, we drop the first two autocorrelation lengths in
+When convergence is achieved, we \vrcomment{discard} the first two autocorrelation lengths in
 the chain as a burn-in, and randomly choose 5000 samples as representative of
 the posterior.
 This fitting process takes several hours for a typical simulated light curve,
@@ -703,7 +728,7 @@ We note that we do not have any specific quantitative justification for the
 use of these priors, except that they produce good results for this particular
 test set of light curves.
 We thus caution that other data sets might have different noise properties,
-potentially requiring modifications to these priors
+potentially requiring modifications to these priors \vrcomment{[VR: might want to reword or remove these remarks; see my earlier comments]}
 (e.g., see Section \ref{sec:kepler}).
 For the period prior, we tried two different methods: an uninformed (log-flat)
 prior between 0.5\,d and 100\,d, and an ACF-informed prior
@@ -721,7 +746,7 @@ These metrics are presented for the three different methods tested in this
 paper in table \ref{tab:MADs}.
 The informative and uninformative prior versions of the GP method have MRDs of
 \percentgpMAD \% and \percentgpMADnp \% respectively.
-The marginal posterior distributions of the QP kernel hyperparameters for the
+The marginal posterior distributions of the QP kernel hyperparameters\vrcomment{,} for the
 example simulated light curve in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
 
@@ -787,7 +812,7 @@ The MAD of these results is 0.48 in log-space, \ie\ 1.61 days.
 \includegraphics[width=6in, clip=true]{figures/25.png}
 \caption{Marginal posterior PDFs of the QP GP model parameters, fit to the
     light curve in figure \ref{fig:demo_lc}.
-    The green line in the period panel shows the injected period.
+    The green line in the period panel shows the injected period. \vrcomment{[VR: might it be possible to make the green line darker? It took me a little while to find it.]}
     This figure was made using \texttt{corner.py} \citep{Corner}.}
 \label{fig:gp_posteriors}
 \end{center}
@@ -1013,24 +1038,24 @@ Although a GP model is more appropriate than a sinusoid, it is still an
 imperfect, effective model.
 A perfect physical model of the star would still produce better results with
 more representative uncertainties. \tdmcomment{Not sure saying ``a perfect
-model would give better results'' is worth saying...}
+model would give better results'' is worth saying...} \vrcomment{VR: I agree this is probably not worth saying.}
 
 The QP kernel function represents a simplistic effective model of a stellar
 light curve.
-It adequately describes the data, captures that all-important periodic quality
-and is relatively simple, with only a few hyper-parameters.
+It adequately describes the data, captures that all-important periodic quality \vrcomment{[VR: I think this is a bit vague...a sinusoidal model would capture `periodic quality'. Maybe say something like: `it manages to describe a wide range of quasi-periodic behavior'.]}
+and is relatively simple, with only a few hyperparameters.
 It also satisfies the requirement to produce positive semi-definite covariance
-matrices.
+matrices. \vrcomment{[VR: I don't think it's worth mentioning the PSD thing. It's not as though this is some advantage the QP kernel has over any other kernel function.]}
 Whilst the QP kernel function evidently captures the periodic qualities of
-light curves adequately, it is still a somewhat arbitrary choice.
+light curves adequately, it is still a somewhat arbitrary choice \vrcomment{[VR: repetitive...maybe just say 'Nevertheless, it is still a somewhat arbitrary choice.']}.
 Another valid choice would be a squared cosine function multiplied by a
 squared exponential,
 \begin{equation}
 k_{i,j} = A \exp \left(-\frac{(x_i - x_j)^2}{2l^2}\right)
-\cos\left(\frac{2\pi}{P}\right)
+\cos\left(\frac{\pi\vrcomment{(x_i - x_j)}}{P}\right)
 \end{equation}
 \label{eq:cos_kernel}
-This function produces a positive semi-definite matrix and has the $P$
+\vrcomment{VR: missing $(x_i - x_j)$ term added above, and factor of $2$ removed.} This function produces a positive semi-definite matrix and has the $P$
 parameter of interest.
 % It may in fact be even {\it more} suited to modelling stellar
 % light curves as it describes a Gaussian in frequency space.
@@ -1103,7 +1128,7 @@ tests have not been performed due to the cost of calculating the fully
 marginalised likelihood with GPs. This calculation may be prohibitively
 expensive, however simpler model selection tests can be performed. For
 example, the relative precision of rotation periods recovered using
-alternative kernel functions could be tested.}
+alternative kernel functions could be tested.} \vrcomment{[VR: this is something I've started exploring using MultiNest. Computation times seem quite manageable.]}
 \item{To design and implement a physically motivated kernel function. We have
 only explored the physical interpretation of one parameter in our kernel
 function, $P$.
@@ -1144,6 +1169,7 @@ the most precise measurements of rotation period possible.
 In future we intend to investigate the possibility of recovering
 differential rotation by searching for close double peaks in the posterior
 PDFs of stars' rotation periods.}
+\item \vrcomment{[VR: for the two points above, you might want to reword slightly depending on the extent to which you want to try to (i) incorporate my suggestions re prior constraints etc.\ etc.\ vs.\ (ii) deferring this to the future paper, but at least alluding to the possibilities and results. For example I think one needn't try to `design' a physically-motivated kernel -- rather it seems not too difficult just to come up with physically-motivated priors for the QP kernel parameters. I've tried to design a physically motivated kernel to capture differential rotation but as noted earlier, that came with its own slew of degeneracies and other problems...more on this another time.]}
 \item{To build in a noise model for \kepler\ data.
 Another huge advantage of the GP method is, because it is a {\it generative}
 model of the data, the rotation period signal can be modelled at the same time
@@ -1213,6 +1239,8 @@ This research was funded by the Simons Foundation and the Leverhulme Trust.
 TDM is supported by NASA grant NNX14AE11G, and acknowledges the
 hospitality of the Institute for Advanced Study,
 where part of this work was completed.
+VR thanks Merton College and the National Research Foundation of South Africa
+for financial support.
 Some of the data presented in this paper were obtained from the Mikulski
 Archive for Space Telescopes (MAST).
 STScI is operated by the Association of Universities for Research in
