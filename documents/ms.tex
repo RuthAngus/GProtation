@@ -1120,87 +1120,33 @@ continuing to develop, listed as follows:
 \item{To perform model selection with different kernel functions. Again, these
     tests have not been performed thus far due to the cost of calculating the
         fully marginalised likelihood with GPs.}
-\item{To design and implement more physically motivated priors.
-We have only explored the physical interpretation of one parameter in our
-        kernel function, $P$ but some others may warrant physically motivated
-        priors.
-For example, take the harmonic complexity parameter, $\Gamma$.
-        For large values of $l$ ($l\gg P$), $\Gamma$ can be related to the
-        typical number of stationary/non-stationary points of inflection, per
-        period.
-        % found in functions drawn from the corresponding GP.
-        This behaviour will be independent of the exact value of $l$.
-        For `intermediate' values of $l$ ($l\gtrsim P$) this still holds
-        but the behaviour will be sensitive to the value of $l$.
-        Small values of $l$, \eg\ $l<P$, are probably not relevant -- see
-        below.
-        % Depending on the processes giving rise to observed stellar signals,
-        % you may not expect to require certain types of functions to model
-        % observed signals.
-        In typical light curves, observing more than say three or four
-        turning points per period in the disk-integrated photometric signal
-        (as opposed to say $20$; of course $2$ turning points is the minimum
-        for periodic functions) is highly unlikely.
-        So there is likely to be some maximum $\Gamma$, related to the maximum
-        number of turning points typically observed in stellar light curves.
-        % Such simulations, crude though they may be, could be used to come up
-        % with physically-motivated priors for $\Gamma$.
-For the evolution time-scale, $l$, it is sensible to enforce $l>P$, such that
-        functions that have clear periodicity.
-        Intuitively, if $l<P$ the functions may evolve significantly over time
+\item{To discuss more physically motivated priors.
+        In this paper we have only explored the physical interpretation of one
+        parameter in our kernel function (P), which we related to stellar
+        rotation periods, but others also warrant physically motivated priors.
+        For example, the harmonic complexity parameter, $\Gamma$, defines the
+        typical number of inflection points per function period; suitable
+        priors may be informed by the typical properties of observed light
+        curves.
+        For the evolution time-scale, $l$,  it is sensible to enforce $l > P$,
+        such that functions that have clear periodicity.
+        Intuitively, if $l < P$, functions may evolve significantly over time
         scales shorter than one period, so a function $f(t+P)$ would look
-        signficantly different to $f(t)$, in which case any claims of
-        periodicity become dubious.}
-        % A more rigorous criterion (which also
-        % takes into account dependencies on $\Gamma$) is presented below.
-        % Provided
-        % \begin{equation}
-        % \frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} < \frac{{4\pi }}{3},
-        % \end{equation}
-        % the QP covariance function will have at least one inflection point
-        % other than at $|x_i-x_j|=0$, so $\frac{{{P^2}}}{{{l^2}{\Gamma ^2}}} =
-        % \frac{{4\pi }}{3}$
-        % corresponds to a critical point at which secondary maxima disappear,
-        % and the behaviour of the kernel becomes dominated by the SE term
-        % rather than the periodic term.
-        % For $\Gamma\sim\mathcal{O}(1)$, this translates into $l\gtrsim P/2$.
-        % In practice, satisfying this criterion doesn't absolutely guarantee
-        % that function draws will have clear evidence of periodicity, but it
-        % does provide a quantitative boundary between obviously periodic
-        % behaviour and not-so-obviously periodic behaviour.
-        % It also provides some justification for a more stringent criterion
-        % such as $l>P$, or $l>2P$ (ensure that functions
-        % evolve significantly over time-scales longer than 2 periods).}
-% However, the other parameters may also be related to some physical processes.
-% For example, the overall timescale for covariance fall-off, $l$ may be
-% related to spot lifetimes.
-% A star with long spot lifetimes will show little variation in the overall
-% shape and amplitude of its light curve between rotations and $l$ will be
-% large.
-% In contrast, the light curve of a star with short spot lifetimes may display
-% non-repeating patterns and amplitudes that vary rapidly between rotations.
-% In this case $l$ will be small.
-% The $\Gamma$ parameter is related to the number of zero crossings within one
-% rotation period: when $\Gamma$ is small there are many zero crossings and
-% vice versa.
-% Since the number of zero crossings per rotation period is related to the
-% number of active regions on the surface of the star, this parameter may also
-% be of physical interest.
-% In addition, instead of interpreting the parameters of the QP kernel function
-% used here, it may be possible to design an entirely new kernel function, based
-% on the physical processes that drive the light curve variability.
-% This idea is being explored by another member of my research group.}
-% \item \vrcomment{[VR: for the two points above, you might want to reword
-%     slightly depending on the extent to which you want to try to (i)
-%         incorporate my suggestions re prior constraints etc.\ etc.\ vs.\ (ii)
-%         deferring this to the future paper, but at least alluding to the
-%         possibilities and results. For example I think one needn't try to
-%         `design' a physically-motivated kernel -- rather it seems not too
-%         difficult just to come up with physically-motivated priors for the QP
-%         kernel parameters. I've tried to design a physically motivated kernel
-%         to capture differential rotation but as noted earlier, that came with
-%         its own slew of degeneracies and other problems...more on this another
-%         time.]}
+        significantly different to $f(t)$, in which case any claims of
+        periodicity become dubious.
+        More stringent criteria may be suggested by stellar astrophysical
+        considerations, e.g. knowledge of typical active region evolution
+        time-scales or persistence lifetimes (e.g. $l\sim2P$).
+        Finally, the amplitude hyper-parameter $A$ may be related to active
+        region coverage.
+        Unfortunately, because these hyper-parameters control the covariance
+        structure of functions, their interpretation is not always
+        straightforward; interpretation is further complicated by significant
+        degeneracies between the hyperparameters.
+        Therefore we defer such considerations, along with strategies for
+        efficient optimization or marginalization of hyperparameters, to a
+        separate paper (currently in prep.).
+    }
 \item{To build in a noise model for \kepler\ data.
 Another huge advantage of the GP method is, because it is a {\it generative}
 model of the data, the rotation period signal can be modelled at the same time
