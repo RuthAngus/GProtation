@@ -530,12 +530,11 @@ trough-to-peak height, creating a set of candidate periods
 $T_i$ and heights $h_i$.}
 
 \item{We assign a quality metric $Q_i$ to each of these candidate
-periods, as follows.  First, we model the ACF as a
-damped oscillator with fixed period $T_i$:
+periods, as follows.  First, we model the ACF as a function of lag
+time $t$ as a damped oscillator with fixed period $T_i$:
 \begin{equation}
 y = A e^{-t/\tau} \cos{\frac{2\pi t}{T_i} },
 \end{equation}
-        \racomment{where and $t$ is the lag time, (some missing text here.)}
 and find the best-fitting parameters $A_i$ and $\tau_i$ by a non-linear
 least squares minimization procedure.  We then define the
 following heuristic quality metric:
