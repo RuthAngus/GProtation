@@ -11,8 +11,8 @@
 
 \newcommand{\columbia}{1}
 \newcommand{\oxford}{3}
-\newcommand{\sagan}{4}
-\newcommand{\uw}{5}
+\newcommand{\uw}{4}
+\newcommand{\sagan}{5}
 \newcommand{\princeton}{2}
 
 \newcommand{\Kepler}{{\it Kepler}}
@@ -110,6 +110,7 @@ Because this method delivers posteriors PDFs, it will enable hierarchical
     studies involving stellar rotation, particularly those involving
     population modelling, such as inferring stellar ages, obliquities in
     exoplanet systems, or characterising star-planet interactions.
+The code is available at \url{https://github.com/RuthAngus/GProtation/} .
 % Thehe ACF method is not applicable to unevenly spaced data,
 % therefore it is inappropriate for the ~$10^7$ stellar light curves expected
 % to be produced by \LSST\ unlike the GP method.
@@ -754,7 +755,9 @@ The informative and uninformative prior versions of the GP method have MRDs of
 The marginal posterior distributions of the QP kernel hyperparameters, for the
 example simulated light curve in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
-
+The posterior samples of the model parameters for the simulated light curves
+are available online:
+\url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
 
 
 \begin{table*}
@@ -982,6 +985,9 @@ as maybe $\sim$15\% of the fits tended toward corners in the hyperparameter
 space, resulting in poor period measurements.  As a result, after this initial
 test, we subsequently adjusted the priors and re-fit all the KOIs.
 The final priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
+The posterior samples of the model parameters for the \Kepler\ objects of
+interest are available online:
+\url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
 
 \begin{table*}
 \begin{center}
@@ -1033,12 +1039,13 @@ more accurate rotation periods than the ACF or periodogram methods.
 Additionally, because it explores the posterior PDF with MCMC,
 our method produces probabilistically justified uncertainties.
 Unfortunately, these uncertainties still appear to be underestimated.
-Of the rotation periods recovered from the simulated light curves, only 25\%
-of the measured periods lie within 1$\sigma$ of the true period,
-50\% lie within 2$\sigma$, and 66\% within 3$\sigma$.
+Of the rotation periods recovered from the simulated light curves, using the
+ACF-informed prior, only 25\% of the measured periods lie within 1$\sigma$ of
+the true period, 50\% lie within 2$\sigma$, and 66\% within 3$\sigma$.
 The largest outlier is 114$\sigma$ away from the true value.
-\tdmcomment{I assume this is for the ACF-based prior run? (should probably be mentioned)
-Are these numbers similar for the logflat prior?}
+The median uncertainty is underestimated by around a factor of two.
+These numbers are similar for the uninformative prior results which also
+provides underestimated uncertainties.
 % In the majority of these cases the uncertainties are underestimated due to the
 % multi-modal nature of the period posterior PDFs, which makes them difficult to
 % sample. \tdmcomment{Is there any evidence of this?  Doesn't sound convincing to me.
@@ -1213,6 +1220,8 @@ However, it is probabilistic and provides more accurate periods than
 alternative methods.
 We therefore argue that the GP method is the best method for rotation period
 inference currently available.
+The code used in this project is available at
+\url{https://github.com/RuthAngus/GProtation/}.
 
 % acknowledgements
 This research was funded by the Simons Foundation and the Leverhulme Trust.

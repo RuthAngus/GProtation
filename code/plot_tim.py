@@ -90,6 +90,8 @@ def plot(prior, nbins):
 
     plt.clf()
     resids = np.log(x[l]) - np.log(recovered[l])
+    linresids = x[l] - recovered[l]
+    linerrs = .5*(lnerrp[l]*recovered[l] + lnerrm[l]*recovered[l])
     plt.hist(resids, 80, histtype="stepfilled", color="w")
     plt.xlabel("$\ln(\mathrm{True~Period}) - \ln(\mathrm{GP~Period})$")
     plt.axvline(np.percentile(resids, 16), color=".5", ls="--")
@@ -104,20 +106,11 @@ def plot(prior, nbins):
         plt.savefig("gp_hist_noprior.pdf")
 
     print(len(x[l]), "stars")
-    # print("percentiles:")
-    # print(np.percentile(resids, 16), np.percentile(resids, 84))
-    # print("diff = ",
-    #       np.abs(np.percentile(resids, 16) - np.percentile(resids, 84)))
-    # print("median_err = ", median_err)
-
     print("MAD = ", np.median(np.abs(x[l] - recovered[l])))
     print("MAD (log) = ", np.median(np.abs(np.log(x[l]) -
                                            np.log(recovered[l]))))
     print("MAD relative % = ", np.median((np.abs(x[l] -
                                                  recovered[l]))/x[l])*100)
-    # print("MAD relative (log) = ", np.median(np.abs(np.log(x[l]) -
-    #                                            np.log(recovered[l]))
-    #                                          /np.log(x[l]))*100j)
 
     errs = .5*(lnerrp[l] + lnerrm[l])
     plt.clf()
@@ -129,14 +122,25 @@ def plot(prior, nbins):
 
     plt.clf()
     nsigma_diff = np.abs(resids - errs)/errs
-    plt.hist(nsigma_diff, 100, histtype="stepfilled", color="w")
-    plt.axvline(np.percentile(nsigma_diff, 66), color="r", ls="--")
+    plt.hist(nsigma_diff, 100)
+    # plt.axvline(np.percentile(nsigma_diff, 66), color="r", ls="--")
+    print(np.percentile(nsigma_diff, 50), "= median")
+    "50% are 1.88 sigma off. But you'd expect "
     print(np.percentile(nsigma_diff, 66))
     print(max(nsigma_diff))
     if prior:
         plt.savefig("err_resid_ratio_hist")
     else:
         plt.savefig("err_resid_ratio_hist_noprior")
+
+    if prior:
+        plt.clf()
+        print(np.std(linresids))
+        plt.hist(linresids, 100)
+        plt.savefig("resid_hist")
+        print(np.mean(linerrs/recovered[l]),
+              np.median(linerrs/recovered[l]))
+
 
     """
     3/4 of uncertainties are under-estimated.
