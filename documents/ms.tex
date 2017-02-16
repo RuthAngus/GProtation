@@ -56,6 +56,16 @@
 \newcommand{\gpMAD}{0.39}
 \newcommand{\percentgpMAD}{1.96}
 
+\newcommand{\lntelavivMAD}{0.02}
+\newcommand{\telavivMAD}{0.34}
+\newcommand{\percenttelavivMAD}{1.75}
+
+\newcommand{\acfRMS}{1.75}
+\newcommand{\telavivRMS}{25.09}
+\newcommand{\pgramRMS}{19.50}
+\newcommand{\gpRMSnp}{7.48}
+\newcommand{\gpRMS}{7.12}
+
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 \newcommand{\tdmcomment}[1]{{\color{blue}#1}}
 \newcommand{\vrcomment}[1]{{\color{magenta}#1}}
@@ -898,6 +908,31 @@ simply measures the peak position without taking it into account.
 We adopt this standard practice here to faithfully compare
 our new method to that used in the literature.
 
+We also compare our results to those of the Tel Aviv team in
+\citet{Aigrain2015} who use the ACF method described in \citet{Mcquillan2013}.
+Although we follow the same overall ACF method in this paper, the exact
+implementation of \citet{Mcquillan2013} code is slightly different and
+therefore produces different results.
+The MRD of their results relative to the true rotation periods is
+\percenttelavivMAD\% which is smaller than the results produced by the GP
+method: their results are more precise.
+However, they produce a larger number of large outliers --- they predict
+periods that are significantly different from the true period in more cases
+than the GP method.
+This is revealed by comparing the root-mean-squared (RMS) of the two sets of
+results, which is more sensitive to outliers: the RMS of the Tel Aviv results
+is 25 days and the RMS of GP results is 7 days.
+The Tel Aviv ACF results are therefore more precise but are catastrophically
+wrong in a larger number of cases.
+% This can be understood as a consequence of the ACF method's sensitivity to
+% noise.
+% The ACF method will predict a period according to the positions of the highest
+% peaks in the ACF which, on occasion, are produced by noise in the data rather
+% than the periodic signal.
+% On the other hand, the priors on the GP parameters ensure that a `reasonable'
+% rotation period is always recovered --- it is therefore less sensitive to
+% noise and rarely infers periods that are .
+
 \begin{figure*}
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
@@ -948,15 +983,20 @@ In many cases a large peak at a long period was present in the periodogram,
 
 \begin{table*}
 \begin{center}
-    \caption{Median absolute (MAD) and median relative (MRD) deviations for
-    the LS periodogram, ACF and GP period recovery methods.}
-\begin{tabular}{lccc}
-Method & MAD & MRD \\
+    \caption{Median absolute (MAD), median relative (MRD) deviations and
+    root-mean-squared (RMS) for
+    the LS periodogram, ACF, \citet{Mcquillan2013} ACF and GP period recovery
+    methods.}
+\begin{tabular}{lcccc}
+    Method & MAD & MRD & RMS \\
     \hline
-    LS periodogram & \pgramMAD\ days & \percentpgramMAD \% \\
-    ACF & \acfMAD\ days & \percentacfMAD \% \\
-    GP (uninformative prior) & \gpMADnp\ days & \percentgpMADnp \% \\
-    GP (acf prior) & \gpMAD\ days & \percentgpMAD \% \\
+    LS periodogram & \pgramMAD\ days & \percentpgramMAD \% & \pgramRMS\ days\\
+    ACF & \acfMAD\ days & \percentacfMAD \% & \acfRMS\ days \\
+    ACF \citep{Mcquillan2013} & \telavivMAD\ days & \percenttelavivMAD \%
+    & \telavivRMS\ days \\
+    GP (uninformative prior) & \gpMADnp\ days & \percentgpMADnp \% &
+    \gpRMSnp\ days \\
+    GP (acf prior) & \gpMAD\ days & \percentgpMAD \% & \gpRMS\ days \\
 \end{tabular}
 \end{center}
 \end{table*}

@@ -111,6 +111,7 @@ def plot(prior, nbins):
                                            np.log(recovered[l]))))
     print("MAD relative % = ", np.median((np.abs(x[l] -
                                                  recovered[l]))/x[l])*100)
+    print("RMS = ", (np.mean((x[l] - recovered[l])**2))**.5)
 
     errs = .5*(lnerrp[l] + lnerrm[l])
     plt.clf()
@@ -155,6 +156,7 @@ def plot(prior, nbins):
 if __name__ == "__main__":
     FIG_DIR = "/Users/ruthangus/projects/GProtation/documents/figures"
     print("ACF prior")
-    plot(True, 100)  # with ACF prior
+    nbins = 95
+    plot(True, nbins)  # with ACF prior
     print("\n", "No prior")
-    plot(False, 100)  # without ACF prior
+    plot(False, nbins)  # without ACF prior
