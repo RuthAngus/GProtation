@@ -910,20 +910,20 @@ our new method to that used in the literature.
 
 We also compare our results to those of the Tel Aviv team in
 \citet{Aigrain2015} who use the ACF method described in \citet{Mcquillan2013}.
-Although we follow the same overall ACF method in this paper, the exact
-implementation of \citet{Mcquillan2013} code is slightly different and
-therefore produces different results.
-The MRD of their results relative to the true rotation periods is
-\percenttelavivMAD\% which is smaller than the results produced by the GP
-method: their results are more precise.
-However, they produce a larger number of large outliers --- they predict
+Although we follow the same general ACF method in this paper, the exact
+implementation of the \citet{Mcquillan2013} code is slightly different and
+produces different results.
+The MRD of their periods, relative to the true rotation periods, is
+\percenttelavivMAD\% --- smaller than the results produced by the GP
+method.
+However, their results contain a larger number of extreme outliers --- they
+predict
 periods that are significantly different from the true period in more cases
 than the GP method.
 This is revealed by comparing the root-mean-squared (RMS) of the two sets of
-results, which is more sensitive to outliers: the RMS of the Tel Aviv results
-is 25 days and the RMS of GP results is 7 days.
-The Tel Aviv ACF results are therefore more precise but are catastrophically
-wrong in a larger number of cases.
+results since the RMS is more sensitive to outliers.
+The RMS of the Tel Aviv method results is \telavivRMS\ days and the RMS of GP
+method results is \gpRMS\ days.
 % This can be understood as a consequence of the ACF method's sensitivity to
 % noise.
 % The ACF method will predict a period according to the positions of the highest
@@ -1213,13 +1213,18 @@ three different methods: a new Gaussian process method,
 an authocorrelation function method, and a Lomb-Scargle periodogram method.
 We demonstrate that the GP method produces the most accurate rotation periods
 of the three techniques, providing a large improvement over the LS periodogram
-method and a moderate one over the ACF method.
-We also find that the standard version of the ACF method, most commonly
-implemented in the literature, often slightly under-predicts the rotation
-period due to a subtle feature of its peak detection algorithm.
-In addition, we measure the rotation periods of \nkoimcq\ \kepler\ objects of
-interest using the GP method, and find that these results compare well
-to those measured previously by \citet{Mcquillan2013}.
+method and a moderate one over our basic implementation of the ACF method.
+We also find that our basic ACF method which is similar to methods implemented
+in the literature, often slightly under-predicts the rotation period due to a
+subtle feature of its peak detection algorithm.
+Comparing our results with the results of the \citet{Aigrain2015} Tel Aviv
+team who implement the method of \citet{Mcquillan2013}, a slightly different
+version of the ACF method to the one we use, we find that their results are
+slightly more precise than the GP method results overall.
+They do however have a larger number of significant outliers.
+We measured the rotation periods of \nkoimcq\ \kepler\ objects of interest
+using the GP method, and find that these results compare well to those
+measured previously by \citet{Mcquillan2013}.
 The good agreement between these two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
 
