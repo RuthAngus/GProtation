@@ -1215,10 +1215,9 @@ three different methods: a new Gaussian process method,
 an authocorrelation function method, and a Lomb-Scargle periodogram method.
 We demonstrate that the GP method produces the most accurate rotation periods
 of the three techniques, providing a large improvement over the LS periodogram
-method and a moderate one over our basic implementation of the ACF method.
-We also find that our basic ACF method which is similar to methods implemented
-in the literature, often slightly under-predicts the rotation period due to a
-subtle feature of its peak detection algorithm.
+method and a moderate one over the ACF method.
+We also find that the ACF method often slightly under-predicts the rotation
+period due to a feature of its peak detection algorithm.
 Comparing our results with the results of the \citet{Aigrain2015} Tel Aviv
 team who implement the method of \citet{Mcquillan2013}, a slightly different
 version of the ACF method to the one we use, we find that their results are
@@ -1230,29 +1229,30 @@ measured previously by \citet{Mcquillan2013}.
 The good agreement between these two sets of results demonstrates that the GP
 method works well on real \kepler\ data.
 
-Unlike the ACF and L-S periodogram methods, the GP method provides posterior
+Unlike the ACF and LS periodogram methods, the GP method provides posterior
 PDF samples which can be used to estimate rotation periods uncertainties.
-Although an improvement on competing methods, these uncertainties are still
-underestimated in many cases because the GP model is an approximate, effective
-model. \tdmcomment{Can we make a statement something like ``we believe the method underestimates
-uncertainties by about a factor of three'' or something like that?  This
-matches with 66\% of the fits being within ``3$\sigma$''.
-Might be good to say something like this, both in the discussion and here.}
-% in many cases the posterior PDFs of the parameters are
-% multi-modal.
-% If it were possible to run an MCMC sampler for an infinite number of steps,
-% the entire posterior PDF would eventually be sampled, and a more accurate
-% uncertainty would result.
-% Unfortunately, due to realistic computational resources and the limitations of
-% MCMC sampling techniques for multi-modal posteriors, we are not always able to
-% map out the entire posterior PDFs.
-% \tdmcomment{I don't think this is the problem;
-% I think the fits that we judge to have converged have actually converged.}
-In addition, although the GP model used here is clearly a good one, it is
-still only an effective model, not an accurate physical model.
-It can only capture the posterior PDF of the periodic component of the
-covariance matrix, not the actual rotation period of a physical star.
+In general it provides more accurate rotation periods than either method and
+produces significantly fewer outliers.
+The GP method can also be applied to non-uniformly sampled light curves,
+unlike the ACF method.
 
+Although an improvement on competing methods, the uncertainties are still
+underestimated by the GP method in many cases because it is an approximate
+model.
+Although the GP model used here is clearly a good one, as it has been
+demonstrated to reliably recover rotation periods, it is still only an
+effective model, not an accurate physical model.
+It captures the posterior PDF of the periodic component of the covariance
+matrix of a time series, not the actual rotation period of a physical star.
+The marginalised posterior PDF does not therefore exactly reflect the
+probability of a rotation period, given the data.
+Similarly, the uncertainty, calculated from the 16th and 84th percentiles of
+the posterior PDF, is not exactly the standard deviation of a physical
+rotation period.
+
+Although underestimated uncertainties are a drawback of this method, they are
+at least well motivated and well defined which is not the case for
+uncertainties calculated from the ACF and LS periodogram methods.
 The main aim of this work was to develop a probabilistic rotation period
 inference method.
 Probabilistic periods are necessary for hierarchical Bayesian inference,
@@ -1284,10 +1284,8 @@ Astronomy, Inc., under NASA contract NAS5-26555.
 Support for MAST for non-HST data is provided by the NASA Office of Space
 Science via grant NNX09AF08G and by other grants and contracts.
 This paper includes data collected by the Kepler mission. Funding for the
-Kepler mission is provided by the NASA Science Mission directorate.
+\Kepler\ mission is provided by the NASA Science Mission directorate.
 
 \bibliographystyle{plainnat}
 \bibliography{GProtation}
-\newcommand{\gpRMSnp}{7.48}
-\newcommand{\gpRMSnp}{7.48}
 \end{document}
