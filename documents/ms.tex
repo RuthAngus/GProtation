@@ -96,15 +96,14 @@ Washington, Seattle, WA}
 \altaffiltext{\sagan}{Sagan Fellow}
 
 \begin{abstract}
-The light curves of spotted, rotating stars often vary in a non-sinusoidal and
-quasi-periodic fashion---spots move on the stellar surface and have finite
-lifetimes, causing stellar flux variations to slowly shift in phase.
-A strictly periodic sinusoid therefore cannot accurately model a
-rotationally modulated stellar light curve.
-Physical models of the stellar surface also have many drawbacks preventing
-    effective inference, such as highly degenerate or high-dimensional
-    parameter spaces.
-% \citep[\eg][]{Russell1906, Jeffers2009, Kipping2012}.
+Variability in the light curves of spotted, rotating stars is often
+    non-sinusoidal and quasi-periodic --- spots move on the stellar surface
+    and have finite lifetimes, causing stellar flux variations to slowly shift
+    in phase.
+A strictly periodic sinusoid therefore cannot accurately model a rotationally
+    modulated stellar light curve.
+Physical models of stellar surfaces have many drawbacks preventing effective
+    inference, such as highly degenerate or high-dimensional parameter spaces.
 In this work, we introduce an appropriate {\it effective} model: a Gaussian
     Process with a quasi-periodic covariance kernel function.
 Using this highly flexible model, we are able to sample from the posterior
@@ -115,15 +114,16 @@ To test the effectiveness of this method, we infer rotation periods from
 \naigrain\ simulated stellar light curves, demonstrating that our results
     are more accurate than both a sine-fitting periodogram and an
     autocorrelation function method.
-We also demonstrate that it works effectively on real data, by
-inferring rotation periods for \nkoimcq\ \Kepler\ stars with
-previously measured periods.
-Because this method delivers posteriors PDFs, it will enable hierarchical
+We also demonstrate that it works effectively on real data, by inferring
+    rotation periods for \nkoimcq\ \Kepler\ stars with previously measured
+    periods.
+Because this method delivers posterior PDFs, it will enable hierarchical
     studies involving stellar rotation, particularly those involving
     population modelling, such as inferring stellar ages, obliquities in
     exoplanet systems, or characterising star-planet interactions.
-The code is available at \url{https://github.com/RuthAngus/GProtation/} .
-% Thehe ACF method is not applicable to unevenly spaced data,
+The code used to implement this new method is available at
+    \url{https://github.com/RuthAngus/GProtation/} .
+% The ACF method is not applicable to unevenly spaced data,
 % therefore it is inappropriate for the ~$10^7$ stellar light curves expected
 % to be produced by \LSST\ unlike the GP method.
 % Furthermore, the improvement is expected to be even more dramatic when applied
@@ -135,13 +135,12 @@ The code is available at \url{https://github.com/RuthAngus/GProtation/} .
 \section{Introduction}
 \label{sec:intro}
 
-The brightness of a spotted, rotating star often varies in a non-sinusoidal and
-Quasi-Periodic (QP) manner, due to active regions on its surface which
-rotate in and out of view.
-Complicated surface spot patterns produce non-sinusoidal variations,
-and the finite lifetimes of these active regions and
-differential rotation on the stellar surface produce quasi-periodicity
-\citep{Dumusque2011}.
+The disk-integrated flux of a spotted, rotating star often varies in a
+non-sinusoidal and Quasi-Periodic (QP) manner, due to active regions on its
+surface which rotate in and out of view.
+Complicated surface spot patterns produce non-sinusoidal variations, and the
+finite lifetimes of these active regions and differential rotation on the
+stellar surface produce quasi-periodicity \citep{Dumusque2011}.
 A strictly periodic sinusoid is therefore not necessarily a good model choice
 for these time-series.
 A physically realistic model of the stellar surface
@@ -161,49 +160,41 @@ Simplified spot models, such as the one described in \citet{Lanza2014} where
 only two spots are modelled, have produced successful results; however, such
 relatively inflexible models sacrifice precision.
 
-Standard methods to measure rotation periods include detecting
-peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS) periodogram
-\citep[\eg][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
+Standard non-inference based methods to measure rotation periods include
+detecting peaks in a Lomb-Scargle \citep{Lomb1976, Scargle1982} (LS)
+periodogram \citep[\eg][]{Reinhold2013}, Auto-Correlation Functions (ACFs),
 \citep[\eg][]{Mcquillan13b} and wavelet transforms \citep[\eg][]{Garcia2014}.
 The precisions of the LS periodogram and wavelet methods are limited by the
-suitability of the model choice: a sinusoid for the LS periodogram,
-and a choice of mother wavelet, assumed to describe the data
-over a range of transpositions \citep[see, \eg][]{Carter2010},
-for the wavelet method.
-In contrast, the ACF method is much better suited to signals that are
-non-sinusoidal.
+suitability of the model choice: a sinusoid for the LS periodogram, and a
+choice of mother wavelet, assumed to describe the data over a range of
+transpositions \citep[see, \eg][]{Carter2010}, for the wavelet method.
+In contrast, since it does not rely on a generative model, the ACF method is
+much better suited to signals that are non-sinusoidal.
 In fact, as long as the signal is approximately periodic the ACF will
 display a peak at the rotation period, no matter its shape.
-A drawback of the ACF method, however, is that it requires data to be
+A drawback of the ACF method however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
 ACFs for unevenly-spaced data.}, which is not exactly the case with \Kepler\
 light curves (although in many cases it can be approximated as uniformly
-sampled) and not nearly the case for most ground-based measurements, such
-as the future Large Synoptic Survey Telescope (\LSST).
+sampled) and not nearly the case for most ground-based measurements, such as
+the future Large Synoptic Survey Telescope (\LSST).
 An ACF is also an operation performed on the data rather than a generative
 model of the data, and so is not inherently probabilistic.
 This means that the effects of the observational uncertainties cannot be
 formally propagated to constraints on the rotation period.
-% Many rotation periods in the literature have been inferred by measuring the
-% position of the first peak in an ACF, however this approach can be dangerous.
-% The exponential decay in correlation can shift the peak position short-wards
-% of its true value, leading to an underestimate of the period.
-% We return to this point in section \textsection \ref{sec:discussion}.
 
-In this work, we introduce an {\it effective} model for rotationally
-modulated stellar light curves
-which captures the salient behaviour but is not
-physically motivated---although some parameters may indeed be
-{\it interpreted} as physical ones.
-An ideal effective model should have a small number of non-degenerate parameters
-and be flexible enough to perfectly capture non-sinusoidal and QP behaviour.
+In this work, we introduce an {\it effective} model for rotationally modulated
+stellar light curves which captures the salient behaviour but is not
+physically motivated --- although some parameters may indeed be {\it
+interpreted} as physical ones.
+An ideal effective model should have a small number of non-degenerate
+parameters and be flexible enough to perfectly capture non-sinusoidal and QP
+behaviour.
 A Gaussian process (GP) model fulfills these requirements. We thus use a GP
 as the generative model at the core of a method to probabilistically
-infer accurate and precise stellar rotation periods.  This enables us to
-estimate the posterior PDF of the rotation period, thereby producing a
-justified estimate of its uncertainty.
-% while simultaneously marginalizing over
-% parameters which model correlated noise.
+infer accurate and precise stellar rotation periods.
+This enables us to estimate the posterior PDF of the rotation period, thereby
+producing a justified estimate of its uncertainty.
 
 GPs are commonly used in the machine learning community and increasingly
 in other scientific fields such as biology, geophysics and cosmology.
