@@ -90,7 +90,7 @@ def get_model(i, aigrain=True, kepler=False,
 
     fig2 = mod.plot_prior_diagnostic()
     fig2_filename = '{}/{}_lnp_prior.png'.format(resultsdir, mod.name)
-    fig2.savefig(fig2_filename)
+    fig2.savefig(fig2_filename, bbox_inches='tight')
     print('Period prior plot saved to {}.'.format(fig2_filename))
     return mod
 

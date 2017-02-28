@@ -218,11 +218,11 @@ class GPRotModel(object):
         gs3 = gridspec.GridSpec(1,1)
         gs3.update(right=0.4, left=0.05, top=0.9, bottom=0.05)
         ax3 = plt.subplot(gs3[0,0])
-        self.plot_period_prior(ax=ax3);
-
+        self.plot_period_prior(ax=ax3, acf_kwargs=acf_kwargs);
         ax3.set_title(self.name, size=24, loc='left')
         
         [ax3.axvline(np.log(p), color='r', alpha=0.1) for p in pbest]
+
         return fig
 
     def sample_period_prior(self, N):
