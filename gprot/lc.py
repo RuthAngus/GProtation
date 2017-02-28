@@ -126,7 +126,7 @@ class LightCurve(object):
 
     def acf_prot(self, pmin=0.1, pmax=100, delta=0.02, lookahead=30,
                  peak_to_trough=True, maxpeaks=1, plot=False, ax=None,
-                 fig_kwargs=None):
+                 fig_kwargs=None, savefig_filename=None):
         """Returns best guess of prot from ACF, and height of peak
 
         Just pick first peak.
@@ -213,7 +213,11 @@ class LightCurve(object):
                         xy=(0.8,0.9), xycoords='axes fraction', ha='left', va='top')
 
         if plot:
-            return pbest, maxheight, tau, quality, fig
+            if savefig_filename:
+                fig.savefig(savefig_filename)
+                return pbest, maxheight, tau, quality
+            else:
+                return pbest, maxheight, tau, quality, fig
         else:
             return pbest, maxheight, tau, quality
 
