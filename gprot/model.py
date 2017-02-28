@@ -44,6 +44,7 @@ class GPRotModel(object):
 
     _acf_pmax = (1,2,4,8,16,32,64,128)
     _acf_prior_width = 0.2
+    _acf_kwargs = None
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
                  acf_prior=False, 
@@ -227,8 +228,25 @@ class GPRotModel(object):
     def acf_prior_width(self):
         return self._acf_prior_width
 
+    @property
+    def acf_kwargs(self):
+        if self._acf_kwargs is None:
+            return {}
+        else:
+            return self._acf_kwargs
+
+    @acf_kwargs.setter
+    def acf_kwargs(self, value):
+        del self._acf_results
+        del self._period_mixture
+
+        self._acf_kwargs = value
+
     def _calc_acf(self):
-        self._acf_results = [self.lc.acf_prot(pmax=p) for p in self.acf_pmax]
+        kws = self._acf_kwargs
+        if kws is None:
+            kws = {}
+        self._acf_results = [self.lc.acf_prot(pmax=p, **kws) for p in self.acf_pmax]
 
     def _lnp_in_bounds(self, lnp):
         return lnp > self.bounds[-1][0] and lnp < self.bounds[-1][1]

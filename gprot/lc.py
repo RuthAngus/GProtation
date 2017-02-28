@@ -124,7 +124,7 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, pmin=0.1, pmax=100, delta=0.02, lookahead=30,
+    def acf_prot(self, pmin=0.1, pmax=100, delta=0.01, lookahead=30,
                  peak_to_trough=True, maxpeaks=1, plot=False, ax=None,
                  fig_kwargs=None, savefig_filename=None):
         """Returns best guess of prot from ACF, and height of peak
@@ -210,7 +210,7 @@ class LightCurve(object):
                 ax.plot(lags, fn(lags, fit.x[0], fit.x[1], pbest))
 
             ax.annotate('P={:.2f}\ntau={:.2f}\nQ={:.1f}'.format(pbest, tau, quality), 
-                        xy=(0.8,0.9), xycoords='axes fraction', ha='left', va='top')
+                        xy=(0.95,0.95), xycoords='axes fraction', ha='right', va='top')
 
         if plot:
             if savefig_filename:
