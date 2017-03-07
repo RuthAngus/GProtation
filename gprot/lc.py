@@ -186,7 +186,9 @@ class LightCurve(object):
 
         fit = minimize(chisq, [1., pbest*2])
 
-        tau = fit.x[1]
+        # Prevent tau from being unreasonably large
+        tau = min(fit.x[1], pmax/pbest * 5)
+
 
         # Bigger is better. len(lags) is basically proportional to pmax
         quality =  1./ (fit.fun / len(lags) / maxheight)
