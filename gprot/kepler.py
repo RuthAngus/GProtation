@@ -11,10 +11,12 @@ from collections import OrderedDict
 import kplr
 from kplr.api import APIError
 
+
 from .lc import LightCurve, qtr_times
 from .model import GPRotModel
 
 client = None
+offline_client = None
 
 class KeplerGPRotModel(GPRotModel):
     """Parameters are A, l, G, sigma, period
@@ -52,7 +54,7 @@ class KeplerLightCurve(LightCurve):
     """
     def __init__(self, kid, sub=1, nsigma=5, chunksize=200,
                  quarters=None, normalized=True, careful_stitching=False,
-                 sap=False):
+                 sap=False, offline=False):
 
         if kid < 10000:
             self.koinum = int(kid)
@@ -68,6 +70,8 @@ class KeplerLightCurve(LightCurve):
                 self.quarters = sorted(quarters)
             except TypeError:
                 self.quarters = [quarters]
+
+        self.offline = offline
 
         self.sub = sub
         self.nsigma = nsigma
@@ -87,6 +91,19 @@ class KeplerLightCurve(LightCurve):
         self._x_full = None
         self._y_full = None
         self._yerr_full = None
+
+    @property
+    def client(self):
+        global offline_client
+        global client
+        if self.offline:
+            if offline_client is None:
+                offline_client = kplr.OfflineAPI()
+            return offline_client
+        else:
+            if client is None:
+                client = kplr.API()
+            return client
 
     @property
     def is_koi(self):
@@ -114,29 +131,18 @@ class KeplerLightCurve(LightCurve):
     @property
     def kepid(self):
         if self._kepid is None:
-            global client
-            if client is None:
-                client = kplr.API()
-            koi = client.koi(self.koinum + 0.01)
+            koi = self.client.koi(self.koinum + 0.01)
             self._kepid = koi.kepid
         return self._kepid            
 
     def _get_data(self, clobber=False):
-        global client
-        if client is None:
-            client = kplr.API()
-
         # Query kplr API to get KOI/KIC info.
-        try:
-            if self.is_koi:
-                star = client.koi(self.koinum + 0.01)                
-                kois = [client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
-            else:
-                star = client.star(self.kepid)
-                kois = []
-        except APIError:
-            raise
-            self.no_kplr = True
+        if self.is_koi:
+            star = self.client.koi(self.koinum + 0.01)                
+            kois = [self.client.koi(self.koinum + 0.01*i) for i in range(1, star.koi_count+1)]
+        else:
+            star = self.client.star(self.kepid)
+            kois = []
 
         # Get a list of light curve datasets.
         lcs = star.get_light_curves(short_cadence=False, clobber=clobber)

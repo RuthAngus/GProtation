@@ -8,12 +8,12 @@ import numpy as np
 from gprot.aigrain import AigrainLightCurve
 from gprot.kepler import KeplerLightCurve
 
-def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100]):
+def get_prot(i, aigrain=True, kepler=False, pmax=[10,30,100], offline=False):
     try:
         if aigrain:
             lc = AigrainLightCurve(i)
         elif kepler:
-            lc = KeplerLightCurve(i)
+            lc = KeplerLightCurve(i, offline=offline)
 
         return [lc.acf_prot(pmax=p) for p in pmax]
     except:
@@ -41,6 +41,7 @@ if __name__=='__main__':
     parser.add_argument('--file', '-f', default=None, help='filename of list of stars.')
     parser.add_argument('--pmax', nargs='+', type=int, default=[1,2,4,8,16,32,64,128])
     parser.add_argument('--verbose', '-v', action='store_true')
+    parser.add_argument('--offline', action='store_true')
 
     datagroup = parser.add_mutually_exclusive_group()
     datagroup.add_argument("--aigrain", dest="aigrain", action='store_true',
@@ -62,7 +63,7 @@ if __name__=='__main__':
     pool = schwimmbad.choose_pool(mpi=args.mpi, processes=args.n_cores)
 
     worker = ProtWorker(pmax=args.pmax, aigrain=args.aigrain, kepler=args.kepler,
-                        verbose=args.verbose)
+                        verbose=args.verbose, offline=args.offline)
     
     if args.file is not None:
         stars = np.loadtxt(args.file, dtype=int)
