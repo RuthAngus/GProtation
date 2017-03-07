@@ -4,6 +4,9 @@ import sys, os
 import logging
 
 import numpy as np
+# To make sure it doesn't break on display-less machine
+import matplotlib 
+matplotlib.use('agg')
 
 from gprot.aigrain import AigrainLightCurve
 from gprot.kepler import KeplerLightCurve
