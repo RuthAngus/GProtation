@@ -32,7 +32,7 @@ def get_model(i, aigrain=True, kepler=False,
                 resultsdir='results', quarters=None, clever=True,
                 bestchunk=None, pmax=None, filter=False, tag=None, 
                 altmodel=False, nochunks=False, npoints=600, 
-                acf_prior=False, sap=False, **kwargs):
+                acf_prior=False, sap=False, offline=False, **kwargs):
     if not aigrain and not kepler:
         raise ValueError('Must specify either --aigrain or --kepler.')
         sys.exit(1)
@@ -50,7 +50,7 @@ def get_model(i, aigrain=True, kepler=False,
         from gprot.kepler import KeplerLightCurve
         lc = KeplerLightCurve(i, sub=subsample, chunksize=chunksize,
                                 quarters=quarters, sap=sap,
-                                careful_stitching=sap)
+                                careful_stitching=sap, offline=offline)
     if filter:
         lc.bandpass_filter()
 
@@ -185,6 +185,7 @@ if __name__=='__main__':
     parser.add_argument('--test', action='store_true', 
                         help="Test, don't actually run. Flag has no effect if sampler " + 
                              "is set to emcee3.")
+    parser.add_argument('--offline', action='store_true', help='enable offline kplr data access')
 
     parser.add_argument('--altmodel', action='store_true')
     parser.add_argument('--nochunks', action='store_true')
