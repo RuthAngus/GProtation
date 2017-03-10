@@ -4,6 +4,8 @@
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
 import george
 from george.kernels import ExpSine2Kernel, ExpSquaredKernel, WhiteKernel, CosineKernel
 import glob
@@ -42,8 +44,9 @@ class GPRotModel(object):
     _default_gp_prior_mu = (-13, 7.2, -2.3, -17)
     _default_gp_prior_sigma = (5.7, 1.2, 1.4, 5)
 
-    _acf_pmax = (1,3,5,10,30,50,100)
+    _acf_pmax = (1,2,4,8,16,32,64,128)
     _acf_prior_width = 0.2
+    _acf_kwargs = None
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
                  acf_prior=False, 
@@ -159,7 +162,8 @@ class GPRotModel(object):
         else:
             return lnGauss_mixture(p, self.period_mixture)
 
-    def plot_period_prior(self, ax=None, log=False, truth=None, **kwargs):
+    def plot_period_prior(self, ax=None, log=False, truth=None, 
+                          acf_kwargs=None, **kwargs):
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
@@ -179,6 +183,46 @@ class GPRotModel(object):
         ax.set_xlabel('log(period)')
         ax.set_ylabel('Probability density')
         ax.set_yticks([])
+        return fig
+
+    def plot_prior_diagnostic(self, **acf_kwargs):
+
+        if len(acf_kwargs) > 0:
+            self.acf_kwargs = acf_kwargs
+
+        pmax_list = self._acf_pmax
+        pbest = []
+        n = len(pmax_list)
+
+        fig = plt.figure(figsize=(12,6))
+
+        gs1 = gridspec.GridSpec(n/2, 1)
+        gs1.update(bottom=0.53, top=0.9, left=0.45, hspace=0)
+        ax1 = plt.subplot(gs1[0,:])
+        axes1 = [ax1] + [plt.subplot(gs1[i,:], sharex=ax1) for i in range(1, n/2)]
+        for ax, pmax in zip(axes1, pmax_list[:n/2]):
+            per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
+            pbest.append(per)
+        ax1.set_xlim(xmin=0)
+
+        gs2 = gridspec.GridSpec(n - n/2, 1)
+        gs2.update(top=0.47, bottom=0.05, left=0.45, hspace=0)
+        ax2 = plt.subplot(gs2[0,:])
+        axes2 = [ax2] + [plt.subplot(gs2[i,:], sharex=ax2) for i in range(1, n - n/2)]
+        for ax, pmax in zip(axes2, pmax_list[n/2:]):
+            per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
+            pbest.append(per)
+        ax2.set_xlim(xmin=0)
+        axes2[-1].set_xlabel('lag [days]')
+
+        gs3 = gridspec.GridSpec(1,1)
+        gs3.update(right=0.4, left=0.05, top=0.9, bottom=0.05)
+        ax3 = plt.subplot(gs3[0,0])
+        self.plot_period_prior(ax=ax3, acf_kwargs=acf_kwargs);
+        ax3.set_title(self.name, size=24, loc='left')
+        
+        [ax3.axvline(np.log(p), color='r', alpha=0.1) for p in pbest]
+
         return fig
 
     def sample_period_prior(self, N):
@@ -227,8 +271,25 @@ class GPRotModel(object):
     def acf_prior_width(self):
         return self._acf_prior_width
 
+    @property
+    def acf_kwargs(self):
+        if self._acf_kwargs is None:
+            return {}
+        else:
+            return self._acf_kwargs
+
+    @acf_kwargs.setter
+    def acf_kwargs(self, value):
+        del self._acf_results
+        del self._period_mixture
+
+        self._acf_kwargs = value
+
     def _calc_acf(self):
-        self._acf_results = [self.lc.acf_prot(pmax=p) for p in self.acf_pmax]
+        kws = self._acf_kwargs
+        if kws is None:
+            kws = {}
+        self._acf_results = [self.lc.acf_prot(pmax=p, **kws) for p in self.acf_pmax]
 
     def _lnp_in_bounds(self, lnp):
         return lnp > self.bounds[-1][0] and lnp < self.bounds[-1][1]

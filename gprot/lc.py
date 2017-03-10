@@ -124,8 +124,9 @@ class LightCurve(object):
 
         return fig
 
-    def acf_prot(self, pmin=0.1, pmax=100, delta=0.02, lookahead=30,
-                 peak_to_trough=True, maxpeaks=1):
+    def acf_prot(self, pmin=0.1, pmax=100, delta=0.01, lookahead=30,
+                 peak_to_trough=True, maxpeaks=1, plot=False, ax=None,
+                 fig_kwargs=None, savefig_filename=None):
         """Returns best guess of prot from ACF, and height of peak
 
         Just pick first peak.
@@ -135,14 +136,20 @@ class LightCurve(object):
         # make sure lookahead isn't too long if pmax is small
         lookahead = min(lookahead, pmax)
 
-        maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
+        n_maxes = 0
+        while n_maxes == 0:
+            maxes, mins = peakdetect(ac, lags, delta=delta, lookahead=lookahead)
 
-        # First max only counts if it's after a min.
-        try:
-            if mins[0][0] > maxes[0][0]:
-                maxes.pop(0)
-        except IndexError:
-            pass
+            # First max only counts if it's after a min.
+            try:
+                if mins[0][0] > maxes[0][0]:
+                    maxes.pop(0)
+            except IndexError:
+                pass
+
+            n_maxes = len(maxes)
+            if n_maxes == 0:
+                delta /= 2
 
         maxheight = -np.inf
         pbest = np.nan
@@ -185,7 +192,34 @@ class LightCurve(object):
         quality =  1./ (fit.fun / len(lags) / maxheight)
         quality *= tau/pbest # enhance quality for long decay timescales.
 
-        return pbest, maxheight, tau, quality
+        if ax is not None:
+            plot = True
+        if plot:
+            if ax is None:
+                fig, ax = plt.subplots(1,1)
+            else:
+                fig = ax.get_figure()
+
+            if fig_kwargs is None:
+                fig_kwargs = dict(color='k')
+
+            ax.plot(lags, ac, **fig_kwargs)
+            if np.isfinite(pbest):
+                ax.axvline(pbest, ls=':', color='r')
+
+                ax.plot(lags, fn(lags, fit.x[0], fit.x[1], pbest))
+
+            ax.annotate('P={:.2f}\ntau={:.2f}\nQ={:.1f}'.format(pbest, tau, quality), 
+                        xy=(0.95,0.95), xycoords='axes fraction', ha='right', va='top')
+
+        if plot:
+            if savefig_filename:
+                fig.savefig(savefig_filename)
+                return pbest, maxheight, tau, quality
+            else:
+                return pbest, maxheight, tau, quality, fig
+        else:
+            return pbest, maxheight, tau, quality
 
     def best_sublc(self, ndays, npoints=600, chunksize=300,
                     flat_order=3, **kwargs):

@@ -84,9 +84,14 @@ def get_model(i, aigrain=True, kepler=False,
     fig = mod.lc.plot(marker='o', ms=2, mew=0, ls='none')
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)
-    figfilename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
-    fig.savefig(figfilename)
-    print('Light curve plot saved to {}.'.format(figfilename))
+    fig_filename = '{}/{}_lc.png'.format(resultsdir, mod.lc.name)
+    fig.savefig(fig_filename)
+    print('Light curve plot saved to {}.'.format(fig_filename))
+
+    fig2 = mod.plot_prior_diagnostic()
+    fig2_filename = '{}/{}_lnp_prior.png'.format(resultsdir, mod.name)
+    fig2.savefig(fig2_filename, bbox_inches='tight')
+    print('Period prior plot saved to {}.'.format(fig2_filename))
     return mod
 
 def _fit_emcee3(i, **kwargs):
