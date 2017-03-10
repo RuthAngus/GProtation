@@ -28,7 +28,7 @@ def plot(prior, nbins):
     """
 
     if prior:
-        RESULTS_DIR = "results_acfprior_02_13"
+        RESULTS_DIR = "results_acfprior_03_10"
     else:
         RESULTS_DIR = "results_noprior_02_13"
     truths = pd.read_csv("final_table.txt", delimiter=" ")
@@ -61,18 +61,16 @@ def plot(prior, nbins):
 
     plt.clf()
     xs = np.log(np.linspace(0, 55, 100))
-    plt.plot(xs, xs, "-", color=".7", zorder=0)
-    plt.plot(xs, xs + 2./3, "--", color=".7", zorder=0)
-    plt.plot(xs, xs - 2./3, "--", color=".7", zorder=0)
+    plt.plot(xs, xs, "-", color=".7", lw=.8, zorder=0)
+    plt.plot(xs, xs + 2./3, "--", color=".7", lw=.8, zorder=0)
+    plt.plot(xs, xs - 2./3, "--", color=".7", lw=.8, zorder=0)
 
     plt.errorbar(np.log(x[l]), np.log(recovered[l]),
                  yerr=[lnerrp[l], lnerrm[l]], fmt="k.", zorder=1, capsize=0,
-                 ecolor=".7", alpha=.5, ms=.1)
+                 ecolor=".7", alpha=.5, ms=.1, elinewidth=.8)
     plt.scatter(np.log(x[l]), np.log(recovered[l]), c=np.log(amp[l]),
                 edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
-                vmax=max(np.log(amp[l])), s=20, zorder=2, lw=.2)
-    plt.plot(xs, xs + 2./3, "--", color=".7", zorder=0)
-    plt.plot(xs, xs + 2./3, "--", color=".7", zorder=0)
+                vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
     plt.xlim(0, 4)
     plt.ylim(0, 6)
 
@@ -83,7 +81,7 @@ def plot(prior, nbins):
     plt.subplots_adjust(bottom=.15)
     if prior:
         plt.savefig("comparison_acfprior_02_03")
-        plt.savefig(os.path.join(FIG_DIR, "comparison_acfprior_02_13.pdf"))
+        plt.savefig(os.path.join(FIG_DIR, "comparison_acfprior_03_10.pdf"))
     else:
         plt.savefig("comparison_noprior")
         plt.savefig(os.path.join(FIG_DIR, "comparison_noprior_02_13.pdf"))
