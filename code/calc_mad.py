@@ -21,7 +21,7 @@ def load_GP_results(prior=True):
     if prior:
         RESULTS_DIR = "results_acfprior_03_10"
     else:
-        RESULTS_DIR = "results_noprior_03_10"
+        RESULTS_DIR = "results_noprior_02_13"
     truths = pd.read_csv("final_table.txt", delimiter=" ")
 
     # remove differential rotators and take just the first 100
@@ -88,16 +88,20 @@ if __name__ == "__main__":
 
     print("Tel aviv RMS:", RMS(true, tlv_p))
     print("Tel aviv MAD:", MAD(true, tlv_p))
+    print("Tel aviv lnMAD:", MAD(np.log(true), np.log(tlv_p)))
     print("Tel aviv MRD:", MAD_rel(true, tlv_p), "\n")
 
     print("pgram RMS:", RMS(true, pgram))
     print("pgram MAD:", MAD(true, pgram))
+    print("pgram lnMAD:", MAD(np.log(true), np.log(pgram)))
     print("pgram MRD:", MAD_rel(true, pgram), "\n")
 
     print("GP (prior) RMS:", RMS(true, gp_p1))
     print("GP (prior) MAD:", MAD(true, gp_p1))
+    print("GP (prior) lnMAD:", MAD(np.log(true), np.log(gp_p1)))
     print("GP (prior) MRD:", MAD_rel(true, gp_p1), "\n")
 
-    print("GP (no prior) RMS:", RMS(true, gp_p1))
-    print("GP (no prior) MAD:", MAD(true, gp_p1))
-    print("GP (no prior) MRD:", MAD_rel(true, gp_p1), "\n")
+    print("GP (no prior) RMS:", RMS(true, gp_p2))
+    print("GP (no prior) MAD:", MAD(true, gp_p2))
+    print("GP (no prior) lnMAD:", MAD(np.log(true), np.log(gp_p2)))
+    print("GP (no prior) MRD:", MAD_rel(true, gp_p2), "\n")
