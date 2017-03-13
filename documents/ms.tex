@@ -1,13 +1,20 @@
-\documentclass[useAMS, usenatbib, preprint, 12pt]{aastex}
+% \documentclass[useAMS, usenatbib, preprint, 12pt]{aastex}
+\documentclass[a4paper,fleqn,usenatbib,useAMS]{mnras}
 \usepackage{cite, natbib}
-\usepackage{float}
-\usepackage{epsfig}
-\usepackage{cases}
-\usepackage[section]{placeins}
+% \usepackage{float}
+% \usepackage{epsfig}
+% \usepackage{cases}
+% \usepackage[section]{placeins}
 \usepackage{graphicx, subfigure}
 \usepackage{color}
 \usepackage{bm}
-\usepackage{enumerate}
+\usepackage{amsmath}
+% \usepackage{enumerate}
+
+% From mnras_guide.tex
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{newtxtext,newtxmath}
 
 \newcommand{\columbia}{1}
 \newcommand{\oxford}{3}
@@ -43,57 +50,83 @@
 \newcommand{\kepexampleperiod}{30.5}
 \newcommand{\aigrainexampleperiod}{20.8}
 
-\newcommand{\lnacfMAD}{0.14}
-\newcommand{\acfMAD}{2.36}
-\newcommand{\percentacfMAD}{13.02}
-\newcommand{\acfRMS}{26.09}
+\newcommand{\acfRMS}{4.58}
+\newcommand{\acfMAD}{0.37}
+\newcommand{\lnacfMAD}{0.02}
+\newcommand{\percentacfMAD}{1.75}
 
-\newcommand{\lnpgramMAD}{0.05}
-\newcommand{\pgramMAD}{1.13}
-\newcommand{\percentpgramMAD}{4.70}
 \newcommand{\pgramRMS}{18.98}
+\newcommand{\pgramMAD}{1.13}
+\newcommand{\lnpgramMAD}{0.05}
+\newcommand{\percentpgramMAD}{4.70}
 
-\newcommand{\lngpMADnp}{0.02}
-\newcommand{\gpMADnp}{0.48}
-\newcommand{\percentgpMADnp}{2.45}
-\newcommand{\gpRMSnp}{7.48}
-
+\newcommand{\gpRMS}{0.25}
+\newcommand{\gpMAD}{0.40}
 \newcommand{\lngpMAD}{0.02}
-\newcommand{\gpMAD}{0.39}
-\newcommand{\percentgpMAD}{1.96}
-\newcommand{\gpRMS}{7.12}
+\newcommand{\percentgpMAD}{1.97}
 
+\newcommand{\gpRMSnp}{0.44}
+\newcommand{\gpMADnp}{0.48}
+\newcommand{\lngpMADnp}{0.03}
+\newcommand{\percentgpMADnp}{2.62}
+
+\newcommand{\telavivRMS}{4.58}
+\newcommand{\telavivMAD}{0.37}
 \newcommand{\lntelavivMAD}{0.02}
-\newcommand{\telavivMAD}{0.34}
 \newcommand{\percenttelavivMAD}{1.75}
-\newcommand{\telavivRMS}{25.09}
 
 \newcommand{\dfmcomment}[1]{{\color{red}#1}}
 \newcommand{\tdmcomment}[1]{{\color{blue}#1}}
 \newcommand{\vrcomment}[1]{{\color{magenta}#1}}
 \newcommand{\racomment}[1]{{\color{green}#1}}
 
+% \begin{document}
+
+% \title{Inferring probabilistic stellar rotation periods using Gaussian
+% processes}
+
+% \author{%
+%    Ruth Angus\altaffilmark{\columbia},
+%    Timothy Morton\altaffilmark{\princeton},
+%    Suzanne Aigrain\altaffilmark{\oxford},
+%    Daniel Foreman-Mackey\altaffilmark{\uw,\sagan}
+%    \& Vinesh Rajpaul\altaffilmark{\oxford}
+% }
+% \altaffiltext{\columbia}{Simons Fellow, Department of Astronomy, Columbia
+% University, NY, NY, RuthAngus@gmail.com}
+% \altaffiltext{\princeton}{Department of Astrophysical Sciences, Princeton
+% University,  Princeton, NJ}
+% \altaffiltext{\oxford}{Subdepartment of Astrophysics, University of Oxford,
+% UK}
+% \altaffiltext{\uw}{Department of Astronomy, University of
+% Washington, Seattle, WA}
+% \altaffiltext{\sagan}{Sagan Fellow}
+
+\title[GP rotation periods]{Inferring probabilistic stellar rotation periods
+using Gaussian processes}
+
+\author[R.~Angus \emph{et al.}]{
+    Ruth~Angus,$^1$\thanks{Contact e-mail:
+\href{mailto:ruthangus@astro.columbia.edu}{ruthangus@astro.columbia.edu}}
+    Timothy Morton$^2$,
+    Suzanne Aigrain$^3$,
+    Daniel Foreman-Mackey$^4$,
+    \newauthor
+    \& Vinesh Rajpaul$^3$
+    \\
+    $^1$Simons Fellow, Department of Astronomy, Columbia University, NY, NY \\
+    $^2$Department of Astrophysical Sciences, Princeton University,
+    Princeton, NJ \\
+    $^3$Subdepartment of Astrophysics, University of Oxford, UK \\
+    $^4$Sagan Fellow, Department of Astronomy, University of Washington,
+    Seattle, WA}
+
+\date{Last updated 2017 March 13; in original form 2017 March 13}
+\pubyear{2017}
 \begin{document}
-
-\title{Inferring probabilistic stellar rotation periods using Gaussian
-processes}
-
-\author{%
-   Ruth Angus\altaffilmark{\columbia},
-   Timothy Morton\altaffilmark{\princeton},
-   Suzanne Aigrain\altaffilmark{\oxford},
-   Daniel Foreman-Mackey\altaffilmark{\uw,\sagan}
-   \& Vinesh Rajpaul\altaffilmark{\oxford}
-}
-\altaffiltext{\columbia}{Simons Fellow, Department of Astronomy, Columbia
-University, NY, NY, RuthAngus@gmail.com}
-\altaffiltext{\princeton}{Department of Astrophysical Sciences, Princeton
-University,  Princeton, NJ}
-\altaffiltext{\oxford}{Subdepartment of Astrophysics, University of Oxford,
-UK}
-\altaffiltext{\uw}{Department of Astronomy, University of
-Washington, Seattle, WA}
-\altaffiltext{\sagan}{Sagan Fellow}
+\label{firstpage}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+\maketitle
 
 \begin{abstract}
 Variability in the light curves of spotted, rotating stars is often
@@ -121,8 +154,7 @@ Because this method delivers posterior PDFs, it will enable hierarchical
     studies involving stellar rotation, particularly those involving
     population modelling, such as inferring stellar ages, obliquities in
     exoplanet systems, or characterising star-planet interactions.
-The code used to implement this new method is available at
-    \url{https://github.com/RuthAngus/GProtation/} .
+The code used to implement this new method is available online.
 % The ACF method is not applicable to unevenly spaced data,
 % therefore it is inappropriate for the ~$10^7$ stellar light curves expected
 % to be produced by \LSST\ unlike the GP method.
@@ -131,6 +163,16 @@ The code used to implement this new method is available at
 % to modelling rotation signals and correlated noise simultaneously.
 
 \end{abstract}
+
+\begin{keywords}
+    stars --- rotation,
+    stars --- starspots,
+    stars --- solar-type,
+    methods --- data-analysis,
+    methods --- statistical,
+    techniques --- photometric.
+\end{keywords}
+
 
 \section{Introduction}
 \label{sec:intro}
@@ -313,7 +355,7 @@ importantly provides a justified uncertainty estimate.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/koi_lc_demo.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/koi_lc_demo.pdf}
 \caption[A light curve with a GP model.]
 {Light curve of KIC \kepexample, an active star with a rotation period of
 $\sim$ \kepexampleperiod\ days.
@@ -568,13 +610,13 @@ quality metric is to give a candidate period a higher score if
 \item{Given this set of candidate periods $T_i$ and quality metrics $Q_i$,
 we finally construct a multimodal prior on the $P$ parameter of the GP
 model as a weighted mixture of Gaussians:
-\begin{equation}
+\begin{multline}
 \label{eq:mixture}
-p(\ln P) = \frac {\displaystyle \sum_i Q_i \left(0.9\mathcal N(\ln T_i, 0.2) +
+p(\ln P) = \\ \frac {\displaystyle \sum_i Q_i \left(0.9\mathcal N(\ln T_i, 0.2) +
                                           0.05\mathcal N(\ln (T_i/2), 0.2) +
                                           0.05\mathcal N(\ln (2 T_i), 0.2) \right)}
                 {\sum_i Q_i}.
-\end{equation}
+\end{multline}
 That is, in addition to taking the candidate periods themselves as mixture
 components, we also mix in twice and half each candidate period at a lower level,
 which compensates for the possibility that the first peak in the ACF may actually
@@ -614,8 +656,8 @@ The other two proposals are a ``Differential Evolution (DE) MCMC'' proposal
 We initialise 500 walkers with random samples from the prior and use a
 weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4,
 0.4, and 0.2 respectively.
-We run \vrcomment{50} steps of the sampler at a time, checking for convergence
-after each iteration, up to a maximum of \vrcomment{50} iterations.
+We run 50 steps of the sampler at a time, checking for convergence
+after each iteration, up to a maximum of 50 iterations.
 We declare convergence if the total effective chain length is at least
 8$\times$ the maximum autocorrelation time.
 When convergence is achieved, we discard the first two autocorrelation lengths
@@ -693,7 +735,7 @@ in \citet{Aigrain2015}}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/period_hist.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/period_hist.pdf}
 \caption{A histogram of the rotation periods used to generate the \naigrain\
 simulated light curves in \citet{Aigrain2015}.}
 \label{fig:period_hist}
@@ -702,7 +744,7 @@ simulated light curves in \citet{Aigrain2015}.}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/demo_lc.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_lc.pdf}
 \caption[A simulated light curve.]
 {An example simulated light curve. This `star' has a rotation period of
 \aigrainexampleperiod\ days.}
@@ -758,9 +800,9 @@ The informative and uninformative prior versions of the GP method have MRDs of
 The marginal posterior distributions of the QP kernel hyperparameters, for the
 example simulated light curve in figure \ref{fig:demo_lc}, are shown in
 figure \ref{fig:gp_posteriors}.
-The posterior samples of the model parameters for the simulated light curves
-are available online:
-\url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
+% The posterior samples of the model parameters for the simulated light curves
+% are available online:
+% \url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
 
 
 \begin{table*}
@@ -783,7 +825,7 @@ Parameter & Prior & Bounds\\
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{figures/compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_02_13.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_03_10.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique.
@@ -837,24 +879,22 @@ An uninformative prior, flat in the natural log of the rotation period between
 \subsubsection{ACF}
 \label{sec:acf}
 
-We measure an ACF-based period for each light curve,
-following the method of
-\citet{Mcquillan2013}.
-After calculating the ACF for a light curve, we smooth it by convolving with a
-Gaussian filter ($\sigma=9$\,d), and select the rotation period as the
-lag-time of the highest peak in the ACF less than 100\,d.
-This is not always the first peak---the second can be larger than the first if
-two active regions are at or near opposite longitudes on the surface of
-the star, producing a light curve with two dips per rotation period.
-We restrict our search to periods less than 100\,d because instrumental
-noise and light-curve systematics significantly distort \kepler\ light
-curves on longer timescales, rendering longer periods realistically unrecoverable.
-Figure \ref{fig:demo_lc} contains an example ACF of the light curve in
-Figure \ref{fig:demo_acf}.
+% We measure an ACF-based period for each light curve,
+% following the method of
+% \citet{Mcquillan2013}.
+% After calculating the ACF for a light curve, we smooth it by convolving with a
+% Gaussian filter ($\sigma=9$\,d), and select the rotation period as the
+% lag-time of the highest peak in the ACF less than 100\,d.
+% This is not always the first peak---the second can be larger than the first if
+% two active regions are at or near opposite longitudes on the surface of
+% the star, producing a light curve with two dips per rotation period.
+% We restrict our search to periods less than 100\,d because instrumental
+% noise and light-curve systematics significantly distort \kepler\ light
+% curves on longer timescales, rendering longer periods realistically unrecoverable.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/demo_ACF.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_ACF.pdf}
 \caption[ACF of a simulated light curve.]
 {An autocorrelation function of the simulated light curve shown in figure
 \ref{fig:demo_lc}.
@@ -877,35 +917,13 @@ Another advantage is its fast implementation speed.
 However, because the ACF method is non-probabilistic, ACF-estimated
 rotation period uncertainties are poorly defined---a clear
 disadvantage.
+Figure \ref{fig:demo_lc} contains an example ACF of the light curve in
+Figure \ref{fig:demo_acf}.
 
-We apply the ACF method to the sample of \naigrain\ simulated light
-curves.
+We compare our results to those of the Tel Aviv team in \citet{Aigrain2015}
+who use the ACF method described in \citet{Mcquillan2013}.
 Figure \ref{fig:compare_acf} shows ACF-measured versus true rotation
 periods, with the $2n$ and $\frac{1}{2}n$ harmonic lines as dashed lines.
-The MRD of the ACF-recovered periods is \percentacfMAD\% (see table
-\ref{tab:MADs} for a side-by-side comparison with the other methods).
-The injected and recovered rotation periods generally agree well,
-though with a few drastic over- or underestimates.
-Additionally, of the points clustered close to the 1:1 line,
-more fall slightly below than above it, \ie\
-rotation periods are systematically underestimated.
-This stems from peak position measurements in the ACF method.
-ACFs of stellar light curves have similar functional forms to the QP kernel
-function in Equation \ref{eq:QP}: periodic functions added to decaying
-exponentials.
-In such functions the peak positions can be shifted towards the left
-(towards shorter periods), because the decaying exponential raises the left side of
-each peak more than the right.
-It is possible to model this effect; however, standard practice
-simply measures the peak position without taking it into account.
-We adopt this standard practice here to faithfully compare
-our new method to that used in the literature.
-
-We also compare our results to those of the Tel Aviv team in
-\citet{Aigrain2015} who use the ACF method described in \citet{Mcquillan2013}.
-Although we follow the same general ACF method in this paper, the exact
-implementation of the \citet{Mcquillan2013} code is slightly different and
-produces different results.
 The MRD of their periods, relative to the true rotation periods, is
 \percenttelavivMAD\% --- smaller than the results produced by the GP
 method.
@@ -917,6 +935,23 @@ This is revealed by comparing the root-mean-squared (RMS) of the two sets of
 results since the RMS is more sensitive to outliers.
 The RMS of the Tel Aviv method results is \telavivRMS\ days and the RMS of GP
 method results is \gpRMS\ days.
+The MRD of the ACF-recovered periods is \percentacfMAD\% (see table
+\ref{tab:MADs} for a side-by-side comparison with the other methods).
+The injected and recovered rotation periods generally agree well,
+though with a few drastic over- or underestimates.
+Additionally, of the points clustered close to the 1:1 line,
+more fall slightly below than above it, \ie\
+rotation periods are systematically underestimated.
+This stems from peak position measurements in the ACF method.
+ACFs of stellar light curves have similar functional forms to the QP kernel
+function in Equation \ref{eq:QP}: periodic functions added to decaying
+exponentials.
+In such functions the peak positions can be shifted towards the left (towards
+shorter periods), because the decaying exponential raises the left side of
+each peak more than the right.
+It is possible to model this effect; however, standard practice
+simply measures the peak position without taking it into account.
+
 % This can be understood as a consequence of the ACF method's sensitivity to
 % noise.
 % The ACF method will predict a period according to the positions of the highest
@@ -934,8 +969,11 @@ method results is \gpRMS\ days.
 curves vs the rotation periods measured using the ACF technique.
     Points are coloured by the peak-to-peak amplitude of the light curve, as
     defined in \citet{Aigrain2015}.
-    Several light curves have over-estimated rotation periods and some
-    are drastically underestimated.}
+    Several light curves have drastically over- and under-estimated rotation
+    periods.
+    For the points that lie close to the $x=y$ line, there is excess scatter
+    beneath the line due to a tendency of the ACF method to slightly
+    underpredict rotation periods.  }
 \label{fig:compare_acf}
 \end{center}
 \end{figure*}
@@ -943,11 +981,18 @@ curves vs the rotation periods measured using the ACF technique.
 \subsubsection{LS periodogram}
 \label{sec:ls}
 
-For each simulated light curve, we compute a LS periodogram
-\footnote{LS periodograms were calculated using the gatspy Python module:
-\url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.}
-over a grid of 10,000 periods, evenly spaced in frequency,
-between 1 and 100 days.
+The \citet{Aigrain2015} Tel Aviv team were the only group to report periods
+for all \naigrain\ stars, and are therefore the only team with which we
+compare results from this paper.
+The other participating groups chose to report only the period measurements
+they were confident in and are likely to have omitted large outliers.
+So, in order to test our results against an additional commonly used
+technique, we implemented a simple LS periodogram method.
+
+For each simulated light curve, we compute a LS periodogram\footnote{LS
+periodograms were calculated using the gatspy Python module:
+\url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.} over a
+grid of 10,000 periods, evenly spaced in frequency, between 1 and 100 days.
 We adopt the period of the highest peak in the periodogram as the rotation
 period.
 Figure \ref{fig:pgram_compare} shows the resulting recovered rotation periods
@@ -984,8 +1029,7 @@ In many cases a large peak at a long period was present in the periodogram,
     Method & MAD & MRD & RMS \\
     \hline
     LS periodogram & \pgramMAD\ days & \percentpgramMAD \% & \pgramRMS\ days\\
-    ACF & \acfMAD\ days & \percentacfMAD \% & \acfRMS\ days \\
-    ACF \citep{Mcquillan2013} & \telavivMAD\ days & \percenttelavivMAD \%
+    ACF & \telavivMAD\ days & \percenttelavivMAD \%
     & \telavivRMS\ days \\
     GP (uninformative prior) & \gpMADnp\ days & \percentgpMADnp \% &
     \gpRMSnp\ days \\
@@ -1018,9 +1062,9 @@ as maybe $\sim$15\% of the fits tended toward corners in the hyperparameter
 space, resulting in poor period measurements.  As a result, after this initial
 test, we subsequently adjusted the priors and re-fit all the KOIs.
 The final priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
-The posterior samples of the model parameters for the \Kepler\ objects of
-interest are available online:
-\url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
+% The posterior samples of the model parameters for the \Kepler\ objects of
+% interest are available online:
+% \url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
 
 \begin{table*}
 \begin{center}
@@ -1051,7 +1095,7 @@ Notably, the GP method recovers periods
 systematically slightly larger than \citet{Mcquillan2013}---a likely consequence
 of correcting for the ACF peak measurement bias discussed in Section \ref{sec:acf}.
 
-\begin{figure}
+\begin{figure*}
 \begin{center}
 \includegraphics[width=6in, clip=true]{figures/comparison_koi_02_03.pdf}
 \caption[Comparison with McQuillan results.]
@@ -1062,7 +1106,7 @@ The data points are coloured by the range of variability measured by
     percentiles of normalised flux per period bin in millimagnitudes.}
 \label{fig:mcquillan}
 \end{center}
-\end{figure}
+\end{figure*}
 
 \section{Discussion}
 \label{sec:discussion}
