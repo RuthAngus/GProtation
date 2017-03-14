@@ -218,8 +218,8 @@ display a peak at the rotation period, no matter its shape.
 A drawback of the ACF method however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
 ACFs for unevenly-spaced data.}.
-Most ground-based measurements, such as the future Large Synoptic Survey 
-Telescope (\LSST), do not nearly satisfy this criterion, and even 
+Most ground-based measurements, such as the future Large Synoptic Survey
+Telescope (\LSST), do not nearly satisfy this criterion, and even
 light curves from the \Kepler\ space telescope, which has provided the richest
 stellar rotation data to date, can only be approximated as uniformly sampled.
 An ACF is also an operation performed on the data rather than a generative
@@ -343,7 +343,7 @@ the GP model that fits the \Kepler\ light curve in Figure
 There are many ways to construct a QP kernel function, involving a range of
 choices for both the periodic and aperiodic components of the model.
 The kernel function presented above reproduces the behaviour of stellar light
-curves, but other model choices can do so as well. 
+curves, but other model choices can do so as well.
 We do not attempt to test any other models in this paper, noting only that
 this kernel function provides an adequate fit to the data.
 We leave formal comparisons with other kernel function choices to a future
@@ -431,7 +431,7 @@ matrix,
 \end{array}\right )
 \end{eqnarray}
 In the case where the uncertainties are uncorrelated, the noise is `white',
-(an assumption frequently made by astronomers, sometimes justified) 
+(an assumption frequently made by astronomers, sometimes justified)
 and the off-diagonal elements of the covariance matrix are zero.
 However, in the case where there is evidence for correlated
 `noise'\footnote{In our case the `noise' is actually the model!  Incidentally, this approach is the reverse of the regression techniques
@@ -589,8 +589,8 @@ y = A e^{-t/\tau} \cos{\frac{2\pi t}{T_i} },
 and find the best-fitting parameters $A_i$ and $\tau_i$ by a non-linear
 least squares minimization procedure--though enforcing a maximum
 value of $\tau = 20 * P_i/T_i$ to avoid unreasonably
-large solutions of $\tau.  We then define the
-following heuristic quality metric:
+large solutions of $\tau$.
+We then define the following heuristic quality metric:
 \begin{equation}
 \label{eq:quality}
 Q_i = \left(\frac{\tau_i}{T_i}\right) \left(\frac{N_i h_i}{R_i}\right),
@@ -1249,13 +1249,13 @@ We demonstrate that the GP method produces the most accurate rotation periods
 of the three techniques, providing a large improvement over the LS periodogram
 method and a slight one over the ACF method.
 Comparing our results with the results of the \citet{Aigrain2015} Tel Aviv
-team who implement the ACF method of \citet{Mcquillan2013},  
+team who implement the ACF method of \citet{Mcquillan2013},
 we find their results to be
 slightly more precise in a median sense than the GP method results, but with
 a larger number of significant outliers.
 We also find that the ACF method often slightly under-predicts the rotation
 period due to a feature of its peak detection algorithm.
-Additionally, we measure the rotation periods of \nkoimcq\ 
+Additionally, we measure the rotation periods of \nkoimcq\
 \kepler\ objects of interest
 using the GP method, and find that these results compare well to those
 measured previously by \citet{Mcquillan2013}.
