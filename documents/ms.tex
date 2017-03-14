@@ -217,10 +217,11 @@ In fact, as long as the signal is approximately periodic the ACF will
 display a peak at the rotation period, no matter its shape.
 A drawback of the ACF method however, is that it requires data to be
 evenly-spaced\footnote{\citet{Edelson1988} describe a method for computing
-ACFs for unevenly-spaced data.}, which is not exactly the case with \Kepler\
-light curves (although in many cases it can be approximated as uniformly
-sampled) and not nearly the case for most ground-based measurements, such as
-the future Large Synoptic Survey Telescope (\LSST).
+ACFs for unevenly-spaced data.}.
+Most ground-based measurements, such as the future Large Synoptic Survey 
+Telescope (\LSST), do not nearly satisfy this criterion, and even 
+light curves from the \Kepler\ space telescope, which has provided the richest
+stellar rotation data to date, can only be approximated as uniformly sampled.
 An ACF is also an operation performed on the data rather than a generative
 model of the data, and so is not inherently probabilistic.
 This means that the effects of the observational uncertainties cannot be
@@ -329,21 +330,21 @@ increasingly complex harmonic content.
 This kernel function allows two data points that are separated in time by one
 rotation period to be tightly correlated, while also allowing
 points separated by half a period to be weakly correlated.
-We also use an extra parameter, $\sigma$, which is an additional white noise
-term added to the diagonal elements of the covariance matrix.
+The additional parameter $\sigma$ captures white noise by adding
+a term to the diagonal of the covariance matrix.
 This can be interpreted to represent underestimation of observational
 uncertainties~---~if the uncertainties reported on the data are too small, it
-will be non-zero~---~or it can capture any remaining ``jitter'' or residuals
-that are not captured by the effective GP model.
-
-We use this QP kernel function, defined in equation \ref{eqn:QP} to produce
-the GP model that fits the \Kepler\ light curve in in Figure
+will be non-zero~---~or it can capture any remaining ``jitter,'' or residuals
+not captured by the effective GP model.
+We use this QP kernel function (Equation \ref{eq:QP}) to produce
+the GP model that fits the \Kepler\ light curve in Figure
 \ref{fig:GP_example}.
+
 There are many ways to construct a QP kernel function, involving a range of
-choices for both the periodic and a-periodic components of the model.
+choices for both the periodic and aperiodic components of the model.
 The kernel function presented above reproduces the behaviour of stellar light
-curves but it is not necessarily the only model choice that can do so.
-We do not attempt to test any other choices in this paper, noting only that
+curves, but other model choices can do so as well. 
+We do not attempt to test any other models in this paper, noting only that
 this kernel function provides an adequate fit to the data.
 We leave formal comparisons with other kernel function choices to a future
 publication.
@@ -404,7 +405,7 @@ the implementation details of the likelihood (Section \ref{sec:GP_lhood}), prior
 \label{sec:GP_lhood}
 
 The GP likelihood is similar to the simple Gaussian likelihood
-function used for optimisation problems where the uncertainties are
+function where the uncertainties are
 Gaussian and uncorrelated. The latter can be written
 \begin{equation}
     \ln \mathcal{L} = -\frac{1}{2}\sum_{n=1}^N\left[\frac{(y_n-\mu)^2}{\sigma_n^2}
@@ -430,8 +431,8 @@ matrix,
 \end{array}\right )
 \end{eqnarray}
 In the case where the uncertainties are uncorrelated, the noise is `white',
-(which is a frequent assumption made by astronomers and is sometimes
-justified) and the off-diagonal elements of the covariance matrix are zero.
+(an assumption frequently made by astronomers, sometimes justified) 
+and the off-diagonal elements of the covariance matrix are zero.
 However, in the case where there is evidence for correlated
 `noise'\footnote{In our case the `noise' is actually the model!  Incidentally, this approach is the reverse of the regression techniques
 usually employed by astronomers.
@@ -568,7 +569,7 @@ We use the following procedure to construct a prior for rotation period
 given a light curve:
 
 \begin{enumerate}
-\item{For each value of $P_i$, where $i = \{1, 3, 5, 10, 30, 50, 100\}$\,d,
+\item{For each value of $P_i$, where $i = \{1, 2, 4, 8, 16, 32, 64, 128\}$\,d,
 we apply a bandpass filter to the light curve using $P_{\rm min}=0.1$\,d
 and $P_{\rm max} = P_i$.  We then calculate the ACF of the filtered
 light curve out to a maximum lag of $2P_i$ and smooth it with a boxcar
@@ -586,7 +587,9 @@ time $t$ as a damped oscillator with fixed period $T_i$:
 y = A e^{-t/\tau} \cos{\frac{2\pi t}{T_i} },
 \end{equation}
 and find the best-fitting parameters $A_i$ and $\tau_i$ by a non-linear
-least squares minimization procedure.  We then define the
+least squares minimization procedure--though enforcing a maximum
+value of $\tau = 20 * P_i/T_i$ to avoid unreasonably
+large solutions of $\tau.  We then define the
 following heuristic quality metric:
 \begin{equation}
 \label{eq:quality}
@@ -933,7 +936,7 @@ Figure \ref{fig:compare_acf} shows ACF-measured versus true rotation
 periods, with the $2n$ and $\frac{1}{2}n$ harmonic lines as dashed lines.
 The injected and recovered rotation periods generally agree well: the MRD of
 their periods, relative to the true rotation periods, is \percenttelavivMAD\%
---- smaller than the results produced by the GP method.
+--- slightly smaller than the results produced by the GP method.
 However, their results contain a larger number of extreme outliers --- they
 predict periods that are significantly different from the true period in more
 cases than the GP method.
@@ -984,7 +987,7 @@ curves vs the rotation periods measured using the ACF technique.
 \label{sec:ls}
 
 The \citet{Aigrain2015} Tel Aviv team were the only group to report periods
-for all \naigrain\ stars, and are therefore the only team with which we
+for all \naigrain\ simulated stars, and are therefore the only team with which we
 compare results.
 The other participating groups chose to report only the period measurements in
 which they were confident and are likely to have omitted large outliers.
@@ -1131,7 +1134,7 @@ These numbers are similar for the uninformative prior results.
 We attribute these underestimated uncertainties to the model choice.
 Although more appropriate than a sinusoid, the QP-GP is still only an
  effective model.
-A perfect physical model of the star would produce more representative
+A perfect physical model of the star would produce more accurate
 uncertainties.
 
 The QP kernel function represents a simple effective model of a stellar
@@ -1156,7 +1159,7 @@ However, many stars have two active regions on opposite hemispheres that
 produce two brightness dips per rotation, and it
 may be difficult to model such stars with a kernel that forces
 anti-correlation of points $\frac{1}{2}$ a period apart.
-It would be very worthwhile to test this assumption and this alternative
+It would be worthwhile to test this assumption and this alternative
 kernel function (and others) in the future.
 % If CPU time were not limited there may be some benefit to performing formal
 % model comparison with different kernel functions.
@@ -1198,7 +1201,7 @@ We also hope to test this in the future.
 
 In addition, we are continuing to develop several other aspects of this GP method:
 \begin{itemize}
-\item{To discuss more physically motivated priors.
+\item{To investigate more physically motivated priors.
         In this paper we have only explored the physical interpretation of one
         parameter in our kernel function (P), which we related to stellar
         rotation periods, but others also warrant physically motivated priors.
@@ -1244,15 +1247,16 @@ three different methods: a new Gaussian process method,
 an autocorrelation function method, and a Lomb-Scargle periodogram method.
 We demonstrate that the GP method produces the most accurate rotation periods
 of the three techniques, providing a large improvement over the LS periodogram
-method and a moderate one over the ACF method.
+method and a slight one over the ACF method.
+Comparing our results with the results of the \citet{Aigrain2015} Tel Aviv
+team who implement the ACF method of \citet{Mcquillan2013},  
+we find their results to be
+slightly more precise in a median sense than the GP method results, but with
+a larger number of significant outliers.
 We also find that the ACF method often slightly under-predicts the rotation
 period due to a feature of its peak detection algorithm.
-Comparing our results with the results of the \citet{Aigrain2015} Tel Aviv
-team who implement the method of \citet{Mcquillan2013}, a slightly different
-version of the ACF method to the one we use, we find that their results are
-slightly more precise than the GP method results overall.
-They do however have a larger number of significant outliers.
-We measured the rotation periods of \nkoimcq\ \kepler\ objects of interest
+Additionally, we measure the rotation periods of \nkoimcq\ 
+\kepler\ objects of interest
 using the GP method, and find that these results compare well to those
 measured previously by \citet{Mcquillan2013}.
 The good agreement between these two sets of results demonstrates that the GP
