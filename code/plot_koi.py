@@ -41,16 +41,16 @@ def load_and_plot(data):
 
     plt.clf()
     xs = np.log(np.linspace(0, 100, 100))
-    plt.plot(xs, xs, "-", color=".7", zorder=0)
-    plt.plot(xs, xs + 2./3, "--", color=".7", zorder=0)
-    plt.plot(xs, xs - 2./3, "--", color=".7", zorder=0)
+    plt.plot(xs, xs, "-", color=".7", lw=.8, zorder=0)
+    plt.plot(xs, xs + 2./3, "--", color=".7", lw=.8, zorder=0)
+    plt.plot(xs, xs - 2./3, "--", color=".7", lw=.8, zorder=0)
 
     plt.errorbar(np.log(x[l]), np.log(recovered[l]), yerr=[lnerrp[l],
                  lnerrm[l]], xerr=lnxerr[l], fmt="k.", zorder=1, capsize=0,
-                 ecolor=".7", alpha=.5, ms=.1)
+                 ecolor=".7", alpha=.5, ms=.1, elinewidth=.8)
     plt.scatter(np.log(x[l]), np.log(recovered[l]), c=np.log(amp[l]),
                 edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
-                vmax=max(np.log(amp[l])), s=20, zorder=2, lw=.2)
+                vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
 
     plt.ylim(0, 4)
     plt.xlim(0, 4)
@@ -58,6 +58,7 @@ def load_and_plot(data):
     cbar.ax.set_ylabel("$\ln(\mathrm{R}_{\mathrm{var}})$")
     plt.xlabel("$\ln(\mathrm{McQuillan~{\it et~al.,}~2013~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
+    plt.subplots_adjust(bottom=.15)
     plt.savefig("comparison_koi")
     plt.savefig(os.path.join(FIG_DIR, "comparison_koi_02_03.pdf"))
 
