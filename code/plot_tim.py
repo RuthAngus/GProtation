@@ -72,7 +72,7 @@ def plot(prior, nbins):
                 edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
                 vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
     plt.xlim(0, 4)
-    plt.ylim(0, 6)
+    plt.ylim(-2, 6)
 
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
