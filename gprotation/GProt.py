@@ -214,6 +214,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
         print("saving figure ", os.path.join(RESULTS_DIR,
                                              "{0}_pgram".format(id)))
+        assert 0
 
         peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                           pgram[i] and pgram[i+1] < pgram[i]])
@@ -227,3 +228,8 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
                            "pgram_period_err": [pgram_period_err]})
         df.to_csv(fname)
     return acf_period, err, pgram_period, pgram_period_err
+
+
+if __name__ == "__main__":
+    m = (truths_e.DELTA_OMEGA.values == 0)
+    calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
