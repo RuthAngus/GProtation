@@ -66,7 +66,8 @@ def acf_plot(truths_e,
     return MAD(np.log(true), np.log(acfs)), MAD(true, acfs), \
         MAD_rel(true, acfs), RMS(true, acfs)
 
-def pgram_plot(truths_e, DIR="."):
+def pgram_plot(truths_e,
+               DIR="/Users/ruthangus/projects/GProtation/documents/figures"):
     """
     Plot the pgram results.
     """
