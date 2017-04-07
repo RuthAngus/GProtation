@@ -230,6 +230,6 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
     return acf_period, err, pgram_period, pgram_period_err
 
 
-if __name__ == "__main__":
-    m = (truths_e.DELTA_OMEGA.values == 0)
-    calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True):
+# if __name__ == "__main__":
+#     m = (truths_e.DELTA_OMEGA.values == 0)
+#     calc_p_init(x, y, yerr, id, RESULTS_DIR, clobber=True)
