@@ -1,35 +1,28 @@
 from scipy.signal import butter, lfilter
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.signal import freqz
 
 
-def butter_bandpass(lowcut, highcut, fs, order=5):
+def butter_bandpass(lowcut, fs, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
+    b, a = butter(order, low, btype='highpass')
     return b, a
 
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+def butter_bandpass_filter(data, lowcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, fs, order=order)
     y = lfilter(b, a, data)
+    plot_bandpass(lowcut, fs, order)
     return y
 
 
-if __name__ == "__main__":
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from scipy.signal import freqz
-
-    # Sample rate and desired cutoff frequencies (in Hz).
-    fs = 5000.0
-    lowcut = 500.0
-    highcut = 1250.0
-
+def plot_bandpass(lowcut, fs, order):
     # Plot the frequency response for a few different orders.
-    plt.figure(1)
     plt.clf()
     for order in [3, 6, 9]:
-        b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+        b, a = butter_bandpass(lowcut, fs, order=order)
         w, h = freqz(b, a, worN=2000)
         plt.plot((fs * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
 
@@ -40,6 +33,13 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.legend(loc='best')
     plt.savefig("butter_bandpass")
+
+
+if __name__ == "__main__":
+
+    # Sample rate and desired cutoff frequencies (in Hz).
+    fs = 5000.0
+    lowcut = 500.0
 
     # Filter a noisy signal.
     T = 0.05
@@ -55,8 +55,7 @@ if __name__ == "__main__":
     plt.figure(2)
     plt.clf()
     plt.plot(t, x, label='Noisy signal')
-
-    y = butter_bandpass_filter(x, lowcut, highcut, fs, order=6)
+    y = butter_bandpass_filter(x, lowcut, fs, order=6)
     plt.plot(t, y, label='Filtered signal (%g Hz)' % f0)
     plt.xlabel('time (seconds)')
     plt.hlines([-a, a], 0, T, linestyles='--')
