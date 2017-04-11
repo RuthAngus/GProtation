@@ -14,19 +14,7 @@ import scipy.signal as sps
 from gatspy.periodic import LombScargle
 from recover_suzannes import load_suzanne_lcs
 import simple_acf as sa
-
-
-def butter_bandpass(freq, fs, order=5):
-    nyq = 0.5 * fs
-    cut = freq / nyq
-    b, a = sps.butter(order, cut, btype='high')
-    return b, a
-
-
-def butter_bandpass_filter(data, freq, fs, order=5):
-    b, a = butter_bandpass(freq, fs, order=order)
-    y = sps.lfilter(b, a, data)
-    return y
+from filtering import butter_bandpass, butter_bandpass_filter
 
 
 def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
@@ -53,59 +41,38 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
         print("saving figure ", os.path.join(RESULTS_DIR,
                                              "{0}_acf".format(id)))
 
-        fs = 1e-6
-        period = 50*24*3600  # 50 days
-        freq = 1./period
-
-        plt.figure(1)
-        plt.clf()
-        for order in [3, 6, 9]:
-            b, a = butter_bandpass(freq, fs, order=order)
-            w, h = sps.freqz(b, a, worN=2000)
-            plt.plot((fs * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
-
-        plt.plot([0, 0.5 * fs], [np.sqrt(0.5), np.sqrt(0.5)],
-                '--', label='sqrt(0.5)')
-        plt.xlabel('Frequency (Hz)')
-        plt.ylabel('Gain')
-        plt.grid(True)
-        plt.legend(loc='best')
-        plt.savefig("bandpass")
+        # Sample rate and desired cutoff frequencies (in Hz).
+        fs = 5000.0
+        lowcut = 500.0
 
         # Filter a noisy signal.
-        nsamples = 500
-        print(nsamples)
-        t = np.linspace(0, 100*24*3600, 1000)
-        x = .1 * np.sin(2 * np.pi * freq * np.sqrt(t))
-        x += .01 * np.cos(2 * np.pi * 2*freq * t + 0.1)
-        x += .02 * np.cos(2 * np.pi * .5*freq * t + .11)
-        x += .03 * np.cos(2 * np.pi * 3*freq * t)
+        # T = 0.05
+        # nsamples = T * fs
+        # t = np.linspace(0, T, nsamples, endpoint=False)
+        # a = 0.02
+        # f0 = 600.0
+        # x = 0.1 * np.sin(2 * np.pi * 1.2 * np.sqrt(t))
+        # x += 0.01 * np.cos(2 * np.pi * 312 * t + 0.1)
+        # x += a * np.cos(2 * np.pi * f0 * t + .11)
+        # x += 0.03 * np.cos(2 * np.pi * 2000 * t)
 
-        plt.figure(2)
+        x *= 24*3600
+        fs = x[1] - x[0]
+        print(fs)
+
+        yfilt = butter_bandpass_filter(y, lowcut, fs, order=6)
+
         plt.clf()
-        plt.plot(t, x, label='Noisy signal')
-        y = butter_bandpass_filter(x, freq, fs, order=6)
-        # plt.plot(t, y, label='Filtered signal (%g Hz)' % freq)
+        plt.plot(x, y, label='Noisy signal')
+        plt.plot(x, yfilt, label='Filtered signal (%g Hz)' % lowcut)
         plt.xlabel('time (seconds)')
         # plt.hlines([-a, a], 0, T, linestyles='--')
-        # plt.grid(True)
-        # plt.axis('tight')
+        plt.grid(True)
+        plt.axis('tight')
         plt.legend(loc='upper left')
-
-        plt.savefig("butter_demo")
-
-        # b, a = sps.butter(4, 1./50, 'high', analog=True)
-        # w, h = sps.freqs(b, a)
-        # plt.plot(w, 20 * np.log10(abs(h)))
-        # plt.xscale('log')
-        # plt.title('Butterworth filter frequency response')
-        # plt.xlabel('Frequency [radians / second]')
-        # plt.ylabel('Amplitude [dB]')
-        # plt.margins(0, 0.1)
-        # plt.grid(which='both', axis='both')
-        # plt.axvline(100, color='green') # cutoff frequency
-        # plt.savefig("butter")
+        plt.savefig("butter_filtered")
         assert 0
+
 
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
