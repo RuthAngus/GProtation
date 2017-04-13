@@ -42,10 +42,11 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
                                              "{0}_acf".format(id)))
 
         # Sample rate and desired cutoff frequencies (in Hz).
-        fs = 5000.0
-        lowcut = 500.0
+        lowcut = 1.  # Multiples of the nyquist frequency.
+        # lowcut = 1./50
 
         # Filter a noisy signal.
+        # fs = 5000.0
         # T = 0.05
         # nsamples = T * fs
         # t = np.linspace(0, T, nsamples, endpoint=False)
@@ -58,6 +59,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
 
         x *= 24*3600
         fs = x[1] - x[0]
+        print("cutoff = ", lowcut * fs)
         print(fs)
 
         yfilt = butter_bandpass_filter(y, lowcut, fs, order=6)
@@ -71,19 +73,21 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
         plt.axis('tight')
         plt.legend(loc='upper left')
         plt.savefig("butter_filtered")
-        assert 0
-
 
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
         model = LombScargle().fit(x, y, yerr)
         pgram = model.periodogram(ps)
+        modelfilt = LombScargle().fit(x, yfilt, yerr)
+        pgramfilt = modelfilt.periodogram(ps)
 
         plt.clf()
         plt.plot(ps, pgram)
+        plt.plot(ps, pgramfilt)
         plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
         print("saving figure ", os.path.join(RESULTS_DIR,
                                              "{0}_pgram".format(id)))
+        assert 0
 
         peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                           pgram[i] and pgram[i+1] < pgram[i]])
