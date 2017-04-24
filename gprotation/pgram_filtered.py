@@ -42,7 +42,6 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
                                              "{0}_acf".format(id)))
 
         # Sample rate and desired cutoff frequencies (in Hz).
-        lowcut = 1.  # Multiples of the nyquist frequency.
         # lowcut = 1./50
 
         # Filter a noisy signal.
@@ -57,16 +56,16 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
         # x += a * np.cos(2 * np.pi * f0 * t + .11)
         # x += 0.03 * np.cos(2 * np.pi * 2000 * t)
 
-        x *= 24*3600
-        fs = x[1] - x[0]
-        print("cutoff = ", lowcut * fs)
-        print(fs)
+        period = 45.  # days
+        fs = 1./(x[1] - x[0])
+        lowcut = 1./period
 
-        yfilt = butter_bandpass_filter(y, lowcut, fs, order=6)
+        yfilt = butter_bandpass_filter(y, lowcut, fs, order=3)
 
         plt.clf()
         plt.plot(x, y, label='Noisy signal')
-        plt.plot(x, yfilt, label='Filtered signal (%g Hz)' % lowcut)
+        plt.plot(x, yfilt, label='{0} day^(-1), {1} days'.format(lowcut,
+                                                                 period))
         plt.xlabel('time (seconds)')
         # plt.hlines([-a, a], 0, T, linestyles='--')
         plt.grid(True)
