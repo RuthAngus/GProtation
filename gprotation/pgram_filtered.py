@@ -41,52 +41,36 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_results", clobber=True):
         print("saving figure ", os.path.join(RESULTS_DIR,
                                              "{0}_acf".format(id)))
 
-        # Sample rate and desired cutoff frequencies (in Hz).
-        # lowcut = 1./50
-
-        # Filter a noisy signal.
-        # fs = 5000.0
-        # T = 0.05
-        # nsamples = T * fs
-        # t = np.linspace(0, T, nsamples, endpoint=False)
-        # a = 0.02
-        # f0 = 600.0
-        # x = 0.1 * np.sin(2 * np.pi * 1.2 * np.sqrt(t))
-        # x += 0.01 * np.cos(2 * np.pi * 312 * t + 0.1)
-        # x += a * np.cos(2 * np.pi * f0 * t + .11)
-        # x += 0.03 * np.cos(2 * np.pi * 2000 * t)
-
         period = 45.  # days
         fs = 1./(x[1] - x[0])
         lowcut = 1./period
 
         yfilt = butter_bandpass_filter(y, lowcut, fs, order=3)
 
-        plt.clf()
-        plt.plot(x, y, label='Noisy signal')
-        plt.plot(x, yfilt, label='{0} day^(-1), {1} days'.format(lowcut,
-                                                                 period))
-        plt.xlabel('time (seconds)')
-        # plt.hlines([-a, a], 0, T, linestyles='--')
-        plt.grid(True)
-        plt.axis('tight')
-        plt.legend(loc='upper left')
-        plt.savefig("butter_filtered")
+        # plt.clf()
+        # plt.plot(x, y, label='Noisy signal')
+        # plt.plot(x, yfilt, label='{0} day^(-1), {1} days'.format(lowcut,
+        #                                                          period))
+        # plt.xlabel('time (seconds)')
+        # plt.grid(True)
+        # plt.axis('tight')
+        # plt.legend(loc='upper left')
+        # plt.savefig("butter_filtered")
 
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
-        model = LombScargle().fit(x, y, yerr)
-        pgram = model.periodogram(ps)
-        modelfilt = LombScargle().fit(x, yfilt, yerr)
-        pgramfilt = modelfilt.periodogram(ps)
+        # model = LombScargle().fit(x, y, yerr)
+        # pgram = model.periodogram(ps)
+        model = LombScargle().fit(x, yfilt, yerr)
+        pgram = modelfilt.periodogram(ps)
 
-        plt.clf()
-        plt.plot(ps, pgram)
-        plt.plot(ps, pgramfilt)
-        plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
-        print("saving figure ", os.path.join(RESULTS_DIR,
-                                             "{0}_pgram".format(id)))
-        assert 0
+        # plt.clf()
+        # plt.plot(ps, pgram)
+        # plt.plot(ps, pgramfilt)
+        # plt.savefig(os.path.join(RESULTS_DIR, "{0}_pgram".format(id)))
+        # print("saving figure ", os.path.join(RESULTS_DIR,
+        #                                      "{0}_pgram".format(id)))
+        # assert 0
 
         peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                           pgram[i] and pgram[i+1] < pgram[i]])
