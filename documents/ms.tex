@@ -55,10 +55,15 @@
 \newcommand{\lnacfMAD}{0.02}
 \newcommand{\percentacfMAD}{1.75}
 
-\newcommand{\pgramRMS}{18.98}
-\newcommand{\pgramMAD}{1.13}
-\newcommand{\lnpgramMAD}{0.05}
-\newcommand{\percentpgramMAD}{4.70}
+\newcommand{\oldpgramRMS}{18.98}
+\newcommand{\oldpgramMAD}{1.13}
+\newcommand{\oldlnpgramMAD}{0.05}
+\newcommand{\oldpercentpgramMAD}{4.70}
+
+\newcommand{\pgramRMS}{1.04}
+\newcommand{\pgramMAD}{0.52}
+\newcommand{\lnpgramMAD}{0.03}
+\newcommand{\percentpgramMAD}{2.82}
 
 \newcommand{\gpRMS}{0.25}
 \newcommand{\gpMAD}{0.40}
@@ -227,7 +232,7 @@ model of the data, and so is not inherently probabilistic.
 This means that the effects of the observational uncertainties cannot be
 formally propagated to constraints on the rotation period.
 
-In this work, we introduce an {\it effective} model for rotationally modulated
+In this work, we test an {\it effective} model for rotationally modulated
 stellar light curves which captures the salient behaviour but is not
 physically motivated --- although some parameters may indeed be {\it
 interpreted} as physical ones.
@@ -239,13 +244,26 @@ as the generative model at the core of a method to probabilistically
 infer accurate and precise stellar rotation periods.
 This enables us to estimate the posterior PDF of the rotation period, thereby
 producing a justified estimate of its uncertainty.
+{\bf Using a quasi-periodic GP model to infer a rotation period is not a new idea.
+We used this method in \citet{Vanderburg2015} to measure the rotation period
+of an exoplanet host.
+Previously to that, \citet{Haywood2014} used the quasi-periodic GP model
+to disentangle the correlated noise produced by stellar activity and rotation
+from the radial velocity signature of an exoplanet.
+In addition, \citet{Littlefair2017} use a quasi-periodic GP to establish the
+quasi-periodicity of variability in the light curves of brown dwarfs.
+What we present here is the first test of the GP method, placed alongside
+alternatives.
+We also provide code allowing others to easily apply this technique
+themselves.}
 
 GPs are commonly used in the machine learning community and increasingly
 in other scientific fields such as biology, geophysics and cosmology.
 More recently, GPs have been used in the stellar and exoplanet fields within
 astronomy, to capture stellar variability or instrumental systematics
 \citep[see \eg][]{Gibson2012, Haywood2014, Dawson2014, Barclay2015,
-Haywood2015, Evans2015, Rajpaul2015, Czekala2015, Rajpaul2016, Aigrain2016}.
+Haywood2015, Evans2015, Rajpaul2015, Czekala2015, Vanderburg2015, Rajpaul2016,
+Aigrain2016, Littlefair2017}.
 They are useful in regression problems involving any stochastic process,
 specifically when the probability distribution for the process is a
 multi-variate Gaussian.
