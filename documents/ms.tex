@@ -948,7 +948,21 @@ Figure \ref{fig:demo_acf} contains an example ACF of the light curve in
 Figure \ref{fig:demo_lc}.
 
 We compare our results to those of the Tel Aviv team in \citet{Aigrain2015}
-who use the ACF method described in \citet{Mcquillan2013}.
+who use the ACF method described in \citet{Mcquillan2014} and
+\citet{Aigrain2015}.
+{\bf This method involves the calculation of an autocorrelation function, a
+measure of the self-similarity of the light curve over a range of lags, which
+is then smoothed with a Gaussian kernel.
+Periodic variability in the light curve produces a peak at the period of the
+signal in the ACF and a decaying sequence of peaks at integer multiples of the
+period.
+\citet{McQuillan2014} first pre-processed the light curves by removing very
+long-term variations.
+They then calculated an ACF for each star and measured the positions of up to
+the first four peaks in the ACF.
+They fit a straight line to the periods of these peaks as a function of their
+integer multiple and adopted the gradient of that line as the rotation
+period.}
 Figure \ref{fig:compare_acf} shows ACF-measured versus true rotation
 periods, with the $2n$ and $\frac{1}{2}n$ harmonic lines as dashed lines.
 The injected and recovered rotation periods generally agree well: the MRD of
@@ -961,18 +975,18 @@ This is revealed by comparing the RMS of the two sets of results since the RMS
 is more sensitive to outliers.
 The RMS of the Tel Aviv method results is \telavivRMS\ days and the RMS of GP
 method results is \gpRMS\ days.
-Another negative feature of the ACF method is revealed by examining the points
-clustered close to the 1:1 line: more fall slightly below than above it, \ie\
-rotation periods are systematically underestimated.
-This stems from peak position measurements in the ACF method.
-ACFs of stellar light curves have similar functional forms to the QP kernel
-function in Equation \ref{eq:QP}: periodic functions added to decaying
-exponentials.
-In such functions the peak positions can be shifted towards the left (towards
-shorter periods), because the decaying exponential raises the left side of
-each peak more than the right.
-It is possible to model this effect; however, standard practice
-simply measures the peak position without taking it into account.
+% Another negative feature of the ACF method is revealed by examining the points
+% clustered close to the 1:1 line: more fall slightly below than above it, \ie\
+% rotation periods are systematically underestimated.
+% This stems from peak position measurements in the ACF method.
+% ACFs of stellar light curves have similar functional forms to the QP kernel
+% function in Equation \ref{eq:QP}: periodic functions added to decaying
+% exponentials.
+% In such functions the peak positions can be shifted towards the left (towards
+% shorter periods), because the decaying exponential raises the left side of
+% each peak more than the right.
+% It is possible to model this effect; however, standard practice
+% simply measures the peak position without taking it into account.
 
 % This can be understood as a consequence of the ACF method's sensitivity to
 % noise.
@@ -993,9 +1007,9 @@ curves vs the rotation periods measured using the ACF technique.
     defined in \citet{Aigrain2015}.
     Several light curves have drastically over- and under-estimated rotation
     periods.
-    For the points that lie close to the $x=y$ line, there is excess scatter
-    beneath the line due to a tendency of the ACF method to slightly
-    underpredict rotation periods.  }
+    % For the points that lie close to the $x=y$ line, there is excess scatter
+    % beneath the line due to a tendency of the ACF method to slightly
+    % underpredict rotation periods.  }
 \label{fig:compare_acf}
 \end{center}
 \end{figure*}
@@ -1270,8 +1284,8 @@ team who implement the ACF method of \citet{Mcquillan2013},
 we find their results to be
 slightly more precise in a median sense than the GP method results, but with
 a larger number of significant outliers.
-We also find that the ACF method often slightly under-predicts the rotation
-period due to a feature of its peak detection algorithm.
+% We also find that the ACF method often slightly under-predicts the rotation
+% period due to a feature of its peak detection algorithm.
 Additionally, we measure the rotation periods of \nkoimcq\
 \kepler\ objects of interest
 using the GP method, and find that these results compare well to those
