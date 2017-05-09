@@ -17,40 +17,46 @@ import simple_acf as sa
 from filtering import butter_bandpass, butter_bandpass_filter
 from scipy.optimize import curve_fit
 
+def calc_phase_and_amp(x, y, f):
+    AT = np.vstack((x, np.ones((3, len(y)))))
+    ATA = np.dot(AT, AT.T)
 
-def my_sin(x, freq, amplitude, phase, offset):
-    return np.sin(x * freq + phase) * amplitude + offset
+    arg = 2*np.pi*f*x
+    AT[-2, :] = np.sin(arg)
+    AT[-1, :] = np.cos(arg)
+
+    # AT.shape = (153, nt)
+    # shape: (151, nt) * (nt, 2) -> (151, 2)
+    v = np.dot(AT[:-2, :], AT[-2:, :].T)
+    ATA[:-2, -2:] = v
+    ATA[-2:, :-2] = v.T
+
+    # AT[-2:, :].shape = (2, nt)
+    # (2, nt), (nt, 2)
+    ATA[-2:, -2:] = np.dot(AT[-2:, :], AT[-2:, :].T)
+    w = np.linalg.solve(ATA, np.dot(AT, y))
+
+    A, B = w[-1], w[-2]
+    # print(B, "B", A, "A")
+    phase = np.arctan(A/B)
+    Amp = (A + B)**.5
+    # print("phase = ", phase/np.pi, "Amp = ", Amp**2)
+    return phase, Amp
 
 
-def fit_sine(t, data, freq):
-    N = len(t)
-    guess_freq = freq
-    print(guess_freq, "gf")
-    guess_amplitude = 3*np.std(data)/(2**0.5)
-    guess_phase = 0
-    guess_offset = np.mean(data)
+def calc_pgram_uncertainty(x, y, freq):
 
-    p0=[guess_freq, guess_amplitude, guess_phase, guess_offset]
-
-    # Fit sinusoid
-    fit = curve_fit(my_sin, t, data, p0=p0)
-    data_first_guess = my_sin(t, *p0)
-    data_fit = my_sin(t, *fit[0])
-
-    plt.plot(data, '.')
-    plt.plot(data_fit, label='after fitting')
-    plt.plot(data_first_guess, label='first guess')
-    plt.legend()
-    plt.savefig("test")
-    return data_fit, p0[1]
-
-
-def calc_pgram_uncertainty(x, y, period):
     # Fit for phase and amplitude.
-    data_fit, A = fit_sine(x, y, 1./period)
+    phase, A = calc_phase_and_amp(x, y, freq)
 
     # Remove signal from data.
-    y_noise = y - data_fit
+    y_noise = y - A**2*np.sin(2*np.pi*freq*x + phase)
+
+    # plot
+    plt.clf()
+    plt.plot(x, y, "k.")
+    plt.plot(x, y_noise, ".")
+    plt.savefig("testing")
 
     # Calculate variance, sigma_n
     sigma_n = np.var(y_noise)
@@ -134,12 +140,11 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
 
 if __name__ == "__main__":
 
-
     x = np.arange(0, 100, .1)
     y = 3 * np.sin(2 * np.pi * (1./10) * x + np.pi/2)
-    y += np.random.randn(len(y)) * .5
-    sigma_n = calc_pgram_uncertainty(x, y, 10)
-    print(sigma_n)
+    y += np.random.randn(len(y)) * .0000000001
+    err = calc_pgram_uncertainty(x, y, 1./10)
+    print(err)
     assert 0
 
     DIR = "/Users/ruthangus/projects/GProtation/code/kepler_diffrot_full/"
