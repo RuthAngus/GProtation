@@ -51,12 +51,6 @@ def calc_pgram_uncertainty(x, y, freq):
     # Remove signal from data.
     y_noise = y - A**2*np.sin(2*np.pi*freq*x + phase)
 
-    # plot
-    plt.clf()
-    plt.plot(x, y, "k.")
-    plt.plot(x, y_noise, ".")
-    plt.savefig("testing")
-
     # Calculate variance, sigma_n
     sigma_n = np.var(y_noise)
 
