@@ -37,9 +37,8 @@ def calc_phase_and_amp(x, y, f):
     w = np.linalg.solve(ATA, np.dot(AT, y))
 
     A, B = w[-1], w[-2]
-    # print(B, "B", A, "A")
     phase = np.arctan(A/B)
-    Amp = (A + B)**.5
+    Amp = (np.abs(A) + np.abs(B))**.5
     # print("phase = ", phase/np.pi, "Amp = ", Amp**2)
     return phase, Amp
 
@@ -91,6 +90,13 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
         print("saving figure ", os.path.join(RESULTS_DIR,
                                              "{0}_acf".format(id)))
 
+        # Interpolate across gaps
+        gap_days = 0.02043365
+        time = np.arange(x[0], x[-1], gap_days)
+        lin_interp = np.interp(time, x, y)
+        x, y = time, lin_interp
+        yerr = np.ones(len(y)) * 1e-5
+
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
         model = LombScargle().fit(x, y, yerr)
@@ -114,6 +120,13 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
         # plt.legend(loc='upper left')
         # plt.savefig("butter_filtered")
 
+        # normalise data and variance.
+        med = np.median(y)
+        y -= med
+        var = np.std(y)
+        print("var = ", var)
+        y /= var
+
         print("Calculating periodogram")
         ps = np.arange(.1, 100, .1)
         model = LombScargle().fit(x, yfilt, yerr)
@@ -127,8 +140,19 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
         peaks = np.array([i for i in range(1, len(ps)-1) if pgram[i-1] <
                           pgram[i] and pgram[i+1] < pgram[i]])
         pgram_period = ps[pgram == max(pgram[peaks])][0]
-        print("pgram period = ", pgram_period, "days")
-        pgram_period_err = calc_pgram_uncertainty(x, y, pgram_period)
+
+        # Calculate the uncertainty.
+        _freq = 1./pgram_period
+        pgram_freq_err = calc_pgram_uncertainty(x, y, _freq)
+        print(1./_freq, "period")
+        print(_freq, "freq")
+        print(pgram_freq_err, "pgram_freq_err")
+        frac_err = pgram_freq_err/_freq
+        print(frac_err, "frac_err")
+        pgram_period_err = pgram_period * frac_err
+        print(pgram_period_err, "pgram_period_err")
+        print("pgram period = ", pgram_period, "+/-", pgram_period_err,
+              "days")
 
         df = pd.DataFrame({"N": [id], "acf_period": [acf_period],
                            "acf_period_err": [err],
@@ -140,12 +164,12 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
 
 if __name__ == "__main__":
 
-    x = np.arange(0, 100, .1)
-    y = 3 * np.sin(2 * np.pi * (1./10) * x + np.pi/2)
-    y += np.random.randn(len(y)) * .0000000001
-    err = calc_pgram_uncertainty(x, y, 1./10)
-    print(err)
-    assert 0
+    # x = np.arange(0, 100, .1)
+    # y = 3 * np.sin(2 * np.pi * (1./10) * x + np.pi/2)
+    # y += np.random.randn(len(y)) * .0000000001
+    # err = calc_pgram_uncertainty(x, y, 1./10)
+    # print(err)
+    # assert 0
 
     DIR = "/Users/ruthangus/projects/GProtation/code/kepler_diffrot_full/"
     truths = pd.read_csv(os.path.join(DIR, "par/final_table.txt"),
