@@ -142,16 +142,15 @@ A strictly periodic sinusoid therefore cannot accurately model a rotationally
     modulated stellar light curve.
 Physical models of stellar surfaces have many drawbacks preventing effective
     inference, such as highly degenerate or high-dimensional parameter spaces.
-In this work, we introduce an appropriate {\it effective} model: a Gaussian
+In this work, we test an appropriate {\it effective} model: a Gaussian
     Process with a quasi-periodic covariance kernel function.
-Using this highly flexible model, we are able to sample from the posterior
-    Probability Density Function (PDF) of the periodic parameter,
-    marginalising over the other kernel hyperparameters using a Markov Chain
-    Monte Carlo approach.
+This highly flexible model allows sampling of the posterior Probability
+    Density Function (PDF) of the periodic parameter, marginalising over the
+    other kernel hyperparameters using a Markov Chain Monte Carlo approach.
 To test the effectiveness of this method, we infer rotation periods from
-\naigrain\ simulated stellar light curves, demonstrating that our results
-    are more accurate than both a sine-fitting periodogram and an
-    autocorrelation function method.
+    \naigrain\ simulated stellar light curves, demonstrating that the Gaussian
+    process method produces periods that are slightly more accurate than both
+    a sine-fitting periodogram and an autocorrelation function method.
 We also demonstrate that it works effectively on real data, by inferring
     rotation periods for \nkoimcq\ \Kepler\ stars with previously measured
     periods.
