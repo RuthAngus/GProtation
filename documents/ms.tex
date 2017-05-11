@@ -1434,8 +1434,12 @@ yet truly representative and it is still only an `effective' model, not a
 physical one.
 However, it is probabilistic and provides more accurate periods than
 alternative methods.
-We therefore argue that the GP method is the best method for rotation period
-inference currently available.
+{\bf Although GP inference is slow as it requires a `solve' and a matrix
+determinant calculation at every step of an MCMC, a new GP solver, {\tt
+celerite} \citep{Foremanmackey2017} shows promise for increasing the
+computional speed of GP rotation period inference by several orders of
+magnitude.
+We intend to integrate {\tt celerite} into our code in the near future.}
 The code used in this project is available at
 \url{https://github.com/RuthAngus/GProtation/}.
 
