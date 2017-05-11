@@ -1439,7 +1439,44 @@ determinant calculation at every step of an MCMC, a new GP solver, {\tt
 celerite} \citep{Foremanmackey2017} shows promise for increasing the
 computional speed of GP rotation period inference by several orders of
 magnitude.
-We intend to integrate {\tt celerite} into our code in the near future.}
+We intend to integrate {\tt celerite} into our code in the near future.
+The issue of computational time is a personal one.
+GP period inference is trivially parallelisable, so if one has access to
+thousands of computer cores, one can infer rotation periods of thousands of
+stars in a few hours (perhaps just a few minutes with {\tt celerite}).
+For single stars GP rotation inference takes a reasonable amount of time and
+has already been used on exoplanet hosts \citep[\eg][]{Haywood2014,
+Vanderburg2015}.
+
+Is it worth spending the extra computation power to get slightly more
+accurate, probabilistic rotation periods for a large number of stars?
+A growing number of astronomers are interested in hierarchical probabilistic
+modelling, particularly in the stellar and exoplanet communities.
+These individuals are mindful of carefully inferring probabilistic parameters
+wherever possible.
+Probabilistic inference also allows you to marginalise over, or ‘bypass’,
+certain parameters.
+For example, imagine trying to infer the distribution of rotation periods of a
+sample of stars.
+One could simply calculate rotation periods from the light curves and produce
+a histogram of the rotation values.
+This is `adding posteriors' which is not technically legal in probability
+theory, you are only allowed to add (or sum) likelihoods.
+In order to add likelihoods you have to jointly infer the rotation period of
+each individual star and the parameters of the distribution, which you might
+model as a Gaussian.
+Here, the individual rotation periods of the stars are nuisance parameters:
+you don’t care about their values, you only compute them in order to infer the
+mean and variance of the period distribution.
+Using hierarchical inference allows you to marginalise over individual
+rotation periods and infer distribution parameters directly from the light
+curves.
+Many people are interested in the distribution of stellar ages across the
+galaxy and rotation periods can be used as an age proxy via gyrochronology.
+Probabilistic rotation period inference is therefore highly relevant to a
+large number of galactic archaeology and exoplanet population studies which
+require rotation period (or age) distributions.}
+
 The code used in this project is available at
 \url{https://github.com/RuthAngus/GProtation/}.
 
