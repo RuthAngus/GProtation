@@ -1319,8 +1319,24 @@ These are unlikely to be periodic and, again, may produce unusual combinations
 of hyperparameters.
 We also hope to test this in the future.
 
-In addition, we are continuing to develop several other aspects of this GP method:
+In addition, we are continuing to develop several other aspects of this GP
+method:
 \begin{itemize}
+    \item{{\bf To use an updated method for calculating the GP likelihood and
+    drastically improve computational efficiency.
+        {\tt celerite}, a new method for rapid computation of the 'solve' and
+        determinant calculations of covariance matrices necessary for GP
+        inference has recently been developed \citep{Foremanmackey2017}.
+        {\tt celerite} scales with the number of data points, $\mathcal{O}(N)$
+        rather than the $N\log(N)^2$ scaling of the {\tt HODLR} algorithm used
+        in this analysis.
+        It requires a slightly different functional form for the kernel as the
+        increased speed is obtained by using mathematical properties of
+        exponential functions.
+        Kernels must be written as the sums of exponentials in order to be
+        implemented in {\tt celerite}, however a close approximation to the
+        kernel function used here is demonstrated to recover rotation periods
+        in \citet{Foremanmackey2017}.}}
 \item{To investigate more physically motivated priors.
         In this paper we have only explored the physical interpretation of one
         parameter in our kernel function (P), which we related to stellar
