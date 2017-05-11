@@ -962,7 +962,9 @@ They then calculated an ACF for each star and measured the positions of up to
 the first four peaks in the ACF.
 They fit a straight line to the periods of these peaks as a function of their
 integer multiple and adopted the gradient of that line as the rotation
-period.}
+period.
+The uncertainty on the ACF period is the uncertainty on the best-fit slope.
+}
 Figure \ref{fig:compare_acf} shows ACF-measured versus true rotation
 periods, with the $2n$ and $\frac{1}{2}n$ harmonic lines as dashed lines.
 The injected and recovered rotation periods generally agree well: the MRD of
@@ -1009,7 +1011,8 @@ curves vs the rotation periods measured using the ACF technique.
     periods.
     % For the points that lie close to the $x=y$ line, there is excess scatter
     % beneath the line due to a tendency of the ACF method to slightly
-    % underpredict rotation periods.  }
+    % underpredict rotation periods.
+    }
 \label{fig:compare_acf}
 \end{center}
 \end{figure*}
@@ -1018,31 +1021,84 @@ curves vs the rotation periods measured using the ACF technique.
 \label{sec:ls}
 
 The \citet{Aigrain2015} Tel Aviv team were the only group to report periods
-for all \naigrain\ simulated stars, and are therefore the only team with which we
-compare results.
+for all \naigrain\ simulated stars, and are therefore the only team with which
+we compare results.
 The other participating groups chose to report only the period measurements in
 which they were confident and are likely to have omitted large outliers.
 In order therefore to test our results against another commonly used
 technique, we implemented a simple LS periodogram method.
 
+{\bf We first applied a high-pass filter to the light curves, removing
+long-term trends that could produce large peaks at long periods in the
+periodogram.
+We used the 3rd order Butterworth filter in {\tt scipy} python with a cut-off
+of 35 days, attenuating signals with periods greater than this threshold.
+This filter was applied in frequency space, rather than period space, and full
+attenuation was attained at zero frequency.
+In other words, the level of attenuation increased smoothly with period, for
+periods above 35 days but no periods were fully suppressed.
+Experimentally, we found the 35 day cut off removed the largest number of long
+period outliers while preserving shorter period signals.
+We also tried 50, 45, 40 and 30 day cut-offs but the 35 day cut-off value
+maximised the RMS and MAD of the LS periodogram results.}
 For each simulated light curve, we compute a LS periodogram\footnote{LS
 periodograms were calculated using the gatspy Python module:
 \url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.} over a
 grid of 10,000 periods, evenly spaced in frequency, between 1 and 100 days.
 We adopt the period of the highest peak in the periodogram as the measured
 rotation period.
+{\bf The uncertainties on the rotation periods were calculated using the
+following equation for the standard deviation of the frequency
+\citep{Horne1986, Kovacs1981}:
+\begin{equation}
+    \sigma_{\nu} = \frac{3\pi\sigma_N}{2N_O^{1/2}TA},
+\end{equation}
+where $A$ is the amplitude of the signal of highest power, $\sigma_N$ is the
+variance of the time series, with the signal of highest power removed, $N_O$
+is the number of variations and $T$ is the timespan of the data.
+These formal uncertainties are only valid in the case that the noise is white,
+the data are evenly sampled and there is only one signal present.
+Since there are multiple signals present in these light curves, this formal
+uncertainty is an underestimate of the true uncertainty.
+}
 Figure \ref{fig:pgram_compare} shows the resulting recovered rotation periods
 as a function of true period.
-The MRD of the periodogram-recovered periods is \percentpgramMAD\%,
-significantly worse than the ACF and GP methods (see table \ref{tab:MADs} for
+{\bf The MRD of the periodogram-recovered periods is \percentpgramMAD\%,
+slightly worse than the ACF and GP methods (see table \ref{tab:MADs} for
 a side-by-side comparison with the other methods).
-The LS periodogram method drastically overestimates many rotation periods
-because long-term trends unrelated to rotation can cause excess power at long
-periods.
+The filter suppresses signals with periods greater than 35 days but doesn't
+eliminate them altogether, thus allowing high amplitude frequencies to be
+detectable.
+For this reason, some erroneous long periods are recovered by the periodogram
+method.
+These results still show a marked improvement in comparison to periodograms
+calculated from unfiltered data.
+Simply adopting the highest peak of a periodogram calculated from the
+unfiltered simulated data resulted in an RMS of \oldpgramRMS\ and relative MAD
+of \oldpercentpgramMAD.}
+% The LS periodogram method drastically overestimates some rotation periods
+% because long-term trends unrelated to rotation still produced excess power at
+% long periods, despite our attempts to remove these trends via filtering.
+% {\bf Filtering a light curve before attempting to measure a rotation period is
+% not always advisable because it may remove real signals from the data.
+% The simulated light curves used in this experiment had rotation periods of up
+% to 50 days, and thus applying a high pass filter with a 35 day cut off left
+% most of these periods unaffected.
+% Of course, this would not be the case if there were many slower rotators in
+% this sample.
+% In some cases a signal greater than 35 days was recovered, sometimes correctly
+% and sometimes erroneously.
+% }
+% Filtering is not analogous to using priors in Bayesian inference as filtering
+% completely removes signals; if a periodic signal is filtered out there is no
+% hope of recovering it.
+% Using priors that favour shorter periods over longer ones still allows for the
+% detection of long periods if they are strongly supported by the data.}
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
+% \includegraphics[width=6in, clip=true]{figures/compare_pgram.pdf}
+\includegraphics[width=6in, clip=true]{figures/compare_pgram_filtered_35.pdf}
 \caption[LS periodogram results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using a LS periodogram technique.
@@ -1081,23 +1137,28 @@ In many cases a large peak at a long period was present in the periodogram,
 In order to test our rotation period inference method on real data,
 we apply it to a set of \nkoimcq\ \Kepler\ Object of Interest (KOI)
 host stars, that had rotation periods previously measured by
-the ACF method by \citet{Mcquillan2013}.  We use the pipeline-corrected flux
-(\texttt{pdcsap\_flux} column in the \Kepler\ light curve table), median-normalized
-and unit-subtracted, and mask out all known transiting planet candidate signals.
+the ACF method by \citet{Mcquillan2013}.
+We use the pipeline-corrected flux (\texttt{pdcsap\_flux} column in the
+\Kepler\ light curve table), median-normalized and unit-subtracted, and mask
+out all known transiting planet candidate signals.
 As with the simulated light curves, we randomly subsample each
 light curve by a factor of 30 and split it into segments of about 300 points
-for the purposes of evaluating the likelihood.  We also follow the same MCMC
-fitting procedure as with the simulated data, using the ACF-based prior as before.
+for the purposes of evaluating the likelihood.
+We also follow the same MCMC fitting procedure as with the simulated data,
+using the ACF-based prior as before.
 
 Initially, we also use the same priors on the hyperparameters for the KOIs
 as for the simulated light curves (Table \ref{tab:priors}).
-However, we found that $\ln l$ and $\ln \Gamma$ tended toward slightly different
-values than the simulations.  We also found that the allowed hyperparameter
-range that we used for the simulations was too large for the KOI population,
-as maybe $\sim$15\% of the fits tended toward corners in the hyperparameter
-space, resulting in poor period measurements.  As a result, after this initial
-test, we subsequently adjusted the priors and re-fit all the KOIs.
-The final priors and parameter ranges that we used are in Table \ref{tab:koipriors}.
+However, we found that $\ln l$ and $\ln \Gamma$ tended toward slightly
+different values than the simulations.
+We also found that the allowed hyperparameter range that we used for the
+simulations was too large for the KOI population, as maybe $\sim$15\% of the
+fits tended toward corners in the hyperparameter space, resulting in poor
+period measurements.
+As a result, after this initial test, we subsequently adjusted the priors and
+re-fit all the KOIs.
+The final priors and parameter ranges that we used are in Table
+\ref{tab:koipriors}.
 % The posterior samples of the model parameters for the \Kepler\ objects of
 % interest are available online:
 % \url{https://zenodo.org/record/292340\#.WKWpiBIrJE4}.
@@ -1126,9 +1187,9 @@ This comparison shows generally very good agreement, demonstrating that this
 method works not only on simulated data, but also on real data---with the
 caveat that for any particular data set, some care is needed regarding the
 setting the priors and ranges for the GP hyperparameters.
-Notably, the GP method recovers periods
-systematically slightly larger than \citet{Mcquillan2013}---a likely consequence
-of correcting for the ACF peak measurement bias discussed in Section \ref{sec:acf}.
+% Notably, the GP method recovers periods systematically slightly larger than
+% \citet{Mcquillan2013}---a likely consequence of correcting for the ACF peak
+% measurement bias discussed in Section \ref{sec:acf}.
 
 \begin{figure*}
 \begin{center}
@@ -1146,10 +1207,38 @@ The data points are coloured by the range of variability measured by
 \section{Discussion}
 \label{sec:discussion}
 
-The QP-GP inference method we present in this paper produces
-more accurate rotation periods than the ACF or periodogram methods.
-Additionally, because it explores the posterior PDF with MCMC,
-our method produces probabilistically justified uncertainties.
+{\bf The majority of long period outliers seen in the periodogram comparison
+figure (figure \ref{fig:compare_pgram} results are produced when the rotation
+period signal is highly non-sinusoidal.
+This can be understood intuitively as the LS periodogram fits a series of sine
+waves to the data; if the data are not sinusoidal, a sine wave will not
+produce a good fit.
+It is difficult to assess the reason for the ACF incorrect recoveries because
+we do not have the individual ACFs computed by the \citet{Aigrain2015} Tel
+Aviv team, however it seems that the ACF method is more sensitive than the LS
+periodogram method to noise: this particular implementation of the LS
+periodogram method is capable of detecting periodic signals at lower
+amplitudes that the ACF.
+We do not suggest that the LS periodogram method is better than the ACF method
+in general.
+It was made clear in \citet{Aigrain2015} that the performance of each of these
+rotation period detection algorithms depends sensitively on the exact
+implementations.
+The exact steps performed in the pre-processing of the light curves and the
+post-processing of the periodogram or ACF seems to hugely affect the results.
+This is also true for the GP method.
+Using a different MCMC sampler, different priors, different subsampling, or a
+different kernel would all alter the results.
+Clearly, none of these rotation period measurement methods is perfect and they
+all require a lot of background engineering and tuning.
+This is simply due to inherent difficulty of inferring periods, or any
+parameter that produces a highly multimodal probability distribution, from
+noisy data.}
+
+The QP-GP inference method we test in this paper produces slightly more
+accurate rotation periods than the ACF or periodogram methods.
+Additionally, because it explores the posterior PDF with MCMC, our method
+produces probabilistically justified uncertainties.
 Unfortunately, these uncertainties still appear to be underestimated.
 Of the rotation periods recovered from the simulated light curves using the
 ACF-informed prior, only 25\% of the measured periods lie within 1$\sigma$ of
