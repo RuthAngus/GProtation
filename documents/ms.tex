@@ -42,6 +42,8 @@
 \newcommand{\dnu}{$\Delta \nu$}
 \newcommand{\numax}{$\nu_{\mathrm{max}}$}
 
+\newcommand{\nkoi}{1132}
+
 \newcommand{\naigrain}{333}
 \newcommand{\nmcquillan}{100}
 \newcommand{\nkois}{1102}
@@ -145,7 +147,7 @@ Physical models of stellar surfaces have many drawbacks preventing effective
 In this work, we test an appropriate {\it effective} model: a Gaussian
     Process with a quasi-periodic covariance kernel function.
 This highly flexible model allows sampling of the posterior Probability
-    Density Function (PDF) of the periodic parameter, marginalising over the
+    Density Function of the periodic parameter, marginalising over the
     other kernel hyperparameters using a Markov Chain Monte Carlo approach.
 To test the effectiveness of this method, we infer rotation periods from
     \naigrain\ simulated stellar light curves, demonstrating that the Gaussian
@@ -154,11 +156,14 @@ To test the effectiveness of this method, we infer rotation periods from
 We also demonstrate that it works effectively on real data, by inferring
     rotation periods for \nkoimcq\ \Kepler\ stars with previously measured
     periods.
-Because this method delivers posterior PDFs, it will enable hierarchical
-    studies involving stellar rotation, particularly those involving
-    population modelling, such as inferring stellar ages, obliquities in
-    exoplanet systems, or characterising star-planet interactions.
-The code used to implement this new method is available online.
+Because this method delivers posterior probability density functions, it will
+    enable hierarchical studies involving stellar rotation, particularly those
+    involving population modelling, such as inferring stellar ages,
+    obliquities in exoplanet systems, or characterising star-planet
+    interactions.
+    {\bf We provide a table of rotation periods for \nkoi\ \Kepler\ objects of
+    interest and full posterior probability density function samples.}
+    The code used to implement this new method is available online.
 % The ACF method is not applicable to unevenly spaced data,
 % therefore it is inappropriate for the ~$10^7$ stellar light curves expected
 % to be produced by \LSST\ unlike the GP method.
@@ -251,8 +256,8 @@ to disentangle the correlated noise produced by stellar activity and rotation
 from the radial velocity signature of an exoplanet.
 In addition, \citet{Littlefair2017} use a quasi-periodic GP to establish the
 quasi-periodicity of variability in the light curves of brown dwarfs.
-What we present here is the first test of the GP method, placed alongside
-alternatives.
+What we present here is a test of the GP method and a comparison with
+alternative rotation period measurement methods.
 We also provide code allowing others to easily apply this technique
 themselves.}
 
@@ -953,10 +958,10 @@ who use the ACF method described in \citet{Mcquillan2014} and
 {\bf This method involves the calculation of an autocorrelation function, a
 measure of the self-similarity of the light curve over a range of lags, which
 is then smoothed with a Gaussian kernel.
-Periodic variability in the light curve produces a peak at the period of the
-signal in the ACF and a decaying sequence of peaks at integer multiples of the
-period.
-\citet{McQuillan2014} first pre-processed the light curves by removing very
+Periodic variability in the light curve produces a peak in the ACF at the
+period of the signal and a decaying sequence of peaks at integer multiples of
+the period.
+\citet{Mcquillan2014} first pre-processed the light curves by removing very
 long-term variations.
 They then calculated an ACF for each star and measured the positions of up to
 the first four peaks in the ACF.
@@ -1031,7 +1036,7 @@ technique, we implemented a simple LS periodogram method.
 {\bf We first applied a high-pass filter to the light curves, removing
 long-term trends that could produce large peaks at long periods in the
 periodogram.
-We used the 3rd order Butterworth filter in {\tt scipy} python with a cut-off
+We used the 3rd order Butterworth filter in {\tt scipy} with a cut-off
 of 35 days, attenuating signals with periods greater than this threshold.
 This filter was applied in frequency space, rather than period space, and full
 attenuation was attained at zero frequency.
@@ -1041,21 +1046,21 @@ Experimentally, we found the 35 day cut off removed the largest number of long
 period outliers while preserving shorter period signals.
 We also tried 50, 45, 40 and 30 day cut-offs but the 35 day cut-off value
 maximised the RMS and MAD of the LS periodogram results.}
-For each simulated light curve, we compute a LS periodogram\footnote{LS
+For each simulated light curve, we computed a LS periodogram\footnote{LS
 periodograms were calculated using the gatspy Python module:
 \url{https://github.com/astroML/gatspy/tree/master/gatspy/periodic}.} over a
 grid of 10,000 periods, evenly spaced in frequency, between 1 and 100 days.
-We adopt the period of the highest peak in the periodogram as the measured
+We adopted the period of the highest peak in the periodogram as the measured
 rotation period.
 {\bf The uncertainties on the rotation periods were calculated using the
 following equation for the standard deviation of the frequency
 \citep{Horne1986, Kovacs1981}:
 \begin{equation}
-    \sigma_{\nu} = \frac{3\pi\sigma_N}{2N_O^{1/2}TA},
+    \sigma_{\nu} = \frac{3\pi\sigma_N}{2N^{1/2}TA},
 \end{equation}
 where $A$ is the amplitude of the signal of highest power, $\sigma_N$ is the
-variance of the time series, with the signal of highest power removed, $N_O$
-is the number of variations and $T$ is the timespan of the data.
+variance of the time series, with the signal of highest power removed, $N$
+is the number of observations and $T$ is the timespan of the data.
 These formal uncertainties are only valid in the case that the noise is white,
 the data are evenly sampled and there is only one signal present.
 Since there are multiple signals present in these light curves, this formal
@@ -1073,12 +1078,12 @@ For this reason, some erroneous long periods are recovered by the periodogram
 method.
 These results still show a marked improvement in comparison to periodograms
 calculated from unfiltered data.
-Simply adopting the highest peak of a periodogram calculated from the
-unfiltered simulated data resulted in an RMS of \oldpgramRMS\ and relative MAD
-of \oldpercentpgramMAD.}
+Simply adopting the highest peak of a periodogram calculated from the {\it
+unfiltered} simulated data resulted in an RMS of \oldpgramRMS\ and relative
+MAD of \oldpercentpgramMAD.}
 % The LS periodogram method drastically overestimates some rotation periods
-% because long-term trends unrelated to rotation still produced excess power at
-% long periods, despite our attempts to remove these trends via filtering.
+% because long-term trends unrelated to rotation still produced excess power
+% at long periods, despite our attempts to remove these trends via filtering.
 % {\bf Filtering a light curve before attempting to measure a rotation period is
 % not always advisable because it may remove real signals from the data.
 % The simulated light curves used in this experiment had rotation periods of up
@@ -1190,6 +1195,33 @@ setting the priors and ranges for the GP hyperparameters.
 % Notably, the GP method recovers periods systematically slightly larger than
 % \citet{Mcquillan2013}---a likely consequence of correcting for the ACF peak
 % measurement bias discussed in Section \ref{sec:acf}.
+{\bf The new GP rotation periods calculated for \nkoi\ KOIs are provided in an
+online table accompanying this paper.
+The first few lines of this table is shown below
+(table \ref{tab:koi_periods}).
+Samples of the rotation period posterior PDFs are available online:
+\url{https://doi.org/10.5281/zenodo.804440}}
+
+\begin{table*}
+\begin{center}
+    \caption{Rotation periods and \Kepler\ input catalogue (KIC) properties
+    for the \Kepler\ objects of interest. The full table is available online.}
+\begin{tabular}{lcccc}
+    KOI number & Period (days) & KIC T$_{\mathrm{eff}}$ & KIC $\log(g)$ & KIC
+    $[$Fe$/$H$]$ \\
+    \hline
+    1 & 25$\pm1$ & $5126^{+160}_{-138}$ & $4.61^{+0.03}_{-0.1}$ &
+    $-0.1\pm0.3$ \\
+    2 & 20$\pm1$ & $5850\pm50$ & $4.46\pm0.03$ & $-0.2\pm0.1$ \\
+    3 & 28$\pm1$ & $6350\pm80$ & $4.02\pm0.01$ & $0.26\pm0.08$\\
+    6 & 23$\pm1$ & $6225^{+114}_{-158}$ & $4.17^{+0.06}_{-0.05}$ &
+    $-0.0^{+0.1}_{-0.2}$\\
+    7 & 25$\pm1$ & $5543\pm79 $ & $4.08\pm0.01$ & $0.4\pm0.1$ \\
+    ... & ... & ... & ... & ... \\
+\end{tabular}
+\end{center}
+\end{table*}
+\label{tab:koi_periods}
 
 \begin{figure*}
 \begin{center}
@@ -1208,22 +1240,22 @@ The data points are coloured by the range of variability measured by
 \label{sec:discussion}
 
 {\bf The majority of long period outliers seen in the periodogram comparison
-figure (figure \ref{fig:compare_pgram} results are produced when the rotation
-period signal is highly non-sinusoidal.
+figure (figure \ref{fig:pgram_compare}) are produced when the rotation period
+signal is highly non-sinusoidal.
 This can be understood intuitively as the LS periodogram fits a series of sine
 waves to the data; if the data are not sinusoidal, a sine wave will not
 produce a good fit.
 It is difficult to assess the reason for the ACF incorrect recoveries because
 we do not have the individual ACFs computed by the \citet{Aigrain2015} Tel
 Aviv team, however it seems that the ACF method is more sensitive than the LS
-periodogram method to noise: this particular implementation of the LS
-periodogram method is capable of detecting periodic signals at lower
-amplitudes that the ACF.
+periodogram method to noise.
+This particular implementation of the LS periodogram method is capable of
+detecting periodic signals at lower amplitudes that the ACF.
 We do not suggest that the LS periodogram method is better than the ACF method
 in general.
 It was made clear in \citet{Aigrain2015} that the performance of each of these
-rotation period detection algorithms depends sensitively on the exact
-implementations.
+rotation period detection algorithms depends sensitively on the
+implementation technique.
 The exact steps performed in the pre-processing of the light curves and the
 post-processing of the periodogram or ACF seems to hugely affect the results.
 This is also true for the GP method.
@@ -1324,7 +1356,7 @@ method:
 \begin{itemize}
     \item{{\bf To use an updated method for calculating the GP likelihood and
     drastically improve computational efficiency.
-        {\tt celerite}, a new method for rapid computation of the 'solve' and
+        {\tt celerite}, a new method for rapid computation of the `solve' and
         determinant calculations of covariance matrices necessary for GP
         inference has recently been developed \citep{Foremanmackey2017}.
         {\tt celerite} scales with the number of data points, $\mathcal{O}(N)$
@@ -1440,7 +1472,9 @@ celerite} \citep{Foremanmackey2017} shows promise for increasing the
 computional speed of GP rotation period inference by several orders of
 magnitude.
 We intend to integrate {\tt celerite} into our code in the near future.
-The issue of computational time is a personal one.
+How much computational time is too much computational time is a question that
+depends on the available resources of each individual and their scientific
+priorities.
 GP period inference is trivially parallelisable, so if one has access to
 thousands of computer cores, one can infer rotation periods of thousands of
 stars in a few hours (perhaps just a few minutes with {\tt celerite}).
@@ -1454,31 +1488,34 @@ A growing number of astronomers are interested in hierarchical probabilistic
 modelling, particularly in the stellar and exoplanet communities.
 These individuals are mindful of carefully inferring probabilistic parameters
 wherever possible.
-Probabilistic inference also allows you to marginalise over, or ‘bypass’,
-certain parameters.
-For example, imagine trying to infer the distribution of rotation periods of a
-sample of stars.
-One could simply calculate rotation periods from the light curves and produce
-a histogram of the rotation values.
-This is `adding posteriors' which is not technically legal in probability
-theory, you are only allowed to add (or sum) likelihoods.
-In order to add likelihoods you have to jointly infer the rotation period of
-each individual star and the parameters of the distribution, which you might
-model as a Gaussian.
-Here, the individual rotation periods of the stars are nuisance parameters:
-you don’t care about their values, you only compute them in order to infer the
-mean and variance of the period distribution.
-Using hierarchical inference allows you to marginalise over individual
-rotation periods and infer distribution parameters directly from the light
-curves.
-Many people are interested in the distribution of stellar ages across the
-galaxy and rotation periods can be used as an age proxy via gyrochronology.
-Probabilistic rotation period inference is therefore highly relevant to a
-large number of galactic archaeology and exoplanet population studies which
-require rotation period (or age) distributions.}
+Probabilistic inference allows one to marginalise over nuisance
+parameters while formally taking any uncertainty into account when
+measuring the quantity of interest -- the star's rotation period, in
+this case.
+This becomes especially important as the signal-to-noise ratio
+decreases and the rotation period is no longer tightly constrained,
+and as the sampling becomes uneven.
+One of our goals is to perform population inferences with a catalog of
+rotation periods.
+Throughout the astronomical literature, hierarchical Bayesian
+inference has been demonstrated to be a robust method of population
+inference \citep[\eg][]{Hogg2010, Foremanmackey2015, Wolfgang2015, Rogers2015}.
+Probabilistic measurements, with full rigorous propagation of
+uncertainties, are a crucial ingredient for any hierarchical inference
+where the target is the population level distribution.
+Inferring the ages of stars in the galaxy via gyrochronology (age-rotation
+relations) \citep[\eg][]{Skumanich1972, Kawaler1989, Barnes2003, Barnes2007}
+is an example of a hierarchical inference problem using stellar rotation.
+Hierarchical inference allows you to marginalise over individual rotation
+periods and infer age distribution parameters directly from the light curves.
+Probabilistic rotation period inference is highly relevant to a large number
+of galactic archaeology and exoplanet population studies which require
+rotation period (or age) distributions.}
 
 The code used in this project is available at
-\url{https://github.com/RuthAngus/GProtation/}.
+\url{https://github.com/RuthAngus/GProtation/} and samples of the KOI rotation
+period posterior PDFs can be found at
+\url{https://doi.org/10.5281/zenodo.804440}.
 
 % acknowledgements
 This research was funded by the Simons Foundation and the Leverhulme Trust.
