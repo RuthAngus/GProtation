@@ -43,11 +43,16 @@ def acf_plot(truths_e,
     plt.plot(np.log(xs), np.log(xs) + 2./3, "k--", alpha=.3, lw=.8, zorder=0)
 
     plt.errorbar(np.log(true), np.log(acfs), yerr=(acf_errs/acfs), fmt="k.",
-                 capsize=0, ecolor=".7", alpha=.4, ms=1, zorder=1,
+                 capsize=0, ecolor=".2", alpha=.4, ms=1, zorder=1,
                  elinewidth=.8)
     plt.scatter(np.log(true), np.log(acfs), c=np.log(amp), edgecolor=".5",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=10, lw=.2, zorder=2)
+
+    # badinds, varinds = get_bad_inds(N)
+    # plt.plot(np.log(true)[badinds], np.log(acfs)[badinds], "ro")
+    # plt.plot(np.log(true)[varinds], np.log(acfs)[varinds], "bo")
+
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)
@@ -63,8 +68,33 @@ def acf_plot(truths_e,
     plt.xlabel("$\ln(\mathrm{ACF~Period}) - \ln(\mathrm{True~Period})$")
     plt.savefig("acf_hist.pdf")
 
+    dff = np.log(acfs) - np.log(true)
+    plt.clf()
+    m = dff > 1
+    plt.plot(np.log(true), dff, "k.")
+    print(N[m])
+    plt.savefig("diff_acf")
+
     return MAD(np.log(true), np.log(acfs)), MAD(true, acfs), \
         MAD_rel(true, acfs), RMS(true, acfs)
+
+
+def get_bad_inds(N):
+    bad = np.array([121, 164, 180, 188, 189, 227, 239, 246, 253, 269, 273,
+                    328, 336, 338, 361, 377, 397, 470, 479, 556, 573, 608,
+                    615, 671])
+    variable = np.array([345, 350, 356, 370, 406, 477, 450, 663, 682, 692])
+    badinds, varinds = [], []
+
+    for i, n in enumerate(N):
+        mb = n == bad
+        mv = n == variable
+        if len(bad[mb]):
+            badinds.append(i)
+        if len(variable[mv]):
+            varinds.append(i)
+    return badinds, varinds
+
 
 def pgram_plot(truths_e,
                DIR="/Users/ruthangus/projects/GProtation/documents/figures"):
@@ -89,6 +119,11 @@ def pgram_plot(truths_e,
     plt.scatter(np.log(true), np.log(pgram), c=np.log(amp), edgecolor=".5",
                 cmap="GnBu_r", vmin=min(np.log(amp)), vmax=max(np.log(amp)),
                 s=20, zorder=1, lw=.2)
+
+    badinds, varinds = get_bad_inds(N)
+    plt.plot(np.log(true)[badinds], np.log(pgram)[badinds], "ro")
+    plt.plot(np.log(true)[varinds], np.log(pgram)[varinds], "bo")
+
     cbar = plt.colorbar()
     cbar.ax.set_ylabel("$\ln\mathrm{(Amplitude)}$")
     plt.xlim(0, 4)

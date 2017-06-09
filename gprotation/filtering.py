@@ -11,20 +11,20 @@ def butter_bandpass(lowcut, fs, order=5):
     return b, a
 
 
-def butter_bandpass_filter(data, lowcut, fs, order=5):
+def butter_bandpass_filter(data, lowcut, fs, order=5, plot=False):
     b, a = butter_bandpass(lowcut, fs, order=order)
     y = lfilter(b, a, data)
-    plot_bandpass(lowcut, fs, order)
+    if plot:
+        plot_bandpass(lowcut, fs, order)
     return y
 
 
 def plot_bandpass(lowcut, fs, order):
     # Plot the frequency response for a few different orders.
     plt.clf()
-    for order in [3, 6, 9]:
-        b, a = butter_bandpass(lowcut, fs, order=order)
-        w, h = freqz(b, a, worN=2000)
-        plt.plot((fs * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
+    b, a = butter_bandpass(lowcut, fs, order=3)
+    w, h = freqz(b, a, worN=5000)
+    plt.plot((fs * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
 
     plt.plot([0, 0.5 * fs], [np.sqrt(0.5), np.sqrt(0.5)],
              '--', label='sqrt(0.5)')
@@ -32,6 +32,7 @@ def plot_bandpass(lowcut, fs, order):
     plt.ylabel('Gain')
     plt.grid(True)
     plt.legend(loc='best')
+    plt.xlim(0, 1)
     plt.savefig("butter_bandpass")
 
 

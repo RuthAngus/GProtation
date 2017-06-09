@@ -153,6 +153,7 @@ def calc_p_init(x, y, yerr, id, RESULTS_DIR="pgram_filtered_results_35",
                            "pgram_period": [pgram_period],
                            "pgram_period_err": [pgram_period_err]})
         df.to_csv(fname)
+
     return acf_period, err, pgram_period, pgram_period_err
 
 
@@ -173,4 +174,4 @@ if __name__ == "__main__":
     for i, id in enumerate(truths.N.values):
         x, y = load_suzanne_lcs(id, os.path.join(DIR, "final"))
         yerr = np.ones(len(y)) * 1e-5
-        calc_p_init(x, y, yerr, id, clobber=True)
+        _, _, pgram, _ = calc_p_init(x, y, yerr, id, clobber=True)

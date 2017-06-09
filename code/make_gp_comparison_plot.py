@@ -4,6 +4,8 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from make_acf_comparison_plot import get_bad_inds
+
 
 plotpar = {'axes.labelsize': 18,
            'font.size': 10,
@@ -36,6 +38,7 @@ def plot(prior, nbins):
     # remove differential rotators and take just the first 100
     m = truths.DELTA_OMEGA.values == 0
     truths = truths.iloc[m]
+    N = truths.N.values
 
     recovered = np.zeros(len(truths.N.values))
     errp, errm = [np.zeros(len(truths.N.values)) for i in range(2)]
@@ -67,10 +70,15 @@ def plot(prior, nbins):
 
     plt.errorbar(np.log(x[l]), np.log(recovered[l]),
                  yerr=[lnerrp[l], lnerrm[l]], fmt="k.", zorder=1, capsize=0,
-                 ecolor=".7", alpha=.5, ms=.1, elinewidth=.8)
+                 ecolor=".2", alpha=.4, ms=.1, elinewidth=.8)
     plt.scatter(np.log(x[l]), np.log(recovered[l]), c=np.log(amp[l]),
                 edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
                 vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
+
+    # badinds, varinds = get_bad_inds(N[l])
+    # plt.plot(np.log(x[l])[badinds], np.log(recovered[l])[badinds], "ro")
+    # plt.plot(np.log(x[l])[varinds], np.log(recovered[l])[varinds], "bo")
+
     plt.xlim(0, 4)
     plt.ylim(-2, 6)
 
@@ -147,6 +155,14 @@ def plot(prior, nbins):
     66% are within 3 sigma.
     Largest outlier is 114 sigma off.
     """
+
+    dff = np.log(recovered[l]) - np.log(x[l])
+    plt.clf()
+    m = dff > 1
+    m = dff < -.5
+    plt.plot(np.log(x[l]), dff, "k.")
+    print(N[m])
+    plt.savefig("diff_gp")
 
     print((np.median(np.abs(recovered[l] - x[l]))))
 

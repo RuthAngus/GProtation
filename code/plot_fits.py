@@ -52,13 +52,18 @@ def make_plots(id, RESULTS_DIR="/Users/ruthangus/projects/GProtation/code/" \
     plt.plot(x, y, "k.")
     plt.plot(xs, mu)
     plt.xlim(0, 100)
-    v = np.std(y)
-    plt.ylim(-10*v, 10*v)
+    # v = np.std(y)
+    # plt.ylim(-10*v, 10*v)
     plt.savefig("{}_fit".format(id))
 
-    """ plot corner """
-    fig = corner.corner(df)
-    fig.savefig("{}_corner".format(id))
+    # """ plot corner """
+    # fig = corner.corner(df)
+    # fig.savefig("{}_corner".format(id))
 
 if __name__ == "__main__":
     make_plots(337)
+    make_plots(361)
+    make_plots(892)
+    make_plots(977)
+    make_plots(993)
+    make_plots(996)
