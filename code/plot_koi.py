@@ -45,6 +45,8 @@ def load_and_plot(data):
     plt.plot(xs, xs + 2./3, "--", color=".7", lw=.8, zorder=0)
     plt.plot(xs, xs - 2./3, "--", color=".7", lw=.8, zorder=0)
 
+    print(lnerrp[l])
+    assert 0
     plt.errorbar(np.log(x[l]), np.log(recovered[l]), yerr=[lnerrp[l],
                  lnerrm[l]], xerr=lnxerr[l], fmt="k.", zorder=1, capsize=0,
                  ecolor=".7", alpha=.5, ms=.1, elinewidth=.8)
@@ -60,7 +62,7 @@ def load_and_plot(data):
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.subplots_adjust(bottom=.15)
     plt.savefig("comparison_koi")
-    plt.savefig(os.path.join(FIG_DIR, "comparison_koi_02_03.pdf"))
+    plt.savefig(os.path.join(FIG_DIR, "comparison_koi_01_23.pdf"))
 
     print("MAD = ", np.median(np.abs(np.log(x[l]) - np.log(recovered[l]))))
 
