@@ -22,7 +22,7 @@
 \newcommand{\sagan}{5}
 \newcommand{\princeton}{2}
 
-\newcommand{\response}[1]{{\bf #1}}
+\newcommand{\response}[1]{{#1}}
 \newcommand{\Kepler}{{\it Kepler}}
 \newcommand{\kepler}{\Kepler}
 \newcommand{\corot}{{\it CoRoT}}
@@ -118,7 +118,7 @@ using Gaussian processes}
 \href{mailto:ruthangus@astro.columbia.edu}{ruthangus@astro.columbia.edu}}
     Timothy Morton$^2$,
     Suzanne Aigrain$^3$,
-    Daniel Foreman-Mackey$^4$,
+    Daniel Foreman-Mackey$^4$
     \newauthor
     \& Vinesh Rajpaul$^3$
     \\
@@ -157,8 +157,8 @@ To test the effectiveness of this method, we infer rotation periods from
 We also demonstrate that it works well on real data, by inferring
     rotation periods for \nkoimcq\ \Kepler\ stars with previously measured
     periods.
-    \response{We provide a table of rotation periods for these \nkoi\ \Kepler\ objects of
-    interest and their posterior probability density function samples.}
+    % \response{We provide a table of rotation periods for these \nkoi\ \Kepler\ objects of
+    % interest and their posterior probability density function samples.}
 Because this method delivers posterior probability density functions, it will
     enable hierarchical studies involving stellar rotation, particularly those
     involving population modelling, such as inferring stellar ages,
@@ -1227,37 +1227,38 @@ setting the priors and ranges for the GP hyperparameters.
 % Notably, the GP method recovers periods systematically slightly larger than
 % \citet{Mcquillan2013}---a likely consequence of correcting for the ACF peak
 % measurement bias discussed in Section \ref{sec:acf}.
-\response{The new GP rotation periods calculated for \nkoi\ KOIs are provided in an
-online table accompanying this paper.
-The first few lines of this table is shown below
-(table \ref{tab:koi_periods}).
-Samples of the rotation period posterior PDFs are available online:
-\url{https://doi.org/10.5281/zenodo.804440}}
 
-\begin{table*}
-\begin{center}
-    \caption{Rotation periods and \Kepler\ input catalogue (KIC) properties
-    for the \Kepler\ objects of interest. The full table is available online.}
-\begin{tabular}{lcccc}
-    KOI number & Period (days) & KIC T$_{\mathrm{eff}}$ & KIC $\log(g)$ & KIC
-    $[$Fe$/$H$]$ \\
-    \hline
-    1 & 25$\pm1$ & $5126^{+160}_{-138}$ & $4.61^{+0.03}_{-0.1}$ &
-    $-0.1\pm0.3$ \\
-    2 & 20$\pm1$ & $5850\pm50$ & $4.46\pm0.03$ & $-0.2\pm0.1$ \\
-    3 & 28$\pm1$ & $6350\pm80$ & $4.02\pm0.01$ & $0.26\pm0.08$\\
-    6 & 23$\pm1$ & $6225^{+114}_{-158}$ & $4.17^{+0.06}_{-0.05}$ &
-    $-0.0^{+0.1}_{-0.2}$\\
-    7 & 25$\pm1$ & $5543\pm79 $ & $4.08\pm0.01$ & $0.4\pm0.1$ \\
-    ... & ... & ... & ... & ... \\
-\end{tabular}
-\end{center}
-\end{table*}
-\label{tab:koi_periods}
+% \response{The new GP rotation periods calculated for \nkoi\ KOIs are provided in an
+% online table accompanying this paper.
+% The first few lines of this table is shown below
+% (table \ref{tab:koi_periods}).
+% Samples of the rotation period posterior PDFs are available online:
+% \url{https://doi.org/10.5281/zenodo.804440}}
+
+% \begin{table*}
+% \begin{center}
+%     \caption{Rotation periods and \Kepler\ input catalogue (KIC) properties
+%     for the \Kepler\ objects of interest. The full table is available online.}
+% \begin{tabular}{lcccc}
+%     KOI number & Period (days) & KIC T$_{\mathrm{eff}}$ & KIC $\log(g)$ & KIC
+%     $[$Fe$/$H$]$ \\
+%     \hline
+%     1 & 25$\pm1$ & $5126^{+160}_{-138}$ & $4.61^{+0.03}_{-0.1}$ &
+%     $-0.1\pm0.3$ \\
+%     2 & 20$\pm1$ & $5850\pm50$ & $4.46\pm0.03$ & $-0.2\pm0.1$ \\
+%     3 & 28$\pm1$ & $6350\pm80$ & $4.02\pm0.01$ & $0.26\pm0.08$\\
+%     6 & 23$\pm1$ & $6225^{+114}_{-158}$ & $4.17^{+0.06}_{-0.05}$ &
+%     $-0.0^{+0.1}_{-0.2}$\\
+%     7 & 25$\pm1$ & $5543\pm79 $ & $4.08\pm0.01$ & $0.4\pm0.1$ \\
+%     ... & ... & ... & ... & ... \\
+% \end{tabular}
+% \end{center}
+% \end{table*}
+% \label{tab:koi_periods}
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{figures/comparison_koi_02_03.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_koi_01_23.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
 \citet{Mcquillan2013}.
