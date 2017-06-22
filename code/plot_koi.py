@@ -18,18 +18,20 @@ plt.rcParams.update(plotpar)
 
 def load_and_plot(data):
 
-    recovered, errp, errm, lnerrp, lnerrm = [np.zeros(len(data.koi_id.values))
-                                             for i in range(5)]
+    recovered, errp, errm, lnerrp, lnerrm = [], [], [], [], []
     for i, kid in enumerate(data.koi_id.values):
         fn = os.path.join(RESULTS_DIR, "KOI-{}.h5".format(int(kid)))
         if os.path.exists(fn):
             df = pd.read_hdf(fn, key="samples")
-            ln_p = np.median(df.ln_period.values)
-            recovered[i] = np.exp(ln_p)
-            lnerrp[i] = np.percentile(df.ln_period.values, 84) - ln_p
-            lnerrm[i] = ln_p - np.percentile(df.ln_period.values, 16)
-            errp[i] = np.exp(lnerrp[i]/ln_p)
-            errm[i] = np.exp(lnerrm[i]/ln_p)
+
+            samps = np.exp(df.ln_period.values)
+            recovered[i] = np.median(samps)
+            upper = np.percentile(samps, 84)
+            lower = np.percentile(samps, 16)
+            errp.append(upper - recovered[i])
+            errm.append(recovered[i] - lower)
+
+    errp, errm = np.array(errp), np.array(errm)
 
     x = data.P_rot.values
     xerr = data.P_rot_err.values
@@ -46,23 +48,23 @@ def load_and_plot(data):
     plt.plot(xs, xs - 2./3, "--", color=".7", lw=.8, zorder=0)
 
     print(lnerrp[l])
-    assert 0
     plt.errorbar(np.log(x[l]), np.log(recovered[l]), yerr=[lnerrp[l],
                  lnerrm[l]], xerr=lnxerr[l], fmt="k.", zorder=1, capsize=0,
                  ecolor=".7", alpha=.5, ms=.1, elinewidth=.8)
-    plt.scatter(np.log(x[l]), np.log(recovered[l]), c=np.log(amp[l]),
-                edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
-                vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
+    # plt.scatter(np.log(x[l]), np.log(recovered[l]), c=np.log(amp[l]),
+    #             edgecolor=".5", cmap="GnBu_r", vmin=min(np.log(amp[l])),
+    #             vmax=max(np.log(amp[l])), s=10, zorder=2, lw=.2)
 
     plt.ylim(0, 4)
     plt.xlim(0, 4)
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel("$\ln(\mathrm{R}_{\mathrm{var}})$")
+    # cbar = plt.colorbar()
+    # cbar.ax.set_ylabel("$\ln(\mathrm{R}_{\mathrm{var}})$")
     plt.xlabel("$\ln(\mathrm{McQuillan~{\it et~al.,}~2013~Period})$")
     plt.ylabel("$\ln(\mathrm{Recovered~Period})$")
     plt.subplots_adjust(bottom=.15)
     plt.savefig("comparison_koi")
-    plt.savefig(os.path.join(FIG_DIR, "comparison_koi_01_23.pdf"))
+    # plt.savefig(os.path.join(FIG_DIR, "comparison_koi_01_23.pdf"))
+    plt.savefig("comparison_koi_01_23.pdf")
 
     print("MAD = ", np.median(np.abs(np.log(x[l]) - np.log(recovered[l]))))
 
