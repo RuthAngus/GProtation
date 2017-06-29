@@ -17,7 +17,7 @@ from .filter import sigma_clip, bandpass_filter
 from .plots import tableau20
 from .acf import acf, peakdetect
 
-qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'), 
+qtr_times = pd.read_table(resource_filename('gprot', 'data/qStartStop.txt'),
                           delim_whitespace=True, index_col=0)
 
 class LightCurve(object):
@@ -108,7 +108,7 @@ class LightCurve(object):
 
         if smooth is not None:
             cadence = np.median(np.diff(lags))
-            Nbox = smooth / cadence 
+            Nbox = smooth / cadence
             if Nbox >= 3:
                 ac = convolve(ac, boxcar(Nbox)/float(Nbox), mode='reflect')
 
@@ -211,7 +211,7 @@ class LightCurve(object):
 
                 ax.plot(lags, fn(lags, fit.x[0], fit.x[1], pbest))
 
-            ax.annotate('P={:.2f}\ntau={:.2f}\nQ={:.1f}'.format(pbest, tau, quality), 
+            ax.annotate('P={:.2f}\ntau={:.2f}\nQ={:.1f}'.format(pbest, tau, quality),
                         xy=(0.95,0.95), xycoords='axes fraction', ha='right', va='top')
 
         if plot:
@@ -225,7 +225,7 @@ class LightCurve(object):
 
     def best_sublc(self, ndays, npoints=600, chunksize=300,
                     flat_order=3, **kwargs):
-        """Returns new sub-LightCurve, choosing ndays with maximum RMS variation 
+        """Returns new sub-LightCurve, choosing ndays with maximum RMS variation
         """
         x_full = self.x_full
         y_full = self.y_full
@@ -253,8 +253,8 @@ class LightCurve(object):
             i1 += stepsize
             i2 += stepsize
 
-        x, y, yerr = (x_full[max_i1:max_i2], 
-                      y_full[max_i1:max_i2], 
+        x, y, yerr = (x_full[max_i1:max_i2],
+                      y_full[max_i1:max_i2],
                       self.yerr_full[max_i1:max_i2])
 
         newname = self.name + '_{:.0f}d'.format(ndays)
@@ -262,7 +262,7 @@ class LightCurve(object):
             kwargs['sub'] = window//npoints
 
         return LightCurve(x, y, yerr, chunksize=chunksize,
-                          name=newname, **kwargs)        
+                          name=newname, **kwargs)
 
     def make_best_chunks(self, ndays=[800, 200, 50], seed=None, **kwargs):
         if not hasattr(ndays, '__iter__'):
@@ -332,7 +332,7 @@ class LightCurve(object):
                 return
             chunksize = self.chunksize
         nall = len(self.x)
-        N = len(self.x) // chunksize 
+        N = len(self.x) // chunksize
         # Ensure chunks *no larger* than chunksize.
         if not nall % chunksize == 0:
             N += 1
@@ -426,7 +426,7 @@ class LightCurve(object):
             fig = ax.get_figure()
 
         if self.x_list is not None:
-            ax.set_prop_cycle(cycler('color', tableau20[::2]))            
+            ax.set_prop_cycle(cycler('color', tableau20[::2]))
             for x, y in zip(self.x_list, self.y_list):
                 ax.plot(x, y, **kwargs)
         else:
@@ -479,7 +479,7 @@ class LightCurve(object):
     @x.setter
     def x(self, val):
         self._x = val
-        
+
     @y.setter
     def y(self, val):
         self._y = val

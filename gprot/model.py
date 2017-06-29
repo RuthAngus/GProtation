@@ -33,10 +33,10 @@ class GPRotModel(object):
     """Parameters are A, l, G, sigma, period
     """
     # log bounds
-    _default_bounds = ((-20., 0.), 
-               (2, 20.), 
-               (-10., 3.), 
-               (-20., 0.), 
+    _default_bounds = ((-20., 0.),
+               (2, 20.),
+               (-10., 3.),
+               (-20., 0.),
                (-0.69, 4.61)) # 0.5 - 100d range
 
     param_names = ('ln_A', 'ln_l', 'ln_G', 'ln_sigma', 'ln_period')
@@ -49,8 +49,8 @@ class GPRotModel(object):
     _acf_kwargs = None
 
     def __init__(self, lc, name=None, pmin=None, pmax=None,
-                 acf_prior=False, 
-                 gp_prior_mu=None, gp_prior_sigma=None, 
+                 acf_prior=False,
+                 gp_prior_mu=None, gp_prior_sigma=None,
                  bounds=None):
 
         self.lc = lc
@@ -149,7 +149,7 @@ class GPRotModel(object):
         # p_init = self.plims[1] / 1.5
         # lnpr = lnGauss(theta[4], np.exp(p_init), np.exp(p_init * 0.5))
 
-        lnpr = np.sum(lnGauss(np.array(theta[:-1]), 
+        lnpr = np.sum(lnGauss(np.array(theta[:-1]),
                               self.gp_prior_mu, self.gp_prior_sigma))
 
         lnpr += self.lnprior_period(theta[-1])
@@ -162,7 +162,7 @@ class GPRotModel(object):
         else:
             return lnGauss_mixture(p, self.period_mixture)
 
-    def plot_period_prior(self, ax=None, log=False, truth=None, 
+    def plot_period_prior(self, ax=None, log=False, truth=None,
                           acf_kwargs=None, **kwargs):
         if ax is None:
             fig, ax = plt.subplots(1, 1)
@@ -198,30 +198,30 @@ class GPRotModel(object):
 
         gs1 = gridspec.GridSpec(n/2, 1)
         gs1.update(bottom=0.53, top=0.9, left=0.45, hspace=0)
-        ax1 = plt.subplot(gs1[0,:])
-        axes1 = [ax1] + [plt.subplot(gs1[i,:], sharex=ax1) for i in range(1, n/2)]
-        for ax, pmax in zip(axes1, pmax_list[:n/2]):
-            per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
-            pbest.append(per)
-        ax1.set_xlim(xmin=0)
+        # ax1 = plt.subplot(gs1[0,:])
+        # axes1 = [ax1] + [plt.subplot(gs1[i,:], sharex=ax1) for i in range(1, n/2)]
+        # for ax, pmax in zip(axes1, pmax_list[:n/2]):
+        #     per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
+        #     pbest.append(per)
+        # ax1.set_xlim(xmin=0)
 
         gs2 = gridspec.GridSpec(n - n/2, 1)
         gs2.update(top=0.47, bottom=0.05, left=0.45, hspace=0)
-        ax2 = plt.subplot(gs2[0,:])
-        axes2 = [ax2] + [plt.subplot(gs2[i,:], sharex=ax2) for i in range(1, n - n/2)]
-        for ax, pmax in zip(axes2, pmax_list[n/2:]):
-            per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
-            pbest.append(per)
-        ax2.set_xlim(xmin=0)
-        axes2[-1].set_xlabel('lag [days]')
+        # ax2 = plt.subplot(gs2[0,:])
+        # axes2 = [ax2] + [plt.subplot(gs2[i,:], sharex=ax2) for i in range(1, n - n/2)]
+        # for ax, pmax in zip(axes2, pmax_list[n/2:]):
+        #     per, _, _, _, _ = self.lc.acf_prot(pmax=pmax, ax=ax, **acf_kwargs)
+        #     pbest.append(per)
+        # ax2.set_xlim(xmin=0)
+        # axes2[-1].set_xlabel('lag [days]')
 
         gs3 = gridspec.GridSpec(1,1)
         gs3.update(right=0.4, left=0.05, top=0.9, bottom=0.05)
-        ax3 = plt.subplot(gs3[0,0])
-        self.plot_period_prior(ax=ax3, acf_kwargs=acf_kwargs);
-        ax3.set_title(self.name, size=24, loc='left')
-        
-        [ax3.axvline(np.log(p), color='r', alpha=0.1) for p in pbest]
+        # ax3 = plt.subplot(gs3[0,0])
+        # self.plot_period_prior(ax=ax3, acf_kwargs=acf_kwargs);
+        # ax3.set_title(self.name, size=24, loc='left')
+
+        # [ax3.axvline(np.log(p), color='r', alpha=0.1) for p in pbest]
 
         return fig
 
@@ -331,7 +331,7 @@ class GPRotModel(object):
         G = np.exp(theta[2])
         sigma = np.exp(theta[3])
         P = np.exp(theta[4])
-        return A * ExpSquaredKernel(l) * ExpSine2Kernel(G, P) + WhiteKernel(sigma)        
+        return A * ExpSquaredKernel(l) * ExpSine2Kernel(G, P) + WhiteKernel(sigma)
 
     def gp(self, theta, x=None, yerr=None):
         if x is None:
@@ -398,9 +398,9 @@ class GPRotModel(object):
 class GPRotModel2(GPRotModel):
     """ Playing with model a bit...
     """
-    _bounds = ((-20., 0.), 
-               (-0.69, 20.), 
-               (-20., 5.), 
+    _bounds = ((-20., 0.),
+               (-0.69, 20.),
+               (-20., 5.),
                (-0.69, 4.61)) # 0.5 - 100d range
 
     param_names = ('ln_A', 'ln_l', 'ln_sigma', 'ln_period')
@@ -413,4 +413,4 @@ class GPRotModel2(GPRotModel):
         l = np.exp(theta[1])
         sigma = np.exp(theta[2])
         P = np.exp(theta[3])
-        return A * ExpSquaredKernel(l) * CosineKernel(P) + WhiteKernel(sigma)        
+        return A * ExpSquaredKernel(l) * CosineKernel(P) + WhiteKernel(sigma)
