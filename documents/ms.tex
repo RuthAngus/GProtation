@@ -157,8 +157,9 @@ To test the effectiveness of this method, we infer rotation periods from
 We also demonstrate that it works well on real data, by inferring
     rotation periods for \nkoimcq\ \Kepler\ stars with previously measured
     periods.
-    \response{We provide a table of rotation periods for these \nkoi\ \Kepler\ objects of
-    interest and their posterior probability density function samples.}
+    \response{We provide a table of rotation periods for these and many
+    more, altogether \nkoi \Kepler\ objects of interest and their posterior
+    probability density function samples.}
 Because this method delivers posterior probability density functions, it will
     enable hierarchical studies involving stellar rotation, particularly those
     involving population modelling, such as inferring stellar ages,
@@ -383,7 +384,7 @@ importantly provides a justified uncertainty estimate.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{koi_lc_demo.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/koi_lc_demo.pdf}
 \caption[A light curve with a GP model.]
 {Light curve of KIC \kepexample, an active star with a rotation period of
 $\sim$ \kepexampleperiod\ days.
@@ -422,7 +423,10 @@ Hierarchical inference allows you to marginalise over individual rotation
 periods and infer age distribution parameters directly from the light curves.
 Probabilistic rotation period inference is highly relevant to a large number
 of galactic archaeology and exoplanet population studies which require
-rotation period (or age) distributions.}
+rotation period (or age) distributions.
+It is important to note however that gyrochronology may have limited
+applicability for galactic field stars: growing evidence points to weakened
+magnetic braking at late ages \citep{Angus2015, vanSaders2016}.}
 
 This paper is laid out as follows.
 The GP method is described in \textsection \ref{sec:method}.
@@ -777,8 +781,8 @@ period of \aigrainexampleperiod days.
 
 \begin{table*}
 \begin{center}
-\caption{Ranges and distributions of parameters used to simulate light curves
-in \citet{Aigrain2015}}
+\caption{\label{tab:simulation_parameters} Ranges and distributions of
+    parameters used to simulate light curves in \citet{Aigrain2015}}
 \begin{tabular}{lcc}
 \hline\hline
     Parameter & Range & Distribution \\
@@ -792,11 +796,10 @@ in \citet{Aigrain2015}}
 \end{tabular}
 \end{center}
 \end{table*}
-\label{tab:simulation_parameters}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{period_hist.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/period_hist.pdf}
 \caption{A histogram of the rotation periods used to generate the \naigrain\
 simulated light curves in \citet{Aigrain2015}.}
 \label{fig:period_hist}
@@ -805,7 +808,7 @@ simulated light curves in \citet{Aigrain2015}.}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{demo_lc.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_lc.pdf}
 \caption[A simulated light curve.]
 {An example simulated light curve. This `star' has a rotation period of
 \aigrainexampleperiod\ days.}
@@ -819,7 +822,7 @@ simulated light curves in \citet{Aigrain2015}.}
 
 We apply the QP-GP inference method described in Section \ref{sec:method}
 to each of these 333 simulated light curves.  As discussed in Section
-\ref{sec:nonperiod_prior}, reliable inference
+\ref{sec:GP_prior}, reliable inference
 requires defining a useful set of priors on the non-period
 hyperparameters.
 For this simulation dataset, we determined these by first running
@@ -870,8 +873,8 @@ figure \ref{fig:gp_posteriors}.
 
 \begin{table*}
 \begin{center}
-\caption{Priors and bounds on the natural logarithms of the GP model
-    parameters.}
+\caption{\label{tab:priors} Priors and bounds on the natural logarithms of
+    the GP model parameters.}
 \begin{tabular}{lcc}
 Parameter & Prior & Bounds\\
     \hline
@@ -883,12 +886,11 @@ Parameter & Prior & Bounds\\
 \end{tabular}
 \end{center}
 \end{table*}
-\label{tab:priors}
 
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{comparison_acfprior_03_10.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_03_10.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with an informed, ACF-based prior.
@@ -907,7 +909,7 @@ The ACF-informed prior on rotation period used to generate these results is
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{comparison_noprior_02_13.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_13.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with an uninformative prior.
@@ -927,7 +929,7 @@ An uninformative prior, flat in the natural log of the rotation period between
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{corner_plot.pdf}
+\includegraphics[width=6in, clip=true]{figures/corner_plot.pdf}
 \caption{Marginal posterior PDFs of the QP GP model parameters, fit to the
     simulated light curve in figure \ref{fig:demo_lc}.
     The blue line in the period panel shows the injected period.
@@ -957,7 +959,7 @@ An uninformative prior, flat in the natural log of the rotation period between
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{demo_ACF.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_ACF.pdf}
 \caption[ACF of a simulated light curve.]
 {An autocorrelation function of the simulated light curve shown in figure
 \ref{fig:demo_lc}.
@@ -1038,7 +1040,7 @@ method results is \gpRMS\ days.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{compare_acf.pdf}
+\includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
 \caption[ACF results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using the ACF technique.
@@ -1135,7 +1137,7 @@ MAD of \oldpercentpgramMAD.}
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{compare_pgram.pdf}
-\includegraphics[width=6in, clip=true]{compare_pgram_filtered_35.pdf}
+\includegraphics[width=6in, clip=true]{figures/compare_pgram_filtered_35.pdf}
 \caption[LS periodogram results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using a LS periodogram technique.
@@ -1150,10 +1152,9 @@ In many cases a large peak at a long period was present in the periodogram,
 
 \begin{table*}
 \begin{center}
-    \caption{Median absolute (MAD), median relative (MRD) deviations and
-    root-mean-squared (RMS) for
-    the LS periodogram, \citet{Mcquillan2013} ACF and GP period recovery
-    methods.}
+    \caption{\label{tab:MADs} Median absolute (MAD), median relative (MRD)
+    deviations and root-mean-squared (RMS) for the LS periodogram,
+    \citet{Mcquillan2013} ACF and GP period recovery methods.}
 \begin{tabular}{lcccc}
     Method & MAD & MRD & RMS \\
     \hline
@@ -1166,7 +1167,6 @@ In many cases a large peak at a long period was present in the periodogram,
 \end{tabular}
 \end{center}
 \end{table*}
-\label{tab:MADs}
 
 \section{Real \kepler\ data}
 \label{sec:kepler}
@@ -1202,8 +1202,8 @@ interest are available online:
 
 \begin{table*}
 \begin{center}
-\caption{Priors and bounds on the natural logarithms of the GP model parameters,
-        for \Kepler\ light curves}
+\caption{\label{tab:koipriors} Priors and bounds on the natural logarithms of
+    the GP model parameters, for \Kepler\ light curves}
 \begin{tabular}{lcc}
 Parameter & Prior & Bounds\\
     \hline
@@ -1215,7 +1215,6 @@ Parameter & Prior & Bounds\\
 \end{tabular}
 \end{center}
 \end{table*}
-\label{tab:koipriors}
 
 Figure \ref{fig:mcquillan} compares the periods inferred with the GP method to
 the ACF-based periods from \citet{Mcquillan2013} for the \nkoimcq\ overlapping
@@ -1257,7 +1256,7 @@ Samples of the rotation period posterior PDFs are available online:
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{comparison_koi_01_23.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_koi_01_23.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
 \citet{Mcquillan2013}.
@@ -1271,12 +1270,22 @@ The data points are coloured by the range of variability measured by
 \section{Discussion}
 \label{sec:discussion}
 
-\response{The majority of long period outliers seen in the periodogram comparison
-figure (figure \ref{fig:pgram_compare}) are produced when the rotation period
-signal is highly non-sinusoidal.
+\response{Apon examining the light curves that produce incorrect, long period
+measurements seen in the periodogram comparison figure (figure
+\ref{fig:pgram_compare}), it appears that the majority of these
+overpredictions are produced when the rotation period signal is highly
+non-sinusoidal.
+In these cases the peak corresponding to the true period has a reduced
+amplitude and is not the highest peak in the periodogram.
 This can be understood intuitively as the LS periodogram fits a series of sine
 waves to the data; if the data are not sinusoidal, a sine wave will not
 produce a good fit.
+There may be ways to further improve the precision of the periodogram method,
+for example modelling the detailed shapes of peaks in the periodogram instead
+of adopting the point closest to the derivative zero-point.
+We consider it likely that such alterations would produce only slight changes
+to the results, for example because peaks in the LS periodograms of Kepler
+light curves are usually narrow.
 It is difficult to assess the reason for the ACF incorrect recoveries because
 we do not have the individual ACFs computed by the \citet{Aigrain2015} Tel
 Aviv team, however it seems that the ACF method is more sensitive than the LS
@@ -1326,7 +1335,7 @@ light curve.
 It can describe a wide range of quasi-periodic behavior and is
 relatively simple, with only a few hyperparameters.
 Nevertheless, it is still a somewhat arbitrary choice.
-Another valid choice would be a squared cosine function multiplied by a
+Another valid choice would be a cosine function multiplied by a
 squared exponential, used by \citet{Brewer2009} to model asteroseismic
 pulsations,
 \begin{equation}
