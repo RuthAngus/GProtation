@@ -24,6 +24,7 @@ class Emcee3Model(emcee3.Model):
 def write_samples(mod, df, resultsdir='results', true_period=None):
     """df is dataframe of samples, mod is model
     """
+    print("writing samples")
 
     if not os.path.exists(resultsdir):
         os.makedirs(resultsdir)
@@ -41,7 +42,7 @@ def write_samples(mod, df, resultsdir='results', true_period=None):
     figfile = os.path.join(resultsdir, '{}.png'.format(mod.name))
     try:
         if true_period is None:
-            true_period = (np.log(mod.lc.sim_params.P_MIN), 
+            true_period = (np.log(mod.lc.sim_params.P_MIN),
                            np.log(mod.lc.sim_params.P_MAX))
     except AttributeError:
         pass
@@ -53,7 +54,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
                 iter_chunksize=10, pool=None, overwrite=False,
                 maxiter=100, sample_directory='mcmc_chains',
                 nburn=3, mixedmoves=True, resultsdir='results', **kwargs):
-    """fit model using Emcee3 
+    """fit model using Emcee3
 
     modeled after https://github.com/dfm/gaia-kepler/blob/master/fit.py
 
@@ -104,7 +105,7 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
         neff = s.backend.niter / tau_max - nburn
         if verbose:
             print("Maximum autocorrelation time: {0}".format(tau_max))
-            print("N_eff: {0}\n".format(neff * nwalkers))            
+            print("N_eff: {0}\n".format(neff * nwalkers))
         return tau_max, neff
 
     done = False
@@ -147,11 +148,11 @@ def fit_emcee3(mod, nwalkers=500, verbose=False, nsamples=5000, targetn=6,
 
     df = pd.DataFrame(samples, columns=mod.param_names)
     write_samples(mod, df, resultsdir=resultsdir)
-    
+
     return df
     # return sampler
 
-def fit_mnest(mod, basename=None, test=False, 
+def fit_mnest(mod, basename=None, test=False,
                 verbose=False, resultsdir='results', overwrite=False, **kwargs):
     import pymultinest
 
@@ -163,14 +164,14 @@ def fit_mnest(mod, basename=None, test=False,
     if test:
         print('Will run multinest on star {}..., basename={}'.format(i, basename))
     else:
-        _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5, 
-                            verbose=verbose, outputfiles_basename=basename, 
+        _ = pymultinest.run(mod.mnest_loglike, mod.mnest_prior, 5,
+                            verbose=verbose, outputfiles_basename=basename,
                             **kwargs)
 
         if not os.path.exists(resultsdir):
             os.makedirs(resultsdir)
 
         df = GPRotModel.get_mnest_samples(basename)
-        
+
         write_samples(mod, df)
         return df
