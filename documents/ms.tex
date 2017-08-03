@@ -16,6 +16,18 @@
 \usepackage{ae,aecompl}
 \usepackage{newtxtext,newtxmath}
 
+% Figure list:
+% koi_lc_demo.pdf
+% period_hist.pdf
+% demo_lc.pdf
+% comparison_acfprior_03_10.pdf
+% comparison_noprior_02_13.pdf
+% corner_plot.pdf
+% demo_ACF.pdf
+% compare_acf.pdf
+% compare_pgram_filtered_35.pdf
+% comparison_koi_01_23.pdf
+
 \newcommand{\columbia}{1}
 \newcommand{\oxford}{3}
 \newcommand{\uw}{4}
@@ -384,11 +396,11 @@ importantly provides a justified uncertainty estimate.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{koi_lc_demo.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/koi_lc_demo.pdf}
 \caption[A light curve with a GP model.]
 {Light curve of KIC \kepexample, an active star with a rotation period of
 $\sim$ \kepexampleperiod\ days.
-The blue line shows a fit to the data using a Gaussian process model with a QP
+The solid line shows a fit to the data using a Gaussian process model with a QP
 covariance kernel function.}
 \label{fig:GP_example}
 \end{center}
@@ -799,7 +811,7 @@ period of \aigrainexampleperiod days.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{period_hist.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/period_hist.pdf}
 \caption{A histogram of the rotation periods used to generate the \naigrain\
 simulated light curves in \citet{Aigrain2015}.}
 \label{fig:period_hist}
@@ -808,7 +820,7 @@ simulated light curves in \citet{Aigrain2015}.}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{demo_lc.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_lc.pdf}
 \caption[A simulated light curve.]
 {An example simulated light curve. This `star' has a rotation period of
 \aigrainexampleperiod\ days.}
@@ -890,7 +902,7 @@ Parameter & Prior & Bounds\\
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{compare_mcmc.pdf}
-\includegraphics[width=6in, clip=true]{comparison_acfprior_03_10.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_acfprior_03_10.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with an informed, ACF-based prior.
@@ -909,7 +921,7 @@ The ACF-informed prior on rotation period used to generate these results is
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{comparison_noprior_02_13.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_noprior_02_13.pdf}
 \caption{The `true' rotation periods used to generate \naigrain\
 simulated light curves vs the rotation periods measured using the GP
 technique with an uninformative prior.
@@ -929,10 +941,10 @@ An uninformative prior, flat in the natural log of the rotation period between
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{corner_plot.pdf}
+\includegraphics[width=6in, clip=true]{figures/corner_plot.pdf}
 \caption{Marginal posterior PDFs of the QP GP model parameters, fit to the
     simulated light curve in figure \ref{fig:demo_lc}.
-    The blue line in the period panel shows the injected period.
+    The solid line in the period panel shows the injected period.
     This figure was made using \texttt{corner.py} \citep{Corner}.}
 \label{fig:gp_posteriors}
 \end{center}
@@ -959,11 +971,11 @@ An uninformative prior, flat in the natural log of the rotation period between
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\columnwidth, clip=true]{demo_ACF.pdf}
+\includegraphics[width=\columnwidth, clip=true]{figures/demo_ACF.pdf}
 \caption[ACF of a simulated light curve.]
 {An autocorrelation function of the simulated light curve shown in figure
 \ref{fig:demo_lc}.
-The vertical blue line shows the period measured using the ACF method (20.4
+The vertical solid blue line shows the period measured using the ACF method (20.4
 days) and the pink dashed line shows the period that was used to simulate the
 light curve (\aigrainexampleperiod\ days).}
 \label{fig:demo_acf}
@@ -1040,7 +1052,7 @@ method results is \gpRMS\ days.
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{compare_acf.pdf}
+\includegraphics[width=6in, clip=true]{figures/compare_acf.pdf}
 \caption[ACF results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using the ACF technique.
@@ -1137,7 +1149,7 @@ MAD of \oldpercentpgramMAD.}
 \begin{figure*}
 \begin{center}
 % \includegraphics[width=6in, clip=true]{compare_pgram.pdf}
-\includegraphics[width=6in, clip=true]{compare_pgram_filtered_35.pdf}
+\includegraphics[width=6in, clip=true]{figures/compare_pgram_filtered_35.pdf}
 \caption[LS periodogram results.]
 {The `true' rotation periods used to generate \naigrain\ simulated light
 curves vs the rotation periods measured using a LS periodogram technique.
@@ -1228,41 +1240,39 @@ setting the priors and ranges for the GP hyperparameters.
 % measurement bias discussed in Section \ref{sec:acf}.
 \response{The new GP rotation periods calculated for \nkoi\ KOIs are provided in an
 online table accompanying this paper.
-% The first few lines of this table is shown below
-% (table \ref{tab:koi_periods}).
+The first few lines of this table is shown below
+(table \ref{tab:koi_periods}).
 Samples of the rotation period posterior PDFs are available online:
 \url{https://doi.org/10.5281/zenodo.804440}}
 
-% \begin{table*}
-% \begin{center}
-%     \caption{Rotation periods and \Kepler\ input catalogue (KIC) properties
-%     for the \Kepler\ objects of interest. The full table is available online.}
-% \begin{tabular}{lcccc}
-%     KOI number & Period (days) & KIC T$_{\mathrm{eff}}$ & KIC $\log(g)$ & KIC
-%     $[$Fe$/$H$]$ \\
-%     \hline
-%     1 & 25$\pm1$ & $5126^{+160}_{-138}$ & $4.61^{+0.03}_{-0.1}$ &
-%     $-0.1\pm0.3$ \\
-%     2 & 20$\pm1$ & $5850\pm50$ & $4.46\pm0.03$ & $-0.2\pm0.1$ \\
-%     3 & 28$\pm1$ & $6350\pm80$ & $4.02\pm0.01$ & $0.26\pm0.08$\\
-%     6 & 23$\pm1$ & $6225^{+114}_{-158}$ & $4.17^{+0.06}_{-0.05}$ &
-%     $-0.0^{+0.1}_{-0.2}$\\
-%     7 & 25$\pm1$ & $5543\pm79 $ & $4.08\pm0.01$ & $0.4\pm0.1$ \\
-%     ... & ... & ... & ... & ... \\
-% \end{tabular}
-% \end{center}
-% \end{table*}
-% \label{tab:koi_periods}
+\begin{table*}
+\begin{center}
+    \caption{Rotation periods and \Kepler\ input catalogue (KIC) properties
+    for the \Kepler\ objects of interest. The full table is available online.}
+\begin{tabular}{lcccc}
+    KOI number & Period (days) & KIC T$_{\mathrm{eff}} (K)$ & KIC $\log(g)$ &
+    KIC $[$Fe$/$H$]$ \\
+    \hline
+1 & 25$^{+23}_{-6}$ & $5126^{+160}_{-138}$ & $4.61^{+0.03}_{-0.11}$ & $-0.12\pm0.3$\\
+2 & 20$\pm4$ & $5850\pm50$ & $4.46\pm0.03$ & $-0.15\pm0.1$\\
+3 & 28$^{+3}_{-0.2}$ & $6350\pm80$ & $4.02\pm0.01$ & $0.26\pm0.08$\\
+6 & 23$^{+3}_{-15}$ & $6225^{+114}_{-158}$ & $4.17^{+0.06}_{-0.05}$ & $-0.04^{+0.1}_{-0.2}$\\
+7 & 25$\pm2$ & $5543\pm79$ & $4.08\pm0.01$ & $0.44\pm0.1$\\
+    ... & ... & ... & ... & ... \\
+\end{tabular}
+\end{center}
+\end{table*}
+\label{tab:koi_periods}
 
 \begin{figure*}
 \begin{center}
-\includegraphics[width=6in, clip=true]{comparison_koi_01_23.pdf}
+\includegraphics[width=6in, clip=true]{figures/comparison_koi_01_23.pdf}
 \caption[Comparison with McQuillan results.]
 {A comparison of our GP rotation period measurements to those of
 \citet{Mcquillan2013}.
 The data points are coloured by the range of variability measured by
     \citet{Mcquillan2013}, defined as the interval between the 5th and 95th
-    percentiles of normalised flux per period bin in millimagnitudes.}
+    percentiles of normalized flux per period bin in millimagnitudes.}
 \label{fig:mcquillan}
 \end{center}
 \end{figure*}
@@ -1544,6 +1554,7 @@ Science via grant NNX09AF08G and by other grants and contracts.
 This paper includes data collected by the Kepler mission. Funding for the
 \Kepler\ mission is provided by the NASA Science Mission directorate.
 
-\bibliographystyle{plainnat}
+% \bibliographystyle{plainnat}
+\bibliographystyle{hapj}
 \bibliography{GProtation}
 \end{document}

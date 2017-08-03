@@ -63,11 +63,9 @@ def get_kic_properties(kois):
 def make_tex_table(kois, p, errp, errm, teff, teff_errp, teff_errm, logg,
                    logg_errp, logg_errm, feh, feh_errp, feh_errm):
     with open("period_table.tex", "w") as f:
-        f.write("KOI & period (days) \\\ \n")
-        f.write("\\hline \n")
         for i, koi in enumerate(kois[:10]):
-            f.write("{0} & {1:.2f}$^{{+{2:.1g}}}_{{-{3:.1g}}}$ & "
-                    "${4}^{{+{5}}}_{{{6}}}$ & ${7:.2f}^{{+{8:.2g}}}_{{{9:.2f}}}$ & "
+            f.write("{0} & {1:.0f}$^{{+{2:.1f}}}_{{-{3:.1f}}}$ & "
+                    "${4}^{{+{5}}}_{{{6}}}$ & ${7:.2f}^{{+{8:.2f}}}_{{{9:.2f}}}$ & "
                     "${10}^{{+{11:.1g}}}_{{{12:.1g}}}$"
                     "\\\ \n"
                     .format(koi, p[i], errp[i], errm[i], int(teff[i]),
