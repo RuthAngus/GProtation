@@ -1,6 +1,10 @@
 # GProtation
 Measuring stellar rotation periods with Gaussian processes
 
+This code is no longer being maintained. If you're interested in measuring rotation periods with Gaussian processes, I 
+recommend using [celerite](https://celerite.readthedocs.io/en/latest/?badge=latest) or 
+[exoplanet](https://exoplanet.readthedocs.io/en/stable/).
+
 Installation
 ----------
 
